@@ -2,6 +2,8 @@ package iso27001
 
 import (
 	"context"
+	"log/slog"
+	"os"
 	"testing"
 
 	"github.com/shift/enrichment-engine/pkg/storage"
@@ -89,7 +91,10 @@ func TestEmbeddedControls(t *testing.T) {
 
 func TestProviderWriteEmbeddedControls(t *testing.T) {
 	backend := &mockBackend{}
-	p := &Provider{store: backend}
+	p := &Provider{
+		store:  backend,
+		logger: slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelWarn})),
+	}
 
 	count, err := p.writeEmbeddedControls(context.Background())
 	if err != nil {
