@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/shift/enrichment-engine/pkg/grc"
@@ -20,7 +21,10 @@ const (
 	CatalogURL  = "https://www.bsi.bund.de/SharedDocs/Downloads/DE/BSI/Grundschutz/IT-GS-Kompendium/XML_Kompendium_2023.xml?__blob=publicationFile&v=4"
 )
 
-// Provider fetches and parses BSI IT-Grundschutz controls from XML.
+// DocBook XML namespace
+const docbookNS = "http://docbook.org/ns/docbook"
+
+// Provider fetches and parses BSI IT-Grundschutz controls from DocBook XML.
 type Provider struct {
 	store  storage.Backend
 	logger *slog.Logger
@@ -41,7 +45,7 @@ func (p *Provider) Name() string {
 
 // Run fetches the BSI catalog, parses controls, and writes them to storage.
 func (p *Provider) Run(ctx context.Context) (int, error) {
-	p.logger.Info("fetching BSI IT-Grundschutz catalog (XML)", "url", CatalogURL)
+	p.logger.Info("fetching BSI IT-Grundschutz catalog (DocBook XML)", "url", CatalogURL)
 
 	destPath := filepath.Join(os.TempDir(), "bsi_grundschutz_catalog.xml")
 	if err := p.download(ctx, CatalogURL, destPath); err != nil {
@@ -96,43 +100,11 @@ func (p *Provider) download(ctx context.Context, url, dest string) error {
 	return err
 }
 
-// bsiCatalog is the top-level BSI IT-Grundschutz XML structure.
-type bsiCatalog struct {
-	XMLName xml.Name    `xml:"it-grundschutz"`
-	Groups  []bsiGroup  `xml:"gruppe"`
-	Modules []bsiModule `xml:"baustein"`
-}
-
-type bsiGroup struct {
-	XMLName     xml.Name     `xml:"gruppe"`
-	ID          string       `xml:"id,attr"`
-	Name        string       `xml:name`
-	Title       string       `xml:title`
-	Description string       `xml:beschreibung`
-	Controls    []bsiControl `xml:"massnahme"`
-	SubGroups   []bsiGroup   `xml:"gruppe"`
-}
-
-type bsiModule struct {
-	XMLName     xml.Name     `xml:"baustein"`
-	ID          string       `xml:"id,attr"`
-	Name        string       `xml:name`
-	Title       string       `xml:title`
-	Description string       `xml:beschreibung`
-	Controls    []bsiControl `xml:"massnahme"`
-}
-
-type bsiControl struct {
-	XMLName     xml.Name `xml:"massnahme"`
-	ID          string   `xml:"id,attr"`
-	Name        string   `xml:name`
-	Title       string   `xml:title`
-	Description string   `xml:beschreibung`
-	Level       string   `xml:"stufe"`
-	Class       string   `xml:"klasse"`
-	Typ         string   `xml:"typ"`
-	Content     string   `xml:"inhalt"`
-}
+// Control title pattern: "CON.1 Kryptokonzept" or "CON.1.A1 Description (B) [Role]"
+var (
+	modulePattern  = regexp.MustCompile(`^([A-Z]+\.\d+(?:\.\d+)?)\s+(.+)$`)
+	controlPattern = regexp.MustCompile(`^([A-Z]+\.\d+(?:\.\d+)?(?:\.[A-Z]\d+)?)\s+(.+?)\s*\(([BSH])\)\s*(?:\[(.+?)\])?$`)
+)
 
 func (p *Provider) parse(path string) ([]grc.Control, error) {
 	f, err := os.Open(path)
@@ -146,105 +118,71 @@ func (p *Provider) parse(path string) ([]grc.Control, error) {
 		return nil, fmt.Errorf("read catalog: %w", err)
 	}
 
-	var catalog bsiCatalog
-	if err := xml.Unmarshal(data, &catalog); err != nil {
-		return nil, fmt.Errorf("decode BSI XML catalog: %w", err)
+	var book docbookBook
+	if err := xml.Unmarshal(data, &book); err != nil {
+		return nil, fmt.Errorf("decode BSI DocBook XML: %w", err)
 	}
 
 	var controls []grc.Control
+	var currentModule string
+	var currentModuleTitle string
 
-	for _, group := range catalog.Groups {
-		controls = append(controls, p.extractControls(group)...)
-	}
-	for _, module := range catalog.Modules {
-		controls = append(controls, p.extractModuleControls(module)...)
+	for _, chapter := range book.Chapters {
+		for _, section := range chapter.Sections {
+			for _, subSection := range section.Sections {
+				for _, title := range subSection.Titles {
+					if match := modulePattern.FindStringSubmatch(title); match != nil {
+						currentModule = match[1]
+						currentModuleTitle = match[2]
+					} else if match := controlPattern.FindStringSubmatch(title); match != nil {
+						controlID := match[1]
+						description := match[2]
+						level := p.mapLevel(match[3])
+
+						ctrl := grc.Control{
+							Framework:   FrameworkID,
+							ControlID:   controlID,
+							Title:       description,
+							Family:      currentModuleTitle,
+							Description: fmt.Sprintf("%s: %s", currentModule, description),
+							Level:       level,
+						}
+						controls = append(controls, ctrl)
+					}
+				}
+			}
+		}
 	}
 
 	return controls, nil
 }
 
-func (p *Provider) extractControls(group bsiGroup) []grc.Control {
-	var controls []grc.Control
-
-	for _, ctrl := range group.Controls {
-		control := p.buildControl(ctrl, group.ID, group.Title)
-		controls = append(controls, control)
-	}
-
-	for _, subGroup := range group.SubGroups {
-		controls = append(controls, p.extractControls(subGroup)...)
-	}
-
-	return controls
-}
-
-func (p *Provider) extractModuleControls(module bsiModule) []grc.Control {
-	var controls []grc.Control
-
-	for _, ctrl := range module.Controls {
-		control := p.buildControl(ctrl, module.ID, module.Title)
-		controls = append(controls, control)
-	}
-
-	return controls
-}
-
-func (p *Provider) buildControl(ctrl bsiControl, moduleID, moduleTitle string) grc.Control {
-	controlID := ctrl.ID
-	if controlID == "" {
-		controlID = ctrl.Name
-	}
-
-	title := ctrl.Title
-	if title == "" {
-		title = ctrl.Name
-	}
-
-	description := ctrl.Description
-	if description == "" {
-		description = ctrl.Content
-	}
-
-	level := p.mapLevel(ctrl.Level, ctrl.Class, ctrl.Typ)
-
-	return grc.Control{
-		Framework:   FrameworkID,
-		ControlID:   fmt.Sprintf("%s.%s", moduleID, controlID),
-		Title:       title,
-		Family:      moduleTitle,
-		Description: description,
-		Level:       level,
+func (p *Provider) mapLevel(level string) string {
+	switch strings.ToUpper(level) {
+	case "H":
+		return "high"
+	case "S":
+		return "standard"
+	case "B":
+		return "basic"
+	default:
+		return "standard"
 	}
 }
 
-func (p *Provider) mapLevel(level, class, typ string) string {
-	lower := strings.ToLower
-	switch lower(level) {
-	case "high", "hoch", "kritisch":
-		return "high"
-	case "standard", "standardniveau":
-		return "standard"
-	case "basic", "basis":
-		return "basic"
-	}
+// DocBook XML structures
+type docbookBook struct {
+	XMLName  xml.Name         `xml:"http://docbook.org/ns/docbook book"`
+	Chapters []docbookChapter `xml:"http://docbook.org/ns/docbook chapter"`
+}
 
-	switch lower(class) {
-	case "high", "hoch":
-		return "high"
-	case "standard":
-		return "standard"
-	case "basic", "basis":
-		return "basic"
-	}
+type docbookChapter struct {
+	XMLName  xml.Name         `xml:"http://docbook.org/ns/docbook chapter"`
+	Sections []docbookSection `xml:"http://docbook.org/ns/docbook section"`
+}
 
-	switch lower(typ) {
-	case "high", "hoch":
-		return "high"
-	case "standard":
-		return "standard"
-	case "basic", "basis":
-		return "basic"
-	}
-
-	return "standard"
+type docbookSection struct {
+	XMLName  xml.Name         `xml:"http://docbook.org/ns/docbook section"`
+	Sections []docbookSection `xml:"http://docbook.org/ns/docbook section"`
+	Titles   []string         `xml:"http://docbook.org/ns/docbook title"`
 }

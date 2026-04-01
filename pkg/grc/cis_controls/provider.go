@@ -18,7 +18,7 @@ import (
 
 const (
 	FrameworkID = "CIS_Controls_v8"
-	CatalogURL  = "https://raw.githubusercontent.com/CISecurity/CIS-Controls/main/cis_controls_v8.json"
+	CatalogURL  = "https://bitbucket.org/cis-it-workspace/cis-controls-v8.1_oscal/raw/75ec5f4f79f103a74420e2b93553ce429160a92c/src/catalogs/json/cis-controls-v8.1_catalog.json"
 )
 
 //go:embed cis_controls_v8.json
