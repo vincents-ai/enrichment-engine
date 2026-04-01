@@ -1,0 +1,64 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "GRC Control",
+  "type": "object",
+  "required": ["Framework", "ControlID", "Title"],
+  "properties": {
+    "Framework": {
+      "type": "string",
+      "description": "The compliance framework identifier (e.g., NIST_800_53_r5, ISO27001_2022, BSI_IT_Grundschutz)"
+    },
+    "ControlID": {
+      "type": "string",
+      "description": "The unique control identifier within the framework (e.g., AC-2, A.5.1, SYS.1.1)"
+    },
+    "Title": {
+      "type": "string",
+      "description": "Human-readable title of the control"
+    },
+    "Family": {
+      "type": "string",
+      "description": "The control family or domain (e.g., Access Control, Risk Management)"
+    },
+    "Description": {
+      "type": "string",
+      "description": "Detailed description of the control requirements"
+    },
+    "Level": {
+      "type": "string",
+      "enum": ["basic", "standard", "high", "critical"],
+      "description": "Implementation level or criticality"
+    },
+    "RelatedCWEs": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Related Common Weakness Enumeration IDs"
+    },
+    "RelatedCVEs": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Related Common Vulnerabilities and Exposures IDs"
+    },
+    "References": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "source": { "type": "string" },
+          "url": { "type": "string" },
+          "section": { "type": "string" }
+        }
+      },
+      "description": "External references and citations"
+    },
+    "ImplementationGuidance": {
+      "type": "string",
+      "description": "Technical guidance for implementing the control"
+    },
+    "AssessmentMethods": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Methods to assess control compliance (e.g., examine, test, interview)"
+    }
+  }
+}
