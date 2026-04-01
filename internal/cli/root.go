@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/shift/enrichment-engine/pkg/enricher"
-	"github.com/shift/enrichment-engine/pkg/schema"
+	grcbuiltin "github.com/shift/enrichment-engine/pkg/grc/builtin"
 	"github.com/shift/enrichment-engine/pkg/storage"
 	"github.com/spf13/cobra"
 )
@@ -43,6 +43,7 @@ func New() *cobra.Command {
 	root.PersistentFlags().StringVarP(&logLevel, "log-level", "l", "info", "Log level (debug, info, warn, error)")
 
 	root.AddCommand(runCmd())
+	root.AddCommand(providersCmd())
 	root.AddCommand(statusCmd())
 	root.AddCommand(versionCmd())
 
@@ -52,53 +53,112 @@ func New() *cobra.Command {
 func runCmd() *cobra.Command {
 	var all bool
 	var providers []string
+	var skipMapping bool
 
 	cmd := &cobra.Command{
 		Use:   "run [provider...]",
 		Short: "Run GRC providers and enrichment pipeline",
+		Long: `Run GRC control providers and the enrichment pipeline.
+
+By default, runs all registered providers followed by CWE/CPE mapping.
+Use --provider to run specific providers, or --skip-mapping to only populate controls.`,
+		Example: `  enrich run --all
+  enrich run --all --skip-mapping
+  enrich run --provider hipaa --provider gdpr`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := context.Background()
 			logger := slog.Default()
 
-			// Initialize storage
 			store, err := storage.NewSQLiteBackend(workspace + "/enrichment.db")
 			if err != nil {
 				return fmt.Errorf("initialize storage: %w", err)
 			}
 			defer store.Close(ctx)
 
-			// Initialize schema validator
-			validator, err := schema.NewValidator()
-			if err != nil {
-				return fmt.Errorf("initialize validator: %w", err)
-			}
-			_ = validator
-
-			// Run enrichment pipeline
-			engine := enricher.New(enricher.Config{
+			cfg := enricher.Config{
 				Store:       store,
 				MaxParallel: 4,
 				Logger:      logger,
-			})
-
-			result, err := engine.Run(ctx)
-			if err != nil {
-				return fmt.Errorf("enrichment pipeline: %w", err)
 			}
 
-			logger.Info("enrichment complete",
-				"mappings", result.MappingCount,
-				"duration", result.Duration)
+			if all {
+				cfg.RunAll = true
+			}
 
-			fmt.Printf("Enrichment complete: %d mappings in %s\n", result.MappingCount, result.Duration)
+			engine := enricher.New(cfg)
+
+			if !skipMapping {
+				result, err := engine.Run(ctx)
+				if err != nil {
+					return fmt.Errorf("enrichment pipeline: %w", err)
+				}
+
+				logger.Info("enrichment complete",
+					"controls", result.ControlCount,
+					"mappings", result.MappingCount,
+					"duration", result.Duration)
+
+				fmt.Printf("Enrichment complete: %d controls, %d mappings in %s\n",
+					result.ControlCount, result.MappingCount, result.Duration)
+				return nil
+			}
+
+			reg := grcbuiltin.DefaultRegistry()
+			if all {
+				controlCount, err := reg.RunAll(ctx, store, logger)
+				if err != nil {
+					return fmt.Errorf("providers: %w", err)
+				}
+				fmt.Printf("Providers complete: %d controls written\n", controlCount)
+				return nil
+			}
+
+			runProviders := providers
+			if len(runProviders) == 0 && len(args) > 0 {
+				runProviders = args
+			}
+
+			total := 0
+			for _, name := range runProviders {
+				p, err := reg.Get(name, store, logger)
+				if err != nil {
+					logger.Warn("provider not found", "provider", name, "error", err)
+					continue
+				}
+				count, err := p.Run(ctx)
+				if err != nil {
+					logger.Warn("provider failed", "provider", name, "error", err)
+					continue
+				}
+				total += count
+				logger.Info("provider completed", "provider", name, "controls", count)
+			}
+
+			fmt.Printf("Providers complete: %d controls written\n", total)
 			return nil
 		},
 	}
 
 	cmd.Flags().BoolVarP(&all, "all", "a", false, "Run all providers")
 	cmd.Flags().StringSliceVarP(&providers, "provider", "p", nil, "Run specific providers")
+	cmd.Flags().BoolVar(&skipMapping, "skip-mapping", false, "Skip CWE/CPE mapping phase (controls only)")
 
 	return cmd
+}
+
+func providersCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "providers",
+		Short: "List registered GRC providers",
+		Run: func(cmd *cobra.Command, args []string) {
+			reg := grcbuiltin.DefaultRegistry()
+			names := reg.List()
+			fmt.Printf("Registered providers (%d):\n", len(names))
+			for _, name := range names {
+				fmt.Printf("  %s\n", name)
+			}
+		},
+	}
 }
 
 func statusCmd() *cobra.Command {
@@ -107,6 +167,10 @@ func statusCmd() *cobra.Command {
 		Short: "Show enrichment status",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			fmt.Println("Workspace:", workspace)
+
+			reg := grcbuiltin.DefaultRegistry()
+			fmt.Printf("Providers: %d registered\n", len(reg.List()))
+
 			fmt.Println("Status: OK")
 			return nil
 		},
@@ -118,7 +182,7 @@ func versionCmd() *cobra.Command {
 		Use:   "version",
 		Short: "Show version",
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println("enrichment-engine v0.1.0")
+			fmt.Println("enrichment-engine v0.2.0")
 		},
 	}
 }
