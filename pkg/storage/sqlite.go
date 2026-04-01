@@ -21,6 +21,12 @@ type Backend interface {
 	ReadControl(ctx context.Context, id string) ([]byte, error)
 	ListMappings(ctx context.Context, vulnID string) ([]MappingRow, error)
 	Close(ctx context.Context) error
+
+	ListAllVulnerabilities(ctx context.Context) ([]VulnerabilityRow, error)
+	ListAllControls(ctx context.Context) ([]ControlRow, error)
+	ListControlsByCWE(ctx context.Context, cwe string) ([]ControlRow, error)
+	ListControlsByCPE(ctx context.Context, cpe string) ([]ControlRow, error)
+	ListControlsByFramework(ctx context.Context, framework string) ([]ControlRow, error)
 }
 
 // MappingRow represents a row from the vulnerability_grc_mappings table.
@@ -31,6 +37,33 @@ type MappingRow struct {
 	MappingType     string  `json:"mapping_type"`
 	Confidence      float64 `json:"confidence"`
 	Evidence        string  `json:"evidence"`
+}
+
+// VulnerabilityRow represents a vulnerability record from storage.
+type VulnerabilityRow struct {
+	ID     string          `json:"id"`
+	Record json.RawMessage `json:"record"`
+}
+
+// ControlRow represents a GRC control record from storage.
+type ControlRow struct {
+	ID          string          `json:"id"`
+	Framework   string          `json:"framework"`
+	ControlID   string          `json:"control_id"`
+	Title       string          `json:"title"`
+	Family      string          `json:"family"`
+	Description string          `json:"description"`
+	RelatedCWEs []string        `json:"related_cwes,omitempty"`
+	Record      json.RawMessage `json:"record"`
+}
+
+type controlFields struct {
+	Framework   string   `json:"Framework"`
+	ControlID   string   `json:"ControlID"`
+	Title       string   `json:"Title"`
+	Family      string   `json:"Family,omitempty"`
+	Description string   `json:"Description,omitempty"`
+	RelatedCWEs []string `json:"RelatedCWEs,omitempty"`
 }
 
 // SQLiteBackend implements Backend using SQLite.
@@ -154,8 +187,20 @@ func (s *SQLiteBackend) WriteControl(ctx context.Context, id string, control int
 		return fmt.Errorf("marshal control: %w", err)
 	}
 
-	_, err = s.db.ExecContext(ctx, "INSERT OR REPLACE INTO grc_controls (id, framework, control_id, title, family, description, record) VALUES (?, ?, ?, ?, ?, ?, ?)",
-		id, id, id, id, "", "", data)
+	var ctrl controlFields
+	if err := json.Unmarshal(data, &ctrl); err != nil {
+		return fmt.Errorf("unmarshal control: %w", err)
+	}
+
+	relatedCWEs := ""
+	if len(ctrl.RelatedCWEs) > 0 {
+		b, _ := json.Marshal(ctrl.RelatedCWEs)
+		relatedCWEs = string(b)
+	}
+
+	_, err = s.db.ExecContext(ctx,
+		`INSERT OR REPLACE INTO grc_controls (id, framework, control_id, title, family, description, related_cwes, record) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+		id, ctrl.Framework, ctrl.ControlID, ctrl.Title, ctrl.Family, ctrl.Description, relatedCWEs, data)
 	if err != nil {
 		return fmt.Errorf("insert control %s: %w", id, err)
 	}
@@ -212,6 +257,82 @@ func (s *SQLiteBackend) ListMappings(ctx context.Context, vulnID string) ([]Mapp
 		mappings = append(mappings, m)
 	}
 	return mappings, rows.Err()
+}
+
+func (s *SQLiteBackend) ListAllVulnerabilities(ctx context.Context) ([]VulnerabilityRow, error) {
+	rows, err := s.db.QueryContext(ctx, "SELECT id, record FROM vulnerabilities")
+	if err != nil {
+		return nil, fmt.Errorf("query all vulnerabilities: %w", err)
+	}
+	defer rows.Close()
+
+	var result []VulnerabilityRow
+	for rows.Next() {
+		var r VulnerabilityRow
+		if err := rows.Scan(&r.ID, &r.Record); err != nil {
+			return nil, fmt.Errorf("scan vulnerability row: %w", err)
+		}
+		result = append(result, r)
+	}
+	return result, rows.Err()
+}
+
+func (s *SQLiteBackend) ListAllControls(ctx context.Context) ([]ControlRow, error) {
+	rows, err := s.db.QueryContext(ctx, "SELECT id, framework, control_id, title, family, description, related_cwes, record FROM grc_controls")
+	if err != nil {
+		return nil, fmt.Errorf("query all controls: %w", err)
+	}
+	defer rows.Close()
+
+	return scanControlRows(rows)
+}
+
+func (s *SQLiteBackend) ListControlsByCWE(ctx context.Context, cwe string) ([]ControlRow, error) {
+	pattern := `"%"` + cwe + `"%"`
+	rows, err := s.db.QueryContext(ctx,
+		"SELECT id, framework, control_id, title, family, description, related_cwes, record FROM grc_controls WHERE related_cwes LIKE ?",
+		pattern)
+	if err != nil {
+		return nil, fmt.Errorf("query controls by CWE %s: %w", cwe, err)
+	}
+	defer rows.Close()
+
+	return scanControlRows(rows)
+}
+
+func (s *SQLiteBackend) ListControlsByCPE(ctx context.Context, cpe string) ([]ControlRow, error) {
+	return s.ListAllControls(ctx)
+}
+
+func (s *SQLiteBackend) ListControlsByFramework(ctx context.Context, framework string) ([]ControlRow, error) {
+	rows, err := s.db.QueryContext(ctx,
+		"SELECT id, framework, control_id, title, family, description, related_cwes, record FROM grc_controls WHERE framework = ?",
+		framework)
+	if err != nil {
+		return nil, fmt.Errorf("query controls by framework %s: %w", framework, err)
+	}
+	defer rows.Close()
+
+	return scanControlRows(rows)
+}
+
+func scanControlRows(rows *sql.Rows) ([]ControlRow, error) {
+	var result []ControlRow
+	for rows.Next() {
+		var r ControlRow
+		var cwesRaw sql.NullString
+		if err := rows.Scan(&r.ID, &r.Framework, &r.ControlID, &r.Title, &r.Family, &r.Description, &cwesRaw, &r.Record); err != nil {
+			return nil, fmt.Errorf("scan control row: %w", err)
+		}
+		if cwesRaw.Valid && cwesRaw.String != "" {
+			var cwes []string
+			if err := json.Unmarshal([]byte(cwesRaw.String), &cwes); err == nil {
+				r.RelatedCWEs = cwes
+			}
+		}
+		result = append(result, r)
+	}
+	return result, rows.Err()
 }
 
 func (s *SQLiteBackend) Close(ctx context.Context) error {
