@@ -1,0 +1,925 @@
+{
+  "implementationGroups": [
+    {
+      "id": "IG1",
+      "name": "Inventory and Control of Enterprise Assets",
+      "description": "Actively manage (inventory, track, and correct) all enterprise assets (e.g., end-user devices, network devices, non-computing/Internet of Things devices, and servers) connected to the infrastructure physically and virtually, to the extent that assets can be accessed.",
+      "controls": [
+        {
+          "id": "1.1",
+          "title": "Establish and Maintain Detailed Enterprise Asset Inventory",
+          "description": "Establish and maintain a detailed inventory of all enterprise assets with at least quarterly frequency."
+        },
+        {
+          "id": "1.2",
+          "title": "Address Unauthorized Assets",
+          "description": "Ensure that a process exists to address unauthorized assets on a monthly or more frequent basis."
+        },
+        {
+          "id": "1.3",
+          "title": "Utilize an Active Discovery Tool",
+          "description": "Utilize an active discovery tool to identify assets monthly or more frequently."
+        },
+        {
+          "id": "1.4",
+          "title": "Use Dynamic Host Configuration Protocol (DHCP) Logging to Update Enterprise Asset Inventory",
+          "description": "Use DHCP logging to update the enterprise asset inventory."
+        },
+        {
+          "id": "1.5",
+          "title": "Use a Passive Asset Discovery Tool to Identify Assets",
+          "description": "Use a passive asset discovery tool to identify assets."
+        }
+      ]
+    },
+    {
+      "id": "IG2",
+      "name": "Inventory and Control of Software Assets",
+      "description": "Actively manage (inventory, track, and correct) all software on the network so that only authorized software is installed and can execute, and that unauthorized and unmanaged software is found and prevented from installation or execution.",
+      "controls": [
+        {
+          "id": "2.1",
+          "title": "Establish and Maintain a Software Inventory",
+          "description": "Establish and maintain a detailed inventory of all licensed software installed in the enterprise with at least quarterly frequency."
+        },
+        {
+          "id": "2.2",
+          "title": "Ensure Authorized Software is Currently Supported",
+          "description": "Ensure that only currently supported and officially approved software is permitted in the software inventory."
+        },
+        {
+          "id": "2.3",
+          "title": "Address Unauthorized Software",
+          "description": "Ensure that unauthorized software is either removed or denied execution using technical controls, such as application whitelisting."
+        },
+        {
+          "id": "2.4",
+          "title": "Utilize Automated Software Inventory Tools",
+          "description": "Utilize automated software inventory tools to track all software across the enterprise."
+        },
+        {
+          "id": "2.5",
+          "title": "Allowlist Authorized Software",
+          "description": "Implement allowlisting of authorized software to prevent execution of unauthorized software."
+        },
+        {
+          "id": "2.6",
+          "title": "Allowlist Authorized Libraries",
+          "description": "Implement allowlisting of authorized libraries to prevent execution of unauthorized libraries."
+        },
+        {
+          "id": "2.7",
+          "title": "Allowlist Authorized Scripts",
+          "description": "Implement allowlisting of authorized scripts to prevent execution of unauthorized scripts."
+        }
+      ]
+    },
+    {
+      "id": "IG3",
+      "name": "Data Protection",
+      "description": "Develop processes and technical capabilities to protect an enterprise's data consistent with the organization's risk strategy for data protection.",
+      "controls": [
+        {
+          "id": "3.1",
+          "title": "Establish and Maintain a Data Management Process",
+          "description": "Establish and maintain a data management process for the enterprise that addresses data classification, handling, retention, and destruction."
+        },
+        {
+          "id": "3.2",
+          "title": "Establish and Maintain a Data Inventory",
+          "description": "Establish and maintain a data inventory that catalogs the enterprise's data assets."
+        },
+        {
+          "id": "3.3",
+          "title": "Configure Data Access Control Lists",
+          "description": "Configure data access control lists based on a user's need to know."
+        },
+        {
+          "id": "3.4",
+          "title": "Enforce Data Retention",
+          "description": "Enforce data retention for all data stores."
+        },
+        {
+          "id": "3.5",
+          "title": "Securely and Completely Dispose of Data",
+          "description": "Securely and completely dispose of data when no longer needed."
+        },
+        {
+          "id": "3.6",
+          "title": "Encrypt Data on End-User Devices",
+          "description": "Encrypt data on end-user devices."
+        },
+        {
+          "id": "3.7",
+          "title": "Establish and Maintain a Process for Data Classification",
+          "description": "Establish and maintain a process for data classification of the enterprise's data assets."
+        },
+        {
+          "id": "3.8",
+          "title": "Document Data Flows",
+          "description": "Document and maintain the data flows for the enterprise's data assets."
+        },
+        {
+          "id": "3.9",
+          "title": "Encrypt Data on Removable Media",
+          "description": "Encrypt data on removable media."
+        },
+        {
+          "id": "3.10",
+          "title": "Encrypt Sensitive Data in Transit",
+          "description": "Encrypt sensitive data in transit."
+        },
+        {
+          "id": "3.11",
+          "title": "Encrypt Sensitive Data at Rest",
+          "description": "Encrypt sensitive data at rest."
+        },
+        {
+          "id": "3.12",
+          "title": "Segment Data Processing, Storage, and Maintenance",
+          "description": "Segment data processing, storage, and maintenance environments based on the sensitivity of the data."
+        },
+        {
+          "id": "3.13",
+          "title": "Deploy a Data Loss Prevention Solution",
+          "description": "Deploy a data loss prevention solution at managed endpoints, egress points, and networks."
+        },
+        {
+          "id": "3.14",
+          "title": "Log Sensitive Data Access",
+          "description": "Log access to sensitive data."
+        }
+      ]
+    },
+    {
+      "id": "IG4",
+      "name": "Secure Configuration of Enterprise Assets and Software",
+      "description": "Establish and maintain the secure configuration of enterprise assets and software.",
+      "controls": [
+        {
+          "id": "4.1",
+          "title": "Establish and Maintain a Secure Configuration Process",
+          "description": "Establish and maintain a secure configuration process for enterprise assets and software."
+        },
+        {
+          "id": "4.2",
+          "title": "Establish and Maintain a Secure Configuration for Enterprise Assets and Software",
+          "description": "Establish and maintain a secure configuration for enterprise assets and software."
+        },
+        {
+          "id": "4.3",
+          "title": "Configure Automatic Session Locking on Enterprise Assets",
+          "description": "Configure automatic session locking on enterprise assets after a defined period of inactivity."
+        },
+        {
+          "id": "4.4",
+          "title": "Implement and Manage a Firewall on Servers",
+          "description": "Implement and manage a firewall on servers, where supported."
+        },
+        {
+          "id": "4.5",
+          "title": "Implement and Manage a Firewall on End-User Devices",
+          "description": "Implement and manage a firewall on end-user devices, where supported."
+        },
+        {
+          "id": "4.6",
+          "title": "Securely Manage Enterprise Assets and Software",
+          "description": "Securely manage enterprise assets and software."
+        },
+        {
+          "id": "4.7",
+          "title": "Manage Default Accounts on Enterprise Assets and Software",
+          "description": "Manage default accounts on enterprise assets and software."
+        },
+        {
+          "id": "4.8",
+          "title": "Establish and Maintain a Process for Software Configuration",
+          "description": "Establish and maintain a process for the configuration of enterprise software."
+        },
+        {
+          "id": "4.9",
+          "title": "Establish and Maintain a Process for Configuration of Network Infrastructure",
+          "description": "Establish and maintain a process for the configuration of network infrastructure."
+        },
+        {
+          "id": "4.10",
+          "title": "Enforce Automatic Device Lockout on Portable End-User Devices",
+          "description": "Enforce automatic device lockout on portable end-user devices."
+        },
+        {
+          "id": "4.11",
+          "title": "Enforce Remote Wipe Capability on Portable End-User Devices",
+          "description": "Enforce remote wipe capability on portable end-user devices."
+        },
+        {
+          "id": "4.12",
+          "title": "Separate Enterprise Workspaces on Mobile End-User Devices",
+          "description": "Separate enterprise workspaces from personal workspaces on mobile end-user devices."
+        }
+      ]
+    },
+    {
+      "id": "IG5",
+      "name": "Account Management",
+      "description": "Use processes and tools to assign and manage authorization to credentials for user accounts, including administrators, as well as service accounts, to enterprise assets and software.",
+      "controls": [
+        {
+          "id": "5.1",
+          "title": "Establish and Maintain an Inventory of Accounts",
+          "description": "Establish and maintain an inventory of all accounts managed in the enterprise."
+        },
+        {
+          "id": "5.2",
+          "title": "Use Unique Passwords",
+          "description": "Ensure that all accounts have unique passwords."
+        },
+        {
+          "id": "5.3",
+          "title": "Disable Dormant Accounts",
+          "description": "Disable dormant accounts after a specified period of inactivity."
+        },
+        {
+          "id": "5.4",
+          "title": "Restrict Administrator Privileges to Dedicated Administrator Accounts",
+          "description": "Restrict administrator privileges to dedicated administrator accounts."
+        },
+        {
+          "id": "5.5",
+          "title": "Establish and Maintain an Inventory of Service Accounts",
+          "description": "Establish and maintain an inventory of service accounts."
+        },
+        {
+          "id": "5.6",
+          "title": "Centralize Account Authentication",
+          "description": "Centralize account authentication."
+        },
+        {
+          "id": "5.7",
+          "title": "Enforce Password Complexity",
+          "description": "Enforce password complexity requirements."
+        }
+      ]
+    },
+    {
+      "id": "IG6",
+      "name": "Access Control Management",
+      "description": "Use processes and tools to create, assign, manage, and revoke access credentials, privileges, and accounts for enterprise assets and software.",
+      "controls": [
+        {
+          "id": "6.1",
+          "title": "Establish an Access Granting Process",
+          "description": "Establish and follow a process, preferably automated, for granting access to enterprise assets upon creation of an account."
+        },
+        {
+          "id": "6.2",
+          "title": "Establish an Access Revoking Process",
+          "description": "Establish and follow a process, preferably automated, for revoking access to enterprise assets, through disabling or immediately deleting accounts."
+        },
+        {
+          "id": "6.3",
+          "title": "Require MFA for Externally-Exposed Applications",
+          "description": "Require multi-factor authentication for externally-exposed applications."
+        },
+        {
+          "id": "6.4",
+          "title": "Require MFA for Remote Network Access",
+          "description": "Require multi-factor authentication for remote network access."
+        },
+        {
+          "id": "6.5",
+          "title": "Require MFA for Administrative Access",
+          "description": "Require multi-factor authentication for administrative access."
+        },
+        {
+          "id": "6.6",
+          "title": "Establish and Maintain an Inventory of Authentication and Authorization Systems",
+          "description": "Establish and maintain an inventory of authentication and authorization systems."
+        },
+        {
+          "id": "6.7",
+          "title": "Centralize Access Control",
+          "description": "Centralize access control for all enterprise assets."
+        },
+        {
+          "id": "6.8",
+          "title": "Define and Maintain Role-Based Access Control",
+          "description": "Define and maintain role-based access control."
+        }
+      ]
+    },
+    {
+      "id": "IG7",
+      "name": "Continuous Vulnerability Management",
+      "description": "Develop a plan to continuously assess and track vulnerabilities for all enterprise assets to minimize the windows of opportunity for attackers.",
+      "controls": [
+        {
+          "id": "7.1",
+          "title": "Establish and Maintain a Vulnerability Management Process",
+          "description": "Establish and maintain a documented vulnerability management process for the enterprise."
+        },
+        {
+          "id": "7.2",
+          "title": "Establish and Maintain a Remediation Process",
+          "description": "Establish and maintain a documented risk-based remediation process."
+        },
+        {
+          "id": "7.3",
+          "title": "Perform Automated Operating System Patch Management",
+          "description": "Perform automated operating system patch management for all enterprise assets."
+        },
+        {
+          "id": "7.4",
+          "title": "Perform Automated Application Patch Management",
+          "description": "Perform automated application patch management for all enterprise assets."
+        },
+        {
+          "id": "7.5",
+          "title": "Perform Automated Vulnerability Scans of Internal Enterprise Assets",
+          "description": "Perform automated vulnerability scans of all internal enterprise assets."
+        },
+        {
+          "id": "7.6",
+          "title": "Perform Automated Vulnerability Scans of Externally-Exposed Enterprise Assets",
+          "description": "Perform automated vulnerability scans of all externally-exposed enterprise assets."
+        },
+        {
+          "id": "7.7",
+          "title": "Remediate Detected Vulnerabilities",
+          "description": "Remediate detected vulnerabilities based on the risk assessment."
+        }
+      ]
+    },
+    {
+      "id": "IG8",
+      "name": "Audit Log Management",
+      "description": "Collect, alert on, review, and retain audit logs of events that could help detect, understand, or recover from an attack.",
+      "controls": [
+        {
+          "id": "8.1",
+          "title": "Establish and Maintain an Audit Log Management Process",
+          "description": "Establish and maintain an audit log management process that determines the enterprise's requirements for audit logging."
+        },
+        {
+          "id": "8.2",
+          "title": "Collect Audit Logs",
+          "description": "Collect audit logs from all enterprise assets."
+        },
+        {
+          "id": "8.3",
+          "title": "Ensure Adequate Audit Log Storage",
+          "description": "Ensure adequate audit log storage."
+        },
+        {
+          "id": "8.4",
+          "title": "Standardize Time Synchronization",
+          "description": "Standardize time synchronization across all enterprise assets."
+        },
+        {
+          "id": "8.5",
+          "title": "Collect Detailed Audit Logs",
+          "description": "Collect detailed audit logs including event source, timestamp, and outcome."
+        },
+        {
+          "id": "8.6",
+          "title": "Collect DNS Request Audit Logs",
+          "description": "Collect DNS request audit logs."
+        },
+        {
+          "id": "8.7",
+          "title": "Collect URL Request Audit Logs",
+          "description": "Collect URL request audit logs."
+        },
+        {
+          "id": "8.8",
+          "title": "Collect Command-Line Audit Logs",
+          "description": "Collect command-line audit logs."
+        },
+        {
+          "id": "8.9",
+          "title": "Centrally Manage Audit Logs",
+          "description": "Centrally manage audit logs."
+        },
+        {
+          "id": "8.10",
+          "title": "Retain Audit Logs",
+          "description": "Retain audit logs for at least 90 days."
+        },
+        {
+          "id": "8.11",
+          "title": "Conduct Audit Log Reviews",
+          "description": "Conduct audit log reviews on a regular basis."
+        },
+        {
+          "id": "8.12",
+          "title": "Collect Service Provider Logs",
+          "description": "Collect service provider logs."
+        }
+      ]
+    },
+    {
+      "id": "IG9",
+      "name": "Email and Web Browser Protections",
+      "description": "Minimize the attack surface and the opportunities for attackers to manipulate human behavior through their interaction with web browsers and email systems.",
+      "controls": [
+        {
+          "id": "9.1",
+          "title": "Ensure Use of Only Fully Supported Browsers and Email Clients",
+          "description": "Ensure that only fully supported browsers and email clients are used."
+        },
+        {
+          "id": "9.2",
+          "title": "Use DNS Filtering Services",
+          "description": "Use DNS filtering services on all enterprise assets."
+        },
+        {
+          "id": "9.3",
+          "title": "Maintain and Enforce Network-Based URL Filters",
+          "description": "Maintain and enforce network-based URL filters."
+        },
+        {
+          "id": "9.4",
+          "title": "Restrict Unnecessary or Unauthorized Browser Extensions",
+          "description": "Restrict unnecessary or unauthorized browser extensions."
+        },
+        {
+          "id": "9.5",
+          "title": "Implement DMARC",
+          "description": "Implement DMARC to prevent email spoofing."
+        },
+        {
+          "id": "9.6",
+          "title": "Block Unnecessary File Types",
+          "description": "Block unnecessary file types from email."
+        },
+        {
+          "id": "9.7",
+          "title": "Deploy and Maintain Email Spam Protection",
+          "description": "Deploy and maintain email spam protection."
+        },
+        {
+          "id": "9.8",
+          "title": "Deploy and Maintain Anti-Phishing Protections",
+          "description": "Deploy and maintain anti-phishing protections."
+        }
+      ]
+    },
+    {
+      "id": "IG10",
+      "name": "Malware Defenses",
+      "description": "Prevent or control the installation, spread, and execution of malicious code at enterprise assets.",
+      "controls": [
+        {
+          "id": "10.1",
+          "title": "Deploy and Maintain Anti-Malware Software",
+          "description": "Deploy and maintain anti-malware software for all enterprise assets."
+        },
+        {
+          "id": "10.2",
+          "title": "Configure Automatic Anti-Malware Signature Updates",
+          "description": "Configure automatic anti-malware signature updates."
+        },
+        {
+          "id": "10.3",
+          "title": "Disable Autorun and Autoplay for Removable Media",
+          "description": "Disable autorun and autoplay for removable media."
+        },
+        {
+          "id": "10.4",
+          "title": "Configure Anti-Malware to Perform Periodic Scans",
+          "description": "Configure anti-malware to perform periodic scans of enterprise assets."
+        },
+        {
+          "id": "10.5",
+          "title": "Centrally Manage Anti-Malware Software",
+          "description": "Centrally manage anti-malware software."
+        }
+      ]
+    },
+    {
+      "id": "IG11",
+      "name": "Data Recovery",
+      "description": "Establish and maintain data recovery practices sufficient to restore enterprise assets and data to a known good state after a data loss event.",
+      "controls": [
+        {
+          "id": "11.1",
+          "title": "Establish and Maintain a Data Recovery Process",
+          "description": "Establish and maintain a data recovery process."
+        },
+        {
+          "id": "11.2",
+          "title": "Perform Automated Backups",
+          "description": "Perform automated backups of enterprise assets."
+        },
+        {
+          "id": "11.3",
+          "title": "Protect Recovery Data",
+          "description": "Protect recovery data with equivalent controls to the original data."
+        },
+        {
+          "id": "11.4",
+          "title": "Establish and Maintain an Isolated Instance of Recovery Data",
+          "description": "Establish and maintain an isolated instance of recovery data."
+        },
+        {
+          "id": "11.5",
+          "title": "Test Data Recovery",
+          "description": "Test data recovery on a regular basis."
+        }
+      ]
+    },
+    {
+      "id": "IG12",
+      "name": "Network Infrastructure Management",
+      "description": "Establish, implement, and actively manage network configurations to prevent unauthorized access, detect malicious activity, and ensure secure network operations.",
+      "controls": [
+        {
+          "id": "12.1",
+          "title": "Ensure Network Infrastructure is Up to Date",
+          "description": "Ensure network infrastructure is up to date with current patches and updates."
+        },
+        {
+          "id": "12.2",
+          "title": "Establish and Maintain a Secure Network Architecture",
+          "description": "Establish and maintain a secure network architecture."
+        },
+        {
+          "id": "12.3",
+          "title": "Securely Manage Network Infrastructure",
+          "description": "Securely manage network infrastructure using secure protocols."
+        },
+        {
+          "id": "12.4",
+          "title": "Establish and Maintain Architecture Diagrams",
+          "description": "Establish and maintain architecture diagrams of the enterprise network."
+        },
+        {
+          "id": "12.5",
+          "title": "Centralize Network Authentication, Authorization, and Auditing",
+          "description": "Centralize network authentication, authorization, and auditing."
+        },
+        {
+          "id": "12.6",
+          "title": "Use of Secure Network Management and Communication Protocols",
+          "description": "Use secure network management and communication protocols."
+        },
+        {
+          "id": "12.7",
+          "title": "Centralize Network Logs",
+          "description": "Centralize network logs."
+        },
+        {
+          "id": "12.8",
+          "title": "Establish and Maintain Dedicated Computing Environments",
+          "description": "Establish and maintain dedicated computing environments for network administration."
+        }
+      ]
+    },
+    {
+      "id": "IG13",
+      "name": "Network Monitoring and Defense",
+      "description": "Operate processes and tooling to establish and maintain comprehensive network monitoring and defense against security threats across the enterprise's network and endpoints.",
+      "controls": [
+        {
+          "id": "13.1",
+          "title": "Centralize Security Event Alerting",
+          "description": "Centralize security event alerting."
+        },
+        {
+          "id": "13.2",
+          "title": "Deploy a Host-Based Intrusion Detection Solution",
+          "description": "Deploy a host-based intrusion detection solution."
+        },
+        {
+          "id": "13.3",
+          "title": "Deploy a Network Intrusion Detection Solution",
+          "description": "Deploy a network intrusion detection solution."
+        },
+        {
+          "id": "13.4",
+          "title": "Perform Traffic Filtering Between Network Segments",
+          "description": "Perform traffic filtering between network segments."
+        },
+        {
+          "id": "13.5",
+          "title": "Manage Access Control for Remote Assets",
+          "description": "Manage access control for remote assets."
+        },
+        {
+          "id": "13.6",
+          "title": "Collect Network Traffic Flow Logs",
+          "description": "Collect network traffic flow logs."
+        },
+        {
+          "id": "13.7",
+          "title": "Deploy a Host-Based Firewall",
+          "description": "Deploy a host-based firewall on all enterprise assets."
+        },
+        {
+          "id": "13.8",
+          "title": "Deploy a Network-Level Spam Filter",
+          "description": "Deploy a network-level spam filter."
+        },
+        {
+          "id": "13.9",
+          "title": "Perform Application Layer Filtering",
+          "description": "Perform application layer filtering."
+        },
+        {
+          "id": "13.10",
+          "title": "Deploy a Network Intrusion Prevention Solution",
+          "description": "Deploy a network intrusion prevention solution."
+        },
+        {
+          "id": "13.11",
+          "title": "Deploy Port-Level Access Control",
+          "description": "Deploy port-level access control."
+        },
+        {
+          "id": "13.12",
+          "title": "Deploy an Endpoint Detection and Response Solution",
+          "description": "Deploy an endpoint detection and response solution."
+        },
+        {
+          "id": "13.13",
+          "title": "Deploy a Network Detection and Response Solution",
+          "description": "Deploy a network detection and response solution."
+        }
+      ]
+    },
+    {
+      "id": "IG14",
+      "name": "Security Awareness and Skills Training",
+      "description": "Establish and maintain a security awareness program to influence behavior among the workforce with regard to cybersecurity.",
+      "controls": [
+        {
+          "id": "14.1",
+          "title": "Establish and Maintain a Security Awareness Program",
+          "description": "Establish and maintain a security awareness program."
+        },
+        {
+          "id": "14.2",
+          "title": "Train Workforce Members to Recognize Social Engineering Attacks",
+          "description": "Train workforce members to recognize social engineering attacks."
+        },
+        {
+          "id": "14.3",
+          "title": "Train Workforce Members on Authentication Best Practices",
+          "description": "Train workforce members on authentication best practices."
+        },
+        {
+          "id": "14.4",
+          "title": "Train Workforce on Data Handling Best Practices",
+          "description": "Train workforce on data handling best practices."
+        },
+        {
+          "id": "14.5",
+          "title": "Train Workforce Members on Causes of Unintentional Data Exposure",
+          "description": "Train workforce members on causes of unintentional data exposure."
+        },
+        {
+          "id": "14.6",
+          "title": "Train Workforce Members of Threats and Risks",
+          "description": "Train workforce members of threats and risks."
+        },
+        {
+          "id": "14.7",
+          "title": "Train Workforce on How to Identify and Report if Their Enterprise Assets are Missing Security Updates",
+          "description": "Train workforce on how to identify and report if their enterprise assets are missing security updates."
+        },
+        {
+          "id": "14.8",
+          "title": "Train Workforce on the Dangers of Connecting to and Transmitting Enterprise Data Over Insecure Networks",
+          "description": "Train workforce on the dangers of connecting to and transmitting enterprise data over insecure networks."
+        }
+      ]
+    },
+    {
+      "id": "IG15",
+      "name": "Service Provider Management",
+      "description": "Develop a process to evaluate service providers (i.e., external parties with access to the enterprise's data and/or enterprise assets), hold them to a security standard consistent with the enterprise's information security strategy, and monitor them on an ongoing basis.",
+      "controls": [
+        {
+          "id": "15.1",
+          "title": "Establish and Maintain an Inventory of Service Providers",
+          "description": "Establish and maintain an inventory of service providers."
+        },
+        {
+          "id": "15.2",
+          "title": "Establish and Maintain a Service Provider Management Policy",
+          "description": "Establish and maintain a service provider management policy."
+        },
+        {
+          "id": "15.3",
+          "title": "Classify Service Providers",
+          "description": "Classify service providers based on the level of access they have to enterprise data and assets."
+        },
+        {
+          "id": "15.4",
+          "title": "Ensure Service Provider Contracts Include Security Requirements",
+          "description": "Ensure service provider contracts include security requirements."
+        },
+        {
+          "id": "15.5",
+          "title": "Assess Service Providers",
+          "description": "Assess service providers on an ongoing basis."
+        },
+        {
+          "id": "15.6",
+          "title": "Monitor Service Providers",
+          "description": "Monitor service providers on an ongoing basis."
+        },
+        {
+          "id": "15.7",
+          "title": "Terminate Service Provider Access",
+          "description": "Terminate service provider access when no longer needed."
+        }
+      ]
+    },
+    {
+      "id": "IG16",
+      "name": "Application Software Security",
+      "description": "Manage the security life cycle of all in-development, custom, and third-party software to reduce the number of vulnerabilities before deployment.",
+      "controls": [
+        {
+          "id": "16.1",
+          "title": "Establish and Manage an Application Software Security Inventory",
+          "description": "Establish and manage an application software security inventory."
+        },
+        {
+          "id": "16.2",
+          "title": "Establish and Manage an Application Software Security Policy",
+          "description": "Establish and manage an application software security policy."
+        },
+        {
+          "id": "16.3",
+          "title": "Perform Root Cause Analysis on Security Vulnerabilities",
+          "description": "Perform root cause analysis on security vulnerabilities."
+        },
+        {
+          "id": "16.4",
+          "title": "Establish and Manage a Secure Configuration Process for Application Infrastructure",
+          "description": "Establish and manage a secure configuration process for application infrastructure."
+        },
+        {
+          "id": "16.5",
+          "title": "Use Up-to-Date and Trusted Third-Party Software Components",
+          "description": "Use up-to-date and trusted third-party software components."
+        },
+        {
+          "id": "16.6",
+          "title": "Establish and Manage a Process to Accept and Address Software Vulnerability Disclosures",
+          "description": "Establish and manage a process to accept and address software vulnerability disclosures."
+        },
+        {
+          "id": "16.7",
+          "title": "Establish and Manage a Process for Evaluating Third-Party Software Security",
+          "description": "Establish and manage a process for evaluating third-party software security."
+        },
+        {
+          "id": "16.8",
+          "title": "Establish and Manage a Process for Measuring Application Software Security Assurance",
+          "description": "Establish and manage a process for measuring application software security assurance."
+        },
+        {
+          "id": "16.9",
+          "title": "Use Standard Hardening Configuration Templates for Application Infrastructure",
+          "description": "Use standard hardening configuration templates for application infrastructure."
+        },
+        {
+          "id": "16.10",
+          "title": "Apply Secure Design Principles in Application Architectures",
+          "description": "Apply secure design principles in application architectures."
+        },
+        {
+          "id": "16.11",
+          "title": "Leverage Vetted Modules or Services for Application Security Controls",
+          "description": "Leverage vetted modules or services for application security controls."
+        },
+        {
+          "id": "16.12",
+          "title": "Implement Code-Level Security Checks",
+          "description": "Implement code-level security checks."
+        },
+        {
+          "id": "16.13",
+          "title": "Perform Penetration Testing for Applications",
+          "description": "Perform penetration testing for applications."
+        },
+        {
+          "id": "16.14",
+          "title": "Implement Security Training for Developers",
+          "description": "Implement security training for developers."
+        }
+      ]
+    },
+    {
+      "id": "IG17",
+      "name": "Incident Response Management",
+      "description": "Establish a program to develop and maintain an incident response capability (e.g., plans, procedures, tools, and staffing) in order to respond to incidents.",
+      "controls": [
+        {
+          "id": "17.1",
+          "title": "Designate Personnel to Manage Incident Handling",
+          "description": "Designate personnel to manage incident handling."
+        },
+        {
+          "id": "17.2",
+          "title": "Establish and Maintain Contact Information for Reporting Security Incidents",
+          "description": "Establish and maintain contact information for reporting security incidents."
+        },
+        {
+          "id": "17.3",
+          "title": "Establish and Maintain an Organization-Wide Incident Management Plan",
+          "description": "Establish and maintain an organization-wide incident management plan."
+        },
+        {
+          "id": "17.4",
+          "title": "Establish and Maintain an Incident Response Process",
+          "description": "Establish and maintain an incident response process."
+        },
+        {
+          "id": "17.5",
+          "title": "Assign Key Roles and Responsibilities",
+          "description": "Assign key roles and responsibilities for incident response."
+        },
+        {
+          "id": "17.6",
+          "title": "Define Mechanisms for Communicating During Incident Response",
+          "description": "Define mechanisms for communicating during incident response."
+        },
+        {
+          "id": "17.7",
+          "title": "Conduct Routine Incident Response Exercises",
+          "description": "Conduct routine incident response exercises."
+        },
+        {
+          "id": "17.8",
+          "title": "Conduct Post-Incident Reviews",
+          "description": "Conduct post-incident reviews."
+        },
+        {
+          "id": "17.9",
+          "title": "Establish and Maintain Security Incident Thresholds",
+          "description": "Establish and maintain security incident thresholds."
+        }
+      ]
+    },
+    {
+      "id": "IG18",
+      "name": "Penetration Testing",
+      "description": "Test the effectiveness and resiliency of enterprise assets through finding and addressing weaknesses in systems, networks, and applications.",
+      "controls": [
+        {
+          "id": "18.1",
+          "title": "Establish and Maintain a Penetration Testing Program",
+          "description": "Establish and maintain a penetration testing program."
+        },
+        {
+          "id": "18.2",
+          "title": "Conduct Periodic Internal Penetration Testing",
+          "description": "Conduct periodic internal penetration testing."
+        },
+        {
+          "id": "18.3",
+          "title": "Remediate Penetration Test Findings",
+          "description": "Remediate penetration test findings."
+        },
+        {
+          "id": "18.4",
+          "title": "Conduct Periodic External Penetration Testing",
+          "description": "Conduct periodic external penetration testing."
+        },
+        {
+          "id": "18.5",
+          "title": "Conduct Penetration Testing to Validate Security Controls",
+          "description": "Conduct penetration testing to validate security controls."
+        },
+        {
+          "id": "18.6",
+          "title": "Use Manual and Automated Penetration Testing Tools",
+          "description": "Use manual and automated penetration testing tools."
+        },
+        {
+          "id": "18.7",
+          "title": "Perform Vulnerability Assessment and Penetration Testing on External-Facing Systems",
+          "description": "Perform vulnerability assessment and penetration testing on external-facing systems."
+        },
+        {
+          "id": "18.8",
+          "title": "Perform Penetration Testing on Internal Systems",
+          "description": "Perform penetration testing on internal systems."
+        },
+        {
+          "id": "18.9",
+          "title": "Perform Penetration Testing on Web Applications",
+          "description": "Perform penetration testing on web applications."
+        },
+        {
+          "id": "18.10",
+          "title": "Perform Penetration Testing on Network Infrastructure",
+          "description": "Perform penetration testing on network infrastructure."
+        }
+      ]
+    }
+  ]
+}
