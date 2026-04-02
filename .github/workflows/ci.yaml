@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.25"
+      - uses: golangci/golangci-lint-action@v7
+        with:
+          version: v1.64
+          args: --timeout=5m
+
+  test:
+    name: Test (Go ${{ matrix.go-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        go-version: ["1.24", "1.25"]
+    env:
+      CGO_ENABLED: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go-version }}
+      - name: Download dependencies
+        run: go mod download
+      - name: Unit tests
+        run: go test -v -race ./pkg/...
+      - name: Integration tests
+        run: go test -v ./test/integration/...
+      - name: Behavioral tests
+        run: GODOG=1 go test -v ./test/behavioral/...
+
+  scenario:
+    name: Scenario tests
+    runs-on: ubuntu-latest
+    env:
+      CGO_ENABLED: "0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.25"
+      - name: Download dependencies
+        run: go mod download
+      - name: Scenario / E2E tests
+        run: go test -v -tags integration ./test/scenario/...
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    env:
+      CGO_ENABLED: "0"
+    needs: [lint, test]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.25"
+      - name: Build binary
+        run: go build -ldflags "-s -w" -o bin/enrich ./cmd/enrich

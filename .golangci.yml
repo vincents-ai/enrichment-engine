@@ -1,0 +1,63 @@
+run:
+  go: "1.25"
+  timeout: 5m
+  tests: true
+
+linters:
+  enable:
+    - govet
+    - errcheck
+    - gofmt
+    - goimports
+    - staticcheck
+    - unused
+    - gosimple
+    - ineffassign
+    - typecheck
+    - misspell
+    - gosec
+
+linters-settings:
+  govet:
+    enable-all: false
+    shadow: true
+  errcheck:
+    check-type-assertions: false
+  gofmt:
+    simplify: true
+  goimports:
+    local-prefixes: github.com/shift/enrichment-engine
+  misspell:
+    locale: US
+  gosec:
+    excludes:
+      - G101
+      - G404
+    config:
+      global:
+        audit: true
+
+issues:
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - errcheck
+        - gosec
+    - path: test/
+      linters:
+        - errcheck
+        - gosec
+  max-issues-per-linter: 50
+  max-same-issues: 5
+  exclude-dirs:
+    - vendor
+
+severity:
+  default-severity: warning
+  rules:
+    - linters:
+        - errcheck
+      severity: info
+    - linters:
+        - gosec
+      severity: info
