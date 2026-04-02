@@ -1,7 +1,5 @@
 package grc
 
-import "time"
-
 // Control represents a GRC compliance control from any framework.
 type Control struct {
 	Framework              string      `json:"Framework"`
@@ -44,64 +42,12 @@ const (
 	MappingTypeManual MappingType = "manual"
 )
 
-// Framework defines metadata for a GRC framework.
-type Framework struct {
-	ID           string    `json:"id"`
-	Name         string    `json:"name"`
-	Version      string    `json:"version"`
-	Description  string    `json:"description"`
-	SourceURL    string    `json:"source_url"`
-	LastUpdated  time.Time `json:"last_updated"`
-	ControlCount int       `json:"control_count"`
-}
-
-// Asset represents an IT asset in the infrastructure topology.
-type Asset struct {
-	ID       string            `json:"id"`
-	Name     string            `json:"name"`
-	Type     string            `json:"type"`
-	Provider string            `json:"provider,omitempty"`
-	Region   string            `json:"region,omitempty"`
-	Tags     map[string]string `json:"tags,omitempty"`
-	CPEs     []string          `json:"cpes,omitempty"`
-	LastSeen time.Time         `json:"last_seen"`
-}
-
-// Threat represents an operational threat intelligence entry.
-type Threat struct {
-	ID          string    `json:"id"`
-	Name        string    `json:"name"`
-	Type        string    `json:"type"`
-	Source      string    `json:"source"`
-	Description string    `json:"description,omitempty"`
-	Tactics     []string  `json:"tactics,omitempty"`
-	Techniques  []string  `json:"techniques,omitempty"`
-	IoCs        []string  `json:"iocs,omitempty"`
-	FirstSeen   time.Time `json:"first_seen"`
-	LastSeen    time.Time `json:"last_seen"`
-}
-
-// Risk represents a quantified risk assessment.
-type Risk struct {
-	ID              string    `json:"id"`
-	AssetID         string    `json:"asset_id"`
-	VulnerabilityID string    `json:"vulnerability_id"`
-	ControlID       string    `json:"control_id,omitempty"`
-	Framework       string    `json:"framework,omitempty"`
-	Likelihood      float64   `json:"likelihood"`
-	Impact          float64   `json:"impact"`
-	RiskScore       float64   `json:"risk_score"`
-	Mitigated       bool      `json:"mitigated"`
-	LastAssessed    time.Time `json:"last_assessed"`
-}
-
 // SBOMComponent represents a component from a Software Bill of Materials.
 type SBOMComponent struct {
 	Name    string   `json:"name"`
 	Version string   `json:"version"`
 	Type    string   `json:"type"`
 	CPEs    []string `json:"cpes,omitempty"`
-	PURL    string   `json:"purl,omitempty"`
 }
 
 // EnrichedComponent is an SBOM component with GRC metadata attached.
