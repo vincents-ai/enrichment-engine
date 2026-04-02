@@ -19,13 +19,15 @@ type Config struct {
 	Logger        *slog.Logger
 	ProviderNames []string
 	RunAll        bool
+	SkipProviders bool
 }
 
 type Engine struct {
-	store       storage.Backend
-	maxParallel int
-	logger      *slog.Logger
-	registry    *grc.Registry
+	store         storage.Backend
+	maxParallel   int
+	logger        *slog.Logger
+	registry      *grc.Registry
+	skipProviders bool
 }
 
 func New(cfg Config) *Engine {
@@ -33,10 +35,11 @@ func New(cfg Config) *Engine {
 		cfg.MaxParallel = 1
 	}
 	return &Engine{
-		store:       cfg.Store,
-		maxParallel: cfg.MaxParallel,
-		logger:      cfg.Logger,
-		registry:    grcbuiltin.DefaultRegistry(),
+		store:         cfg.Store,
+		maxParallel:   cfg.MaxParallel,
+		logger:        cfg.Logger,
+		registry:      grcbuiltin.DefaultRegistry(),
+		skipProviders: cfg.SkipProviders,
 	}
 }
 
@@ -53,11 +56,20 @@ func (e *Engine) Run(ctx context.Context) (*Result, error) {
 	e.logger.Info("starting enrichment pipeline")
 	result := &Result{}
 
-	controlCount, err := e.runProviders(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("providers: %w", err)
+	if !e.skipProviders {
+		providerCount, controlCount, err := e.runProviders(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("providers: %w", err)
+		}
+		result.ProviderCount = providerCount
+		result.ControlCount = controlCount
 	}
-	result.ControlCount = controlCount
+
+	vulns, err := e.store.ListAllVulnerabilities(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("count vulnerabilities: %w", err)
+	}
+	result.VulnCount = len(vulns)
 
 	cweMappings, err := e.mapByCWE(ctx)
 	if err != nil {
@@ -74,14 +86,18 @@ func (e *Engine) Run(ctx context.Context) (*Result, error) {
 	result.Duration = time.Since(start)
 	e.logger.Info("enrichment pipeline complete",
 		"controls", result.ControlCount,
+		"vulns", result.VulnCount,
+		"providers", result.ProviderCount,
 		"mappings", result.MappingCount,
 		"duration", result.Duration)
 	return result, nil
 }
 
-func (e *Engine) runProviders(ctx context.Context) (int, error) {
+func (e *Engine) runProviders(ctx context.Context) (int, int, error) {
 	e.logger.Info("running GRC providers")
-	return e.registry.RunAll(ctx, e.store, e.logger)
+	providerCount := len(e.registry.List())
+	controlCount, err := e.registry.RunAll(ctx, e.store, e.logger)
+	return providerCount, controlCount, err
 }
 
 type vulnRecord struct {
