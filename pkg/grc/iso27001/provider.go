@@ -8,7 +8,6 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/shift/enrichment-engine/pkg/grc"
@@ -43,12 +42,17 @@ func (p *Provider) Name() string {
 func (p *Provider) Run(ctx context.Context) (int, error) {
 	p.logger.Info("fetching ISO 27001/27002:2022 controls catalog", "url", CatalogURL)
 
-	destPath := filepath.Join(os.TempDir(), "iso27001_catalog.json")
+	f, err := os.CreateTemp("", "iso27001_catalog_*.json")
+	if err != nil {
+		return 0, fmt.Errorf("create temp file: %w", err)
+	}
+	destPath := f.Name()
+	f.Close()
+	defer os.Remove(destPath)
 	if err := p.download(ctx, CatalogURL, destPath); err != nil {
 		p.logger.Warn("failed to download catalog, using embedded fallback", "error", err)
 		return p.writeEmbeddedControls(ctx)
 	}
-	defer os.Remove(destPath)
 
 	controls, err := p.parse(destPath)
 	if err != nil {
@@ -75,27 +79,29 @@ func (p *Provider) Run(ctx context.Context) (int, error) {
 func (p *Provider) download(ctx context.Context, url, dest string) error {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
-		return err
+		return fmt.Errorf("%s download: %w", p.Name(), err)
 	}
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := grc.HTTPClient.Do(req)
 	if err != nil {
-		return err
+		return fmt.Errorf("%s download: %w", p.Name(), err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("unexpected status: %d", resp.StatusCode)
+		return fmt.Errorf("%s download: unexpected status %d", p.Name(), resp.StatusCode)
 	}
 
 	f, err := os.Create(dest)
 	if err != nil {
-		return err
+		return fmt.Errorf("%s download: %w", p.Name(), err)
 	}
 	defer f.Close()
 
-	_, err = io.Copy(f, resp.Body)
-	return err
+	if _, err = io.Copy(f, resp.Body); err != nil {
+		return fmt.Errorf("%s download: %w", p.Name(), err)
+	}
+	return nil
 }
 
 // iso27001Catalog represents the expected structure from the external catalog.
@@ -165,6 +171,7 @@ func (p *Provider) toControl(ctrl iso27001Control, family string) grc.Control {
 		Family:      family,
 		Description: strings.TrimSpace(description),
 		Level:       "standard",
+		RelatedCWEs: isoCWEs(ctrl.Number),
 	}
 }
 
@@ -184,6 +191,70 @@ func (p *Provider) writeEmbeddedControls(ctx context.Context) (int, error) {
 
 	p.logger.Info("wrote embedded ISO 27001 controls to storage", "count", count)
 	return count, nil
+}
+
+var isoCWEMap = map[string][]string{
+	"A.5.7":  {"CWE-1021", "CWE-937"},
+	"A.5.9":  {"CWE-1069", "CWE-1342"},
+	"A.5.12": {"CWE-200", "CWE-1069"},
+	"A.5.14": {"CWE-319", "CWE-200"},
+	"A.5.15": {"CWE-284", "CWE-285", "CWE-862"},
+	"A.5.16": {"CWE-287", "CWE-265", "CWE-798"},
+	"A.5.17": {"CWE-521", "CWE-522", "CWE-265"},
+	"A.5.18": {"CWE-285", "CWE-862", "CWE-863"},
+	"A.5.19": {"CWE-1104", "CWE-937"},
+	"A.5.23": {"CWE-1104", "CWE-668"},
+	"A.5.24": {"CWE-16", "CWE-778"},
+	"A.5.25": {"CWE-778", "CWE-693"},
+	"A.5.26": {"CWE-778", "CWE-693"},
+	"A.5.27": {"CWE-778", "CWE-693"},
+	"A.5.28": {"CWE-778", "CWE-693"},
+	"A.5.29": {"CWE-1007", "CWE-754"},
+	"A.5.30": {"CWE-1007", "CWE-754"},
+	"A.5.33": {"CWE-311", "CWE-312", "CWE-316"},
+	"A.5.34": {"CWE-200", "CWE-359"},
+	"A.6.1":  {"CWE-798", "CWE-287"},
+	"A.6.3":  {"CWE-919", "CWE-937"},
+	"A.6.7":  {"CWE-668", "CWE-284"},
+	"A.6.8":  {"CWE-778", "CWE-693"},
+	"A.7.1":  {"CWE-668", "CWE-284"},
+	"A.7.4":  {"CWE-778", "CWE-693"},
+	"A.7.8":  {"CWE-668", "CWE-284"},
+	"A.7.10": {"CWE-226", "CWE-228", "CWE-311"},
+	"A.7.11": {"CWE-1007", "CWE-754"},
+	"A.7.14": {"CWE-226", "CWE-228"},
+	"A.8.1":  {"CWE-200", "CWE-668"},
+	"A.8.2":  {"CWE-250", "CWE-269", "CWE-862"},
+	"A.8.3":  {"CWE-284", "CWE-285", "CWE-862"},
+	"A.8.4":  {"CWE-284", "CWE-285"},
+	"A.8.5":  {"CWE-287", "CWE-307", "CWE-522"},
+	"A.8.7":  {"CWE-94", "CWE-506"},
+	"A.8.8":  {"CWE-1104", "CWE-937"},
+	"A.8.9":  {"CWE-16", "CWE-1188"},
+	"A.8.10": {"CWE-226", "CWE-228"},
+	"A.8.11": {"CWE-200", "CWE-359"},
+	"A.8.12": {"CWE-200", "CWE-212", "CWE-497"},
+	"A.8.13": {"CWE-494", "CWE-754", "CWE-1007"},
+	"A.8.14": {"CWE-1007", "CWE-754"},
+	"A.8.15": {"CWE-778"},
+	"A.8.16": {"CWE-778", "CWE-693"},
+	"A.8.18": {"CWE-250", "CWE-269"},
+	"A.8.19": {"CWE-1104", "CWE-16"},
+	"A.8.21": {"CWE-284", "CWE-668"},
+	"A.8.22": {"CWE-668", "CWE-16"},
+	"A.8.23": {"CWE-1021"},
+	"A.8.24": {"CWE-311", "CWE-326", "CWE-319"},
+	"A.8.25": {"CWE-94", "CWE-95", "CWE-1059"},
+	"A.8.26": {"CWE-1059", "CWE-693"},
+	"A.8.27": {"CWE-1059", "CWE-693"},
+	"A.8.28": {"CWE-94", "CWE-95", "CWE-1336"},
+	"A.8.29": {"CWE-1104", "CWE-937"},
+	"A.8.31": {"CWE-16", "CWE-668"},
+	"A.8.32": {"CWE-16", "CWE-494"},
+}
+
+func isoCWEs(controlID string) []string {
+	return isoCWEMap[controlID]
 }
 
 func embeddedControls() []grc.Control {
@@ -302,6 +373,7 @@ func embeddedControls() []grc.Control {
 			Family:      "Organizational controls",
 			Description: c.desc,
 			Level:       "standard",
+			RelatedCWEs: isoCWEs(c.id),
 		})
 	}
 
@@ -313,6 +385,7 @@ func embeddedControls() []grc.Control {
 			Family:      "People controls",
 			Description: c.desc,
 			Level:       "standard",
+			RelatedCWEs: isoCWEs(c.id),
 		})
 	}
 
@@ -324,6 +397,7 @@ func embeddedControls() []grc.Control {
 			Family:      "Physical controls",
 			Description: c.desc,
 			Level:       "standard",
+			RelatedCWEs: isoCWEs(c.id),
 		})
 	}
 
@@ -335,6 +409,7 @@ func embeddedControls() []grc.Control {
 			Family:      "Technological controls",
 			Description: c.desc,
 			Level:       "standard",
+			RelatedCWEs: isoCWEs(c.id),
 		})
 	}
 

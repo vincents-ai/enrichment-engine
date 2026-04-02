@@ -43,6 +43,45 @@ func (p *Provider) writeEmbeddedControls(ctx context.Context) (int, error) {
 	return count, nil
 }
 
+var disaCWEMap = map[string][]string{
+	"WS-2022.1.2":  {"CWE-521", "CWE-265"},
+	"WS-2022.1.3":  {"CWE-521"},
+	"WS-2022.2.1":  {"CWE-307", "CWE-287"},
+	"WS-2022.2.2":  {"CWE-307", "CWE-287"},
+	"WS-2022.3.1":  {"CWE-778"},
+	"WS-2022.3.2":  {"CWE-778"},
+	"WS-2022.3.3":  {"CWE-778"},
+	"WS-2022.4.1":  {"CWE-287", "CWE-319"},
+	"WS-2022.5.1":  {"CWE-284", "CWE-668"},
+	"WS-2022.6.1":  {"CWE-345", "CWE-319"},
+	"WS-2022.7.1":  {"CWE-16", "CWE-1188"},
+	"RHEL-8.1.1":   {"CWE-732", "CWE-284"},
+	"RHEL-8.1.2":   {"CWE-287", "CWE-798"},
+	"RHEL-8.1.3":   {"CWE-319", "CWE-287"},
+	"RHEL-8.2.1":   {"CWE-521", "CWE-265"},
+	"RHEL-8.2.2":   {"CWE-521"},
+	"RHEL-8.2.3":   {"CWE-307", "CWE-287"},
+	"RHEL-8.3.1":   {"CWE-778"},
+	"RHEL-8.3.2":   {"CWE-778"},
+	"RHEL-8.4.1":   {"CWE-284", "CWE-668"},
+	"RHEL-8.5.1":   {"CWE-693"},
+	"RHEL-8.6.1":   {"CWE-16", "CWE-1188"},
+	"APACHE-2.1.1": {"CWE-200"},
+	"APACHE-2.1.2": {"CWE-200"},
+	"APACHE-2.2.1": {"CWE-319", "CWE-326"},
+	"APACHE-2.3.1": {"CWE-200", "CWE-538"},
+	"APACHE-2.4.1": {"CWE-778"},
+	"NGINX-1.1":    {"CWE-200"},
+	"NGINX-1.2":    {"CWE-319", "CWE-326"},
+	"ORACLE-1.1":   {"CWE-521", "CWE-287"},
+	"ORACLE-1.2":   {"CWE-798", "CWE-254"},
+	"ORACLE-1.3":   {"CWE-778"},
+}
+
+func disaCWEs(controlID string) []string {
+	return disaCWEMap[controlID]
+}
+
 func embeddedControls() []grc.Control {
 	type c struct{ id, title, desc, family, severity string }
 	items := []struct {
@@ -102,6 +141,7 @@ func embeddedControls() []grc.Control {
 				Family:      c.family,
 				Description: c.desc,
 				Level:       c.severity,
+				RelatedCWEs: disaCWEs(c.id),
 				References:  []grc.Reference{{Source: "DISA STIGs", Section: c.id}},
 			})
 		}

@@ -43,6 +43,43 @@ func (p *Provider) writeEmbeddedControls(ctx context.Context) (int, error) {
 	return count, nil
 }
 
+var scapCWEMap = map[string][]string{
+	"SCAP-RHEL-8-1.1":  {"CWE-778"},
+	"SCAP-RHEL-8-1.2":  {"CWE-284", "CWE-250"},
+	"SCAP-RHEL-8-1.3":  {"CWE-693"},
+	"SCAP-RHEL-8-1.4":  {"CWE-693"},
+	"SCAP-RHEL-8-1.5":  {"CWE-250", "CWE-269"},
+	"SCAP-RHEL-8-2.1":  {"CWE-287", "CWE-250"},
+	"SCAP-RHEL-8-2.2":  {"CWE-287", "CWE-521"},
+	"SCAP-RHEL-8-2.3":  {"CWE-250", "CWE-778"},
+	"SCAP-RHEL-8-2.4":  {"CWE-319"},
+	"SCAP-RHEL-8-2.5":  {"CWE-287", "CWE-798"},
+	"SCAP-RHEL-8-2.6":  {"CWE-521"},
+	"SCAP-RHEL-8-2.7":  {"CWE-307", "CWE-287"},
+	"SCAP-RHEL-8-3.1":  {"CWE-284", "CWE-668"},
+	"SCAP-RHEL-8-3.5":  {"CWE-345"},
+	"SCAP-RHEL-8-4.1":  {"CWE-778"},
+	"SCAP-RHEL-8-4.2":  {"CWE-778"},
+	"SCAP-RHEL-8-4.3":  {"CWE-778"},
+	"SCAP-RHEL-8-4.4":  {"CWE-778"},
+	"SCAP-RHEL-8-4.5":  {"CWE-778", "CWE-319"},
+	"SCAP-RHEL-8-5.1":  {"CWE-16", "CWE-319"},
+	"SCAP-RHEL-8-5.2":  {"CWE-16", "CWE-319"},
+	"SCAP-RHEL-8-5.3":  {"CWE-16", "CWE-284"},
+	"SCAP-RHEL-8-6.1":  {"CWE-345", "CWE-1104"},
+	"SCAP-RHEL-8-6.2":  {"CWE-1104"},
+	"SCAP-RHEL-8-6.3":  {"CWE-345", "CWE-353"},
+	"SCAP-RHEL-8-6.4":  {"CWE-345", "CWE-353"},
+	"SCAP-WS-2022-1.1": {"CWE-284", "CWE-668"},
+	"SCAP-WS-2022-1.2": {"CWE-287", "CWE-319"},
+	"SCAP-WS-2022-1.3": {"CWE-778"},
+	"SCAP-WS-2022-1.4": {"CWE-778"},
+}
+
+func scapCWEs(controlID string) []string {
+	return scapCWEMap[controlID]
+}
+
 func embeddedControls() []grc.Control {
 	type c struct{ id, title, desc, family string }
 	items := []struct {
@@ -109,6 +146,7 @@ func embeddedControls() []grc.Control {
 				Family:      c.family,
 				Description: c.desc,
 				Level:       "medium",
+				RelatedCWEs: scapCWEs(c.id),
 				References:  []grc.Reference{{Source: "SCAP/XCCDF 1.3", Section: c.id}},
 			})
 		}

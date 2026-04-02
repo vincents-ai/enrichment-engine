@@ -43,6 +43,51 @@ func (p *Provider) writeEmbeddedControls(ctx context.Context) (int, error) {
 	return count, nil
 }
 
+var cisBenchCWEMap = map[string][]string{
+	"OS-1.2": {"CWE-250", "CWE-269"},
+	"OS-1.3": {"CWE-250", "CWE-269"},
+	"OS-2.1": {"CWE-319"},
+	"OS-2.2": {"CWE-778"},
+	"OS-2.3": {"CWE-287", "CWE-798"},
+	"OS-2.4": {"CWE-287", "CWE-521"},
+	"OS-3.1": {"CWE-521", "CWE-265"},
+	"OS-3.2": {"CWE-521"},
+	"OS-3.3": {"CWE-307", "CWE-287"},
+	"OS-4.1": {"CWE-250", "CWE-269"},
+	"OS-4.2": {"CWE-693"},
+	"OS-5.1": {"CWE-778", "CWE-311"},
+	"OS-5.2": {"CWE-778"},
+	"OS-5.3": {"CWE-778", "CWE-250"},
+	"CT-1.1": {"CWE-284", "CWE-668", "CWE-319"},
+	"CT-1.2": {"CWE-778"},
+	"CT-2.1": {"CWE-250", "CWE-269", "CWE-284"},
+	"CT-2.2": {"CWE-1104", "CWE-345"},
+	"CT-2.3": {"CWE-284", "CWE-668"},
+	"CT-3.1": {"CWE-732", "CWE-284"},
+	"CT-3.2": {"CWE-250", "CWE-269"},
+	"KS-1.1": {"CWE-287", "CWE-306"},
+	"KS-1.2": {"CWE-778"},
+	"KS-2.1": {"CWE-311", "CWE-312", "CWE-319"},
+	"KS-2.2": {"CWE-494", "CWE-311"},
+	"KS-3.1": {"CWE-319", "CWE-287"},
+	"KS-3.2": {"CWE-319"},
+	"KS-4.1": {"CWE-287", "CWE-250"},
+	"KS-4.2": {"CWE-250", "CWE-269", "CWE-284"},
+	"KS-5.1": {"CWE-284", "CWE-668"},
+	"KS-5.2": {"CWE-311", "CWE-284", "CWE-285"},
+	"DB-1.1": {"CWE-287", "CWE-521"},
+	"DB-1.2": {"CWE-284", "CWE-319"},
+	"DB-1.3": {"CWE-778"},
+	"DB-2.1": {"CWE-798", "CWE-287"},
+	"DB-2.2": {"CWE-284", "CWE-319"},
+	"DB-3.1": {"CWE-287", "CWE-306"},
+	"DB-3.2": {"CWE-284", "CWE-319"},
+}
+
+func cisBenchCWEs(controlID string) []string {
+	return cisBenchCWEMap[controlID]
+}
+
 func embeddedControls() []grc.Control {
 	type c struct{ id, title, desc, family string }
 	items := []struct {
@@ -108,6 +153,7 @@ func embeddedControls() []grc.Control {
 				Family:      c.family,
 				Description: c.desc,
 				Level:       "level1",
+				RelatedCWEs: cisBenchCWEs(c.id),
 				References:  []grc.Reference{{Source: "CIS Benchmarks", Section: c.id}},
 			})
 		}

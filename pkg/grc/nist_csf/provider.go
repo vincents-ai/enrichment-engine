@@ -8,7 +8,6 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/shift/enrichment-engine/pkg/grc"
@@ -43,12 +42,17 @@ func (p *Provider) Name() string {
 func (p *Provider) Run(ctx context.Context) (int, error) {
 	p.logger.Info("fetching NIST CSF 2.0 controls catalog", "url", CatalogURL)
 
-	destPath := filepath.Join(os.TempDir(), "nist_csf_catalog.json")
+	f, err := os.CreateTemp("", "nist_csf_catalog_*.json")
+	if err != nil {
+		return 0, fmt.Errorf("create temp file: %w", err)
+	}
+	destPath := f.Name()
+	f.Close()
+	defer os.Remove(destPath)
 	if err := p.download(ctx, CatalogURL, destPath); err != nil {
 		p.logger.Warn("failed to download catalog, using embedded fallback", "error", err)
 		return p.writeEmbeddedControls(ctx)
 	}
-	defer os.Remove(destPath)
 
 	controls, err := p.parse(destPath)
 	if err != nil {
@@ -75,27 +79,29 @@ func (p *Provider) Run(ctx context.Context) (int, error) {
 func (p *Provider) download(ctx context.Context, url, dest string) error {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
-		return err
+		return fmt.Errorf("%s download: %w", p.Name(), err)
 	}
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := grc.HTTPClient.Do(req)
 	if err != nil {
-		return err
+		return fmt.Errorf("%s download: %w", p.Name(), err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("unexpected status: %d", resp.StatusCode)
+		return fmt.Errorf("%s download: unexpected status %d", p.Name(), resp.StatusCode)
 	}
 
 	f, err := os.Create(dest)
 	if err != nil {
-		return err
+		return fmt.Errorf("%s download: %w", p.Name(), err)
 	}
 	defer f.Close()
 
-	_, err = io.Copy(f, resp.Body)
-	return err
+	if _, err = io.Copy(f, resp.Body); err != nil {
+		return fmt.Errorf("%s download: %w", p.Name(), err)
+	}
+	return nil
 }
 
 type csfCatalog struct {
@@ -158,6 +164,7 @@ func (p *Provider) toSubcategory(sub csfSubcategory, function, category, functio
 		Family:      fmt.Sprintf("%s - %s", function, category),
 		Description: sub.Description,
 		Level:       level,
+		RelatedCWEs: nistCsfCWEs(sub.ID),
 		References: []grc.Reference{
 			{
 				Source:  "NIST Cybersecurity Framework 2.0",
@@ -183,6 +190,53 @@ func (p *Provider) writeEmbeddedControls(ctx context.Context) (int, error) {
 
 	p.logger.Info("wrote embedded NIST CSF controls to storage", "count", count)
 	return count, nil
+}
+
+var nistCsfCWEMap = map[string][]string{
+	"ID.RA-01": {"CWE-1090", "CWE-1104"},
+	"ID.RA-02": {"CWE-1021", "CWE-937"},
+	"ID.RA-05": {"CWE-1090", "CWE-1104"},
+	"ID.RA-07": {"CWE-1104"},
+	"PR.AA-01": {"CWE-287", "CWE-798", "CWE-638"},
+	"PR.AA-02": {"CWE-265", "CWE-285", "CWE-287"},
+	"PR.AA-03": {"CWE-287", "CWE-308", "CWE-522"},
+	"PR.AA-04": {"CWE-287", "CWE-343"},
+	"PR.AA-05": {"CWE-284", "CWE-285", "CWE-862", "CWE-863"},
+	"PR.DS-01": {"CWE-200", "CWE-1069"},
+	"PR.DS-02": {"CWE-311", "CWE-312", "CWE-313", "CWE-316"},
+	"PR.DS-03": {"CWE-319", "CWE-326"},
+	"PR.DS-04": {"CWE-311", "CWE-312", "CWE-326"},
+	"PR.DS-05": {"CWE-226", "CWE-227", "CWE-228"},
+	"PR.DS-06": {"CWE-200", "CWE-212", "CWE-497"},
+	"PR.DS-07": {"CWE-494", "CWE-754"},
+	"PR.DS-08": {"CWE-345", "CWE-353", "CWE-348"},
+	"PR.IR-01": {"CWE-16", "CWE-2", "CWE-1188"},
+	"PR.IR-02": {"CWE-16", "CWE-494"},
+	"PR.IR-03": {"CWE-16", "CWE-1188"},
+	"PR.IR-04": {"CWE-1104"},
+	"PR.IR-05": {"CWE-94", "CWE-95", "CWE-96", "CWE-1336"},
+	"PR.IR-06": {"CWE-693", "CWE-1004", "CWE-1059"},
+	"DE.CM-01": {"CWE-778"},
+	"DE.CM-02": {"CWE-778"},
+	"DE.CM-05": {"CWE-778", "CWE-1104"},
+	"DE.CM-07": {"CWE-778"},
+	"DE.CM-08": {"CWE-778", "CWE-693"},
+	"DE.AE-01": {"CWE-778", "CWE-693"},
+	"DE.AE-02": {"CWE-778", "CWE-208"},
+	"DE.AE-03": {"CWE-778", "CWE-693"},
+	"RS.MA-01": {"CWE-16", "CWE-778"},
+	"RS.MA-03": {"CWE-778"},
+	"RS.AN-01": {"CWE-778", "CWE-208"},
+	"RS.AN-03": {"CWE-778"},
+	"RS.AN-04": {"CWE-693", "CWE-400"},
+	"RS.MI-01": {"CWE-693", "CWE-400"},
+	"RC.RP-01": {"CWE-1007", "CWE-754"},
+	"RC.RP-02": {"CWE-1007", "CWE-754"},
+	"RC.RP-03": {"CWE-1007"},
+}
+
+func nistCsfCWEs(controlID string) []string {
+	return nistCsfCWEMap[controlID]
 }
 
 func embeddedControls() []grc.Control {
@@ -331,6 +385,7 @@ func embeddedControls() []grc.Control {
 				Family:      f.function,
 				Description: c.desc,
 				Level:       "standard",
+				RelatedCWEs: nistCsfCWEs(c.id),
 				References:  []grc.Reference{{Source: "NIST Cybersecurity Framework 2.0", Section: c.id}},
 			})
 		}

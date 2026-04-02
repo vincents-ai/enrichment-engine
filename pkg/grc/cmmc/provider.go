@@ -8,7 +8,6 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/shift/enrichment-engine/pkg/grc"
@@ -43,12 +42,17 @@ func (p *Provider) Name() string {
 func (p *Provider) Run(ctx context.Context) (int, error) {
 	p.logger.Info("fetching CMMC v2 controls catalog", "url", CatalogURL)
 
-	destPath := filepath.Join(os.TempDir(), "cmmc_catalog.json")
+	f, err := os.CreateTemp("", "cmmc_catalog_*.json")
+	if err != nil {
+		return 0, fmt.Errorf("create temp file: %w", err)
+	}
+	destPath := f.Name()
+	f.Close()
+	defer os.Remove(destPath)
 	if err := p.download(ctx, CatalogURL, destPath); err != nil {
 		p.logger.Warn("failed to download catalog, using embedded fallback", "error", err)
 		return p.writeEmbeddedControls(ctx)
 	}
-	defer os.Remove(destPath)
 
 	controls, err := p.parse(destPath)
 	if err != nil {
@@ -75,27 +79,29 @@ func (p *Provider) Run(ctx context.Context) (int, error) {
 func (p *Provider) download(ctx context.Context, url, dest string) error {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
-		return err
+		return fmt.Errorf("%s download: %w", p.Name(), err)
 	}
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := grc.HTTPClient.Do(req)
 	if err != nil {
-		return err
+		return fmt.Errorf("%s download: %w", p.Name(), err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("unexpected status: %d", resp.StatusCode)
+		return fmt.Errorf("%s download: unexpected status %d", p.Name(), resp.StatusCode)
 	}
 
 	f, err := os.Create(dest)
 	if err != nil {
-		return err
+		return fmt.Errorf("%s download: %w", p.Name(), err)
 	}
 	defer f.Close()
 
-	_, err = io.Copy(f, resp.Body)
-	return err
+	if _, err = io.Copy(f, resp.Body); err != nil {
+		return fmt.Errorf("%s download: %w", p.Name(), err)
+	}
+	return nil
 }
 
 type cmmcCatalog struct {
@@ -168,6 +174,7 @@ func (p *Provider) toControl(ctrl cmmcControl, domain, level string) grc.Control
 		Family:      domain,
 		Description: ctrl.Description,
 		Level:       strings.ToLower(cmmcLevel),
+		RelatedCWEs: cmmcCWEs(ctrl.ID),
 		References:  refs,
 	}
 }
@@ -188,6 +195,65 @@ func (p *Provider) writeEmbeddedControls(ctx context.Context) (int, error) {
 
 	p.logger.Info("wrote embedded CMMC controls to storage", "count", count)
 	return count, nil
+}
+
+var cmmcCWEMap = map[string][]string{
+	"AC.L1-3.1.1":  {"CWE-284", "CWE-285", "CWE-862"},
+	"AC.L1-3.1.2":  {"CWE-284", "CWE-285"},
+	"AC.L2-3.1.3":  {"CWE-284", "CWE-668"},
+	"AC.L2-3.1.4":  {"CWE-250", "CWE-269"},
+	"AC.L2-3.1.5":  {"CWE-250", "CWE-269", "CWE-862"},
+	"AC.L2-3.1.6":  {"CWE-250", "CWE-269"},
+	"AC.L2-3.1.7":  {"CWE-287", "CWE-668"},
+	"AC.L2-3.1.8":  {"CWE-284", "CWE-319"},
+	"AC.L2-3.1.9":  {"CWE-668", "CWE-284"},
+	"AC.L2-3.1.10": {"CWE-613"},
+	"AT.L2-3.2.1":  {"CWE-919", "CWE-937"},
+	"AT.L2-3.2.2":  {"CWE-919"},
+	"AT.L2-3.2.3":  {"CWE-919", "CWE-1021"},
+	"AU.L2-3.3.1":  {"CWE-778"},
+	"AU.L2-3.3.2":  {"CWE-778", "CWE-693"},
+	"AU.L2-3.3.3":  {"CWE-778", "CWE-311"},
+	"AU.L2-3.3.4":  {"CWE-778", "CWE-693"},
+	"AU.L2-3.3.6":  {"CWE-778", "CWE-250"},
+	"CM.L2-3.4.1":  {"CWE-16", "CWE-1188"},
+	"CM.L2-3.4.2":  {"CWE-16", "CWE-1188"},
+	"CM.L2-3.4.3":  {"CWE-16", "CWE-494"},
+	"CM.L2-3.4.5":  {"CWE-16", "CWE-1188"},
+	"CM.L2-3.4.6":  {"CWE-1104"},
+	"IA.L1-3.5.1":  {"CWE-287", "CWE-798"},
+	"IA.L1-3.5.2":  {"CWE-287", "CWE-308"},
+	"IA.L2-3.5.3":  {"CWE-287", "CWE-308"},
+	"IA.L2-3.5.4":  {"CWE-287", "CWE-308"},
+	"IA.L2-3.5.5":  {"CWE-287"},
+	"IA.L2-3.5.6":  {"CWE-521", "CWE-265"},
+	"IA.L2-3.5.7":  {"CWE-287", "CWE-319"},
+	"IR.L2-3.6.1":  {"CWE-778", "CWE-693"},
+	"IR.L2-3.6.2":  {"CWE-778"},
+	"IR.L2-3.6.3":  {"CWE-1104"},
+	"MA.L2-3.7.2":  {"CWE-250", "CWE-269"},
+	"MA.L2-3.7.3":  {"CWE-668", "CWE-284"},
+	"MP.L2-3.8.1":  {"CWE-311", "CWE-226"},
+	"MP.L2-3.8.3":  {"CWE-226", "CWE-228"},
+	"PE.L1-3.10.1": {"CWE-668", "CWE-284"},
+	"PE.L2-3.10.2": {"CWE-778"},
+	"RM.L2-3.11.1": {"CWE-1104", "CWE-937"},
+	"RM.L2-3.11.3": {"CWE-1104"},
+	"CA.L2-3.12.1": {"CWE-1104", "CWE-937"},
+	"SC.L2-3.13.1": {"CWE-284", "CWE-668"},
+	"SC.L2-3.13.2": {"CWE-319", "CWE-326"},
+	"SC.L2-3.13.3": {"CWE-320", "CWE-326"},
+	"SC.L2-3.13.4": {"CWE-400", "CWE-693"},
+	"SC.L2-3.13.5": {"CWE-287", "CWE-345"},
+	"SC.L2-3.13.8": {"CWE-668"},
+	"SI.L1-3.14.1": {"CWE-94", "CWE-506"},
+	"SI.L2-3.14.2": {"CWE-1104"},
+	"SI.L2-3.14.3": {"CWE-1104", "CWE-937"},
+	"SI.L2-3.14.6": {"CWE-250", "CWE-269", "CWE-787"},
+}
+
+func cmmcCWEs(controlID string) []string {
+	return cmmcCWEMap[controlID]
 }
 
 func embeddedControls() []grc.Control {
@@ -339,6 +405,7 @@ func embeddedControls() []grc.Control {
 				Family:      d.domain,
 				Description: c.desc,
 				Level:       fmt.Sprintf("level_%s", strings.ToLower(d.level)),
+				RelatedCWEs: cmmcCWEs(c.id),
 				References:  refs,
 			})
 		}

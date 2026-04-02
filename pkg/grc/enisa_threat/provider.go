@@ -8,7 +8,6 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/shift/enrichment-engine/pkg/grc"
@@ -43,13 +42,18 @@ func (p *Provider) Name() string {
 func (p *Provider) Run(ctx context.Context) (int, error) {
 	p.logger.Info("fetching ENISA Threat Landscape taxonomy", "url", CatalogURL)
 
-	destPath := filepath.Join(os.TempDir(), "enisa_threat_landscape.json")
+	f, err := os.CreateTemp("", "enisa_threat_landscape_*.json")
+	if err != nil {
+		return 0, fmt.Errorf("create temp file: %w", err)
+	}
+	destPath := f.Name()
+	f.Close()
+	defer os.Remove(destPath)
 	if err := p.download(ctx, CatalogURL, destPath); err != nil {
 		p.logger.Warn("download failed, falling back to embedded taxonomy", "error", err)
 		controls := p.generateEmbeddedTaxonomy()
 		return p.writeControls(ctx, controls)
 	}
-	defer os.Remove(destPath)
 
 	controls, err := p.parse(destPath)
 	if err != nil {
@@ -63,27 +67,29 @@ func (p *Provider) Run(ctx context.Context) (int, error) {
 func (p *Provider) download(ctx context.Context, url, dest string) error {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
-		return err
+		return fmt.Errorf("%s download: %w", p.Name(), err)
 	}
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := grc.HTTPClient.Do(req)
 	if err != nil {
-		return err
+		return fmt.Errorf("%s download: %w", p.Name(), err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("unexpected status: %d", resp.StatusCode)
+		return fmt.Errorf("%s download: unexpected status %d", p.Name(), resp.StatusCode)
 	}
 
 	f, err := os.Create(dest)
 	if err != nil {
-		return err
+		return fmt.Errorf("%s download: %w", p.Name(), err)
 	}
 	defer f.Close()
 
-	_, err = io.Copy(f, resp.Body)
-	return err
+	if _, err = io.Copy(f, resp.Body); err != nil {
+		return fmt.Errorf("%s download: %w", p.Name(), err)
+	}
+	return nil
 }
 
 // enisaCatalog represents the ENISA threat landscape JSON structure.

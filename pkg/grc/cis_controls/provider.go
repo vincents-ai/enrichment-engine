@@ -9,7 +9,6 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/shift/enrichment-engine/pkg/grc"
@@ -47,16 +46,20 @@ func (p *Provider) Name() string {
 func (p *Provider) Run(ctx context.Context) (int, error) {
 	p.logger.Info("fetching CIS Controls v8.1 catalog", "url", CatalogURL)
 
-	destPath := filepath.Join(os.TempDir(), "cis_controls_v8.json")
+	f, err := os.CreateTemp("", "cis_controls_v8_*.json")
+	if err != nil {
+		return 0, fmt.Errorf("create temp file: %w", err)
+	}
+	destPath := f.Name()
+	f.Close()
+	defer os.Remove(destPath)
 
 	var data []byte
-	var err error
 
 	if err = p.download(ctx, CatalogURL, destPath); err != nil {
 		p.logger.Warn("failed to download catalog, using embedded fallback", "error", err)
 		data = embeddedCatalog
 	} else {
-		defer os.Remove(destPath)
 		data, err = os.ReadFile(destPath)
 		if err != nil {
 			return 0, fmt.Errorf("read catalog: %w", err)
@@ -87,27 +90,29 @@ func (p *Provider) Run(ctx context.Context) (int, error) {
 func (p *Provider) download(ctx context.Context, url, dest string) error {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
-		return err
+		return fmt.Errorf("%s download: %w", p.Name(), err)
 	}
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := grc.HTTPClient.Do(req)
 	if err != nil {
-		return err
+		return fmt.Errorf("%s download: %w", p.Name(), err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("unexpected status: %d", resp.StatusCode)
+		return fmt.Errorf("%s download: unexpected status %d", p.Name(), resp.StatusCode)
 	}
 
 	f, err := os.Create(dest)
 	if err != nil {
-		return err
+		return fmt.Errorf("%s download: %w", p.Name(), err)
 	}
 	defer f.Close()
 
-	_, err = io.Copy(f, resp.Body)
-	return err
+	if _, err = io.Copy(f, resp.Body); err != nil {
+		return fmt.Errorf("%s download: %w", p.Name(), err)
+	}
+	return nil
 }
 
 // cisCatalog is the top-level CIS Controls structure.
@@ -155,12 +160,96 @@ func (p *Provider) extractControls(ig cisIG) []grc.Control {
 			Family:      ig.Name,
 			Description: ctrl.Description,
 			Level:       level,
+			RelatedCWEs: cisCWEs(ctrl.ID),
 		}
 
 		controls = append(controls, control)
 	}
 
 	return controls
+}
+
+var cisCWEMap = map[string][]string{
+	"1.1":   {"CWE-1069", "CWE-1342"},
+	"1.2":   {"CWE-1104", "CWE-16"},
+	"1.3":   {"CWE-1104", "CWE-937"},
+	"2.1":   {"CWE-1104", "CWE-1024"},
+	"2.2":   {"CWE-1104"},
+	"2.3":   {"CWE-1104", "CWE-488"},
+	"2.4":   {"CWE-1104", "CWE-1024"},
+	"2.5":   {"CWE-94", "CWE-1104"},
+	"2.6":   {"CWE-1357", "CWE-1104"},
+	"2.7":   {"CWE-94", "CWE-95"},
+	"3.3":   {"CWE-284", "CWE-285", "CWE-862"},
+	"3.5":   {"CWE-226", "CWE-228"},
+	"3.6":   {"CWE-311", "CWE-312"},
+	"3.9":   {"CWE-311", "CWE-312"},
+	"3.10":  {"CWE-319", "CWE-326"},
+	"3.11":  {"CWE-311", "CWE-312", "CWE-316"},
+	"3.12":  {"CWE-16", "CWE-668"},
+	"3.13":  {"CWE-200", "CWE-212", "CWE-497"},
+	"4.1":   {"CWE-16", "CWE-1188"},
+	"4.2":   {"CWE-16", "CWE-1188"},
+	"4.3":   {"CWE-613", "CWE-287"},
+	"4.4":   {"CWE-284", "CWE-668"},
+	"4.5":   {"CWE-284", "CWE-668"},
+	"4.6":   {"CWE-1104", "CWE-16"},
+	"4.7":   {"CWE-798", "CWE-254"},
+	"5.1":   {"CWE-287", "CWE-798"},
+	"5.2":   {"CWE-521", "CWE-265"},
+	"5.3":   {"CWE-798", "CWE-287"},
+	"5.4":   {"CWE-250", "CWE-269"},
+	"5.5":   {"CWE-287", "CWE-798"},
+	"5.6":   {"CWE-287", "CWE-308"},
+	"5.7":   {"CWE-521", "CWE-265"},
+	"6.1":   {"CWE-285", "CWE-862"},
+	"6.2":   {"CWE-285", "CWE-863"},
+	"6.3":   {"CWE-287", "CWE-308"},
+	"6.4":   {"CWE-287", "CWE-308"},
+	"6.5":   {"CWE-250", "CWE-269", "CWE-287"},
+	"6.7":   {"CWE-285", "CWE-862"},
+	"6.8":   {"CWE-285", "CWE-862"},
+	"7.1":   {"CWE-1104", "CWE-937"},
+	"7.2":   {"CWE-1104", "CWE-937"},
+	"7.3":   {"CWE-1104"},
+	"7.4":   {"CWE-1104"},
+	"7.5":   {"CWE-1104", "CWE-937"},
+	"7.6":   {"CWE-1104", "CWE-937"},
+	"7.7":   {"CWE-1104"},
+	"8.1":   {"CWE-778", "CWE-223"},
+	"8.2":   {"CWE-778"},
+	"8.3":   {"CWE-778"},
+	"8.5":   {"CWE-778"},
+	"8.9":   {"CWE-778"},
+	"8.10":  {"CWE-778"},
+	"8.11":  {"CWE-778", "CWE-693"},
+	"9.1":   {"CWE-1104", "CWE-1021"},
+	"9.2":   {"CWE-1021"},
+	"9.3":   {"CWE-1021"},
+	"9.7":   {"CWE-1021", "CWE-919"},
+	"9.8":   {"CWE-919", "CWE-1021"},
+	"10.1":  {"CWE-778"},
+	"10.2":  {"CWE-778"},
+	"10.3":  {"CWE-778", "CWE-693"},
+	"10.4":  {"CWE-778", "CWE-693"},
+	"11.1":  {"CWE-778", "CWE-693"},
+	"11.2":  {"CWE-778", "CWE-693"},
+	"11.3":  {"CWE-778", "CWE-693"},
+	"16.1":  {"CWE-1104", "CWE-1024"},
+	"16.3":  {"CWE-1104", "CWE-937"},
+	"16.5":  {"CWE-1104", "CWE-1357"},
+	"16.10": {"CWE-1059", "CWE-693"},
+	"16.12": {"CWE-94", "CWE-95", "CWE-1336"},
+	"16.13": {"CWE-1104", "CWE-937"},
+	"17.3":  {"CWE-16", "CWE-778"},
+	"17.4":  {"CWE-778", "CWE-693"},
+	"18.1":  {"CWE-1104", "CWE-937"},
+	"18.2":  {"CWE-1104", "CWE-937"},
+	"18.4":  {"CWE-1104", "CWE-937"},
+}
+
+func cisCWEs(controlID string) []string {
+	return cisCWEMap[controlID]
 }
 
 func (p *Provider) mapLevel(controlID string) string {

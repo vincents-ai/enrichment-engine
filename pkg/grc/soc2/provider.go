@@ -8,7 +8,6 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/shift/enrichment-engine/pkg/grc"
@@ -43,12 +42,17 @@ func (p *Provider) Name() string {
 func (p *Provider) Run(ctx context.Context) (int, error) {
 	p.logger.Info("fetching SOC 2 Trust Services Criteria catalog", "url", CatalogURL)
 
-	destPath := filepath.Join(os.TempDir(), "soc2_catalog.json")
+	f, err := os.CreateTemp("", "soc2_catalog_*.json")
+	if err != nil {
+		return 0, fmt.Errorf("create temp file: %w", err)
+	}
+	destPath := f.Name()
+	f.Close()
+	defer os.Remove(destPath)
 	if err := p.download(ctx, CatalogURL, destPath); err != nil {
 		p.logger.Warn("failed to download catalog, using embedded fallback", "error", err)
 		return p.writeEmbeddedControls(ctx)
 	}
-	defer os.Remove(destPath)
 
 	controls, err := p.parse(destPath)
 	if err != nil {
@@ -75,27 +79,29 @@ func (p *Provider) Run(ctx context.Context) (int, error) {
 func (p *Provider) download(ctx context.Context, url, dest string) error {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
-		return err
+		return fmt.Errorf("%s download: %w", p.Name(), err)
 	}
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := grc.HTTPClient.Do(req)
 	if err != nil {
-		return err
+		return fmt.Errorf("%s download: %w", p.Name(), err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("unexpected status: %d", resp.StatusCode)
+		return fmt.Errorf("%s download: unexpected status %d", p.Name(), resp.StatusCode)
 	}
 
 	f, err := os.Create(dest)
 	if err != nil {
-		return err
+		return fmt.Errorf("%s download: %w", p.Name(), err)
 	}
 	defer f.Close()
 
-	_, err = io.Copy(f, resp.Body)
-	return err
+	if _, err = io.Copy(f, resp.Body); err != nil {
+		return fmt.Errorf("%s download: %w", p.Name(), err)
+	}
+	return nil
 }
 
 // soc2Catalog represents the expected structure from the external catalog.
@@ -194,6 +200,30 @@ func (p *Provider) writeEmbeddedControls(ctx context.Context) (int, error) {
 
 	p.logger.Info("wrote embedded SOC 2 controls to storage", "count", count)
 	return count, nil
+}
+
+var soc2CWEMap = map[string][]string{
+	"CC6.1": {"CWE-284", "CWE-285", "CWE-862"},
+	"CC6.2": {"CWE-287", "CWE-798"},
+	"CC6.3": {"CWE-284", "CWE-285", "CWE-862"},
+	"CC6.4": {"CWE-668", "CWE-284"},
+	"CC6.5": {"CWE-285", "CWE-863"},
+	"CC6.6": {"CWE-284", "CWE-668"},
+	"CC6.7": {"CWE-311", "CWE-319"},
+	"CC6.8": {"CWE-94", "CWE-506"},
+	"CC7.1": {"CWE-16", "CWE-778"},
+	"CC7.2": {"CWE-778", "CWE-693"},
+	"CC7.3": {"CWE-778", "CWE-693"},
+	"CC7.4": {"CWE-778", "CWE-693"},
+	"CC7.5": {"CWE-693", "CWE-400"},
+	"CC8.1": {"CWE-16", "CWE-494"},
+	"C1.1":  {"CWE-200", "CWE-1069"},
+	"C1.2":  {"CWE-226", "CWE-228"},
+	"P8.1":  {"CWE-311", "CWE-312", "CWE-284"},
+}
+
+func soc2CWEs(controlID string) []string {
+	return soc2CWEMap[controlID]
 }
 
 func embeddedControls() []grc.Control {
@@ -366,6 +396,7 @@ func embeddedControls() []grc.Control {
 			Family:      "Security",
 			Description: c.desc,
 			Level:       "standard",
+			RelatedCWEs: soc2CWEs(c.id),
 		})
 	}
 
@@ -377,6 +408,7 @@ func embeddedControls() []grc.Control {
 			Family:      "Security",
 			Description: c.desc,
 			Level:       "standard",
+			RelatedCWEs: soc2CWEs(c.id),
 		})
 	}
 
@@ -388,6 +420,7 @@ func embeddedControls() []grc.Control {
 			Family:      "Security",
 			Description: c.desc,
 			Level:       "standard",
+			RelatedCWEs: soc2CWEs(c.id),
 		})
 	}
 
@@ -432,6 +465,7 @@ func embeddedControls() []grc.Control {
 			Family:      "Confidentiality",
 			Description: c.desc,
 			Level:       "standard",
+			RelatedCWEs: soc2CWEs(c.id),
 		})
 	}
 
@@ -443,6 +477,7 @@ func embeddedControls() []grc.Control {
 			Family:      "Privacy",
 			Description: c.desc,
 			Level:       "standard",
+			RelatedCWEs: soc2CWEs(c.id),
 		})
 	}
 

@@ -43,6 +43,46 @@ func (p *Provider) writeEmbeddedControls(ctx context.Context) (int, error) {
 	return count, nil
 }
 
+var fedrampCWEMap = map[string][]string{
+	"AC-2":  {"CWE-287", "CWE-798", "CWE-265"},
+	"AC-3":  {"CWE-284", "CWE-285", "CWE-862"},
+	"AC-4":  {"CWE-284", "CWE-668"},
+	"AC-6":  {"CWE-250", "CWE-269", "CWE-862"},
+	"AC-7":  {"CWE-307", "CWE-287"},
+	"AC-11": {"CWE-613"},
+	"AC-17": {"CWE-319", "CWE-326"},
+	"AU-2":  {"CWE-778"},
+	"AU-3":  {"CWE-778"},
+	"AU-6":  {"CWE-778", "CWE-693"},
+	"AU-8":  {"CWE-778"},
+	"AU-9":  {"CWE-778", "CWE-311"},
+	"AU-10": {"CWE-345", "CWE-353"},
+	"AU-12": {"CWE-778"},
+	"CM-2":  {"CWE-16", "CWE-1188"},
+	"CM-3":  {"CWE-16", "CWE-494"},
+	"CM-6":  {"CWE-16", "CWE-1188"},
+	"CM-7":  {"CWE-16", "CWE-1188"},
+	"IA-2":  {"CWE-287", "CWE-308"},
+	"IA-3":  {"CWE-287"},
+	"IA-5":  {"CWE-521", "CWE-522", "CWE-265"},
+	"IA-8":  {"CWE-345", "CWE-353"},
+	"IR-4":  {"CWE-778", "CWE-693"},
+	"IR-5":  {"CWE-778"},
+	"SC-7":  {"CWE-284", "CWE-668"},
+	"SC-8":  {"CWE-319", "CWE-326"},
+	"SC-12": {"CWE-311", "CWE-312", "CWE-316"},
+	"SC-13": {"CWE-311", "CWE-326"},
+	"SC-28": {"CWE-311", "CWE-312"},
+	"SI-2":  {"CWE-1104"},
+	"SI-3":  {"CWE-94", "CWE-506"},
+	"SI-4":  {"CWE-778", "CWE-693"},
+	"SI-7":  {"CWE-345", "CWE-353"},
+}
+
+func fedrampCWEs(controlID string) []string {
+	return fedrampCWEMap[controlID]
+}
+
 func embeddedControls() []grc.Control {
 	type c struct{ id, title, desc, family, level string }
 	items := []struct {
@@ -127,6 +167,7 @@ func embeddedControls() []grc.Control {
 				Family:      c.family,
 				Description: c.desc,
 				Level:       c.level,
+				RelatedCWEs: fedrampCWEs(c.id),
 				References:  []grc.Reference{{Source: "NIST SP 800-53 Rev 5", Section: c.id}},
 			})
 		}

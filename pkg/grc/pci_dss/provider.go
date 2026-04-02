@@ -8,7 +8,6 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/shift/enrichment-engine/pkg/grc"
@@ -43,12 +42,17 @@ func (p *Provider) Name() string {
 func (p *Provider) Run(ctx context.Context) (int, error) {
 	p.logger.Info("fetching PCI DSS v4.0 controls catalog", "url", CatalogURL)
 
-	destPath := filepath.Join(os.TempDir(), "pci_dss_catalog.json")
+	f, err := os.CreateTemp("", "pci_dss_catalog_*.json")
+	if err != nil {
+		return 0, fmt.Errorf("create temp file: %w", err)
+	}
+	destPath := f.Name()
+	f.Close()
+	defer os.Remove(destPath)
 	if err := p.download(ctx, CatalogURL, destPath); err != nil {
 		p.logger.Warn("failed to download catalog, using embedded fallback", "error", err)
 		return p.writeEmbeddedControls(ctx)
 	}
-	defer os.Remove(destPath)
 
 	controls, err := p.parse(destPath)
 	if err != nil {
@@ -75,27 +79,29 @@ func (p *Provider) Run(ctx context.Context) (int, error) {
 func (p *Provider) download(ctx context.Context, url, dest string) error {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
-		return err
+		return fmt.Errorf("%s download: %w", p.Name(), err)
 	}
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := grc.HTTPClient.Do(req)
 	if err != nil {
-		return err
+		return fmt.Errorf("%s download: %w", p.Name(), err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("unexpected status: %d", resp.StatusCode)
+		return fmt.Errorf("%s download: unexpected status %d", p.Name(), resp.StatusCode)
 	}
 
 	f, err := os.Create(dest)
 	if err != nil {
-		return err
+		return fmt.Errorf("%s download: %w", p.Name(), err)
 	}
 	defer f.Close()
 
-	_, err = io.Copy(f, resp.Body)
-	return err
+	if _, err = io.Copy(f, resp.Body); err != nil {
+		return fmt.Errorf("%s download: %w", p.Name(), err)
+	}
+	return nil
 }
 
 type pciCatalog struct {
@@ -160,6 +166,7 @@ func (p *Provider) toControl(ctrl pciControl, family, requirement string) grc.Co
 		Family:      family,
 		Description: ctrl.Description,
 		Level:       level,
+		RelatedCWEs: pciCWEs(ctrl.ID),
 		References: []grc.Reference{
 			{
 				Source:  "PCI DSS v4.0",
@@ -185,6 +192,67 @@ func (p *Provider) writeEmbeddedControls(ctx context.Context) (int, error) {
 
 	p.logger.Info("wrote embedded PCI DSS controls to storage", "count", count)
 	return count, nil
+}
+
+var pciCWEMap = map[string][]string{
+	"1.1":  {"CWE-284", "CWE-668"},
+	"1.2":  {"CWE-284", "CWE-668"},
+	"1.3":  {"CWE-284", "CWE-668"},
+	"1.4":  {"CWE-16", "CWE-1188"},
+	"1.5":  {"CWE-1104", "CWE-937"},
+	"2.1":  {"CWE-798", "CWE-254", "CWE-521"},
+	"2.2":  {"CWE-16", "CWE-1188"},
+	"2.3":  {"CWE-311", "CWE-320", "CWE-326"},
+	"2.4":  {"CWE-16", "CWE-1188"},
+	"3.1":  {"CWE-200", "CWE-212"},
+	"3.2":  {"CWE-312", "CWE-311", "CWE-200"},
+	"3.3":  {"CWE-200", "CWE-359"},
+	"3.4":  {"CWE-311", "CWE-312", "CWE-316"},
+	"3.5":  {"CWE-320", "CWE-326", "CWE-311"},
+	"4.1":  {"CWE-319", "CWE-326"},
+	"4.2":  {"CWE-319", "CWE-200"},
+	"4.3":  {"CWE-319", "CWE-326"},
+	"5.1":  {"CWE-94", "CWE-506"},
+	"5.2":  {"CWE-94", "CWE-506"},
+	"5.3":  {"CWE-94", "CWE-506"},
+	"6.1":  {"CWE-1104", "CWE-937"},
+	"6.2":  {"CWE-94", "CWE-95", "CWE-1336"},
+	"6.3":  {"CWE-16", "CWE-494"},
+	"6.4":  {"CWE-79", "CWE-89", "CWE-102", "CWE-306", "CWE-94"},
+	"6.5":  {"CWE-94", "CWE-1059", "CWE-693"},
+	"7.1":  {"CWE-284", "CWE-285", "CWE-862"},
+	"7.2":  {"CWE-284", "CWE-285", "CWE-862"},
+	"7.3":  {"CWE-284", "CWE-285", "CWE-862"},
+	"8.1":  {"CWE-287", "CWE-798"},
+	"8.2":  {"CWE-287", "CWE-308", "CWE-522"},
+	"8.3":  {"CWE-521", "CWE-265"},
+	"8.4":  {"CWE-287", "CWE-308"},
+	"8.5":  {"CWE-798", "CWE-287"},
+	"8.6":  {"CWE-287", "CWE-522"},
+	"10.1": {"CWE-778"},
+	"10.2": {"CWE-778"},
+	"10.3": {"CWE-778"},
+	"10.4": {"CWE-311", "CWE-312"},
+	"10.5": {"CWE-778", "CWE-693"},
+	"10.6": {"CWE-778"},
+	"10.7": {"CWE-778", "CWE-693"},
+	"11.1": {"CWE-778", "CWE-693"},
+	"11.2": {"CWE-1104", "CWE-937"},
+	"11.3": {"CWE-1104", "CWE-937"},
+	"11.4": {"CWE-778", "CWE-693"},
+	"11.5": {"CWE-778", "CWE-693"},
+	"11.6": {"CWE-778", "CWE-693"},
+	"12.1": {"CWE-16", "CWE-1188"},
+	"12.2": {"CWE-1104", "CWE-937"},
+	"12.3": {"CWE-16", "CWE-1188"},
+	"12.5": {"CWE-919", "CWE-937"},
+	"12.6": {"CWE-778", "CWE-693"},
+	"12.7": {"CWE-798", "CWE-287"},
+	"12.8": {"CWE-1104", "CWE-937"},
+}
+
+func pciCWEs(controlID string) []string {
+	return pciCWEMap[controlID]
 }
 
 func embeddedControls() []grc.Control {
@@ -315,6 +383,7 @@ func embeddedControls() []grc.Control {
 				Family:      req.title,
 				Description: c.desc,
 				Level:       "standard",
+				RelatedCWEs: pciCWEs(c.id),
 				References:  []grc.Reference{{Source: "PCI DSS v4.0", Section: req.title}},
 			})
 		}

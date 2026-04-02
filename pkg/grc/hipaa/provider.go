@@ -43,6 +43,41 @@ func (p *Provider) writeEmbeddedControls(ctx context.Context) (int, error) {
 	return count, nil
 }
 
+var hipaaCWEMap = map[string][]string{
+	"164.308(a)(1)":        {"CWE-1104", "CWE-937", "CWE-693"},
+	"164.308(a)(3)":        {"CWE-287", "CWE-798", "CWE-862"},
+	"164.308(a)(4)":        {"CWE-284", "CWE-285", "CWE-862"},
+	"164.308(a)(5)(i)":     {"CWE-919", "CWE-937"},
+	"164.308(a)(5)(ii)(B)": {"CWE-94", "CWE-506"},
+	"164.308(a)(5)(ii)(C)": {"CWE-778"},
+	"164.308(a)(5)(ii)(D)": {"CWE-521", "CWE-265"},
+	"164.308(a)(6)":        {"CWE-778", "CWE-693"},
+	"164.308(a)(7)":        {"CWE-1007", "CWE-754"},
+	"164.308(a)(7)(ii)(A)": {"CWE-494", "CWE-1007"},
+	"164.308(a)(7)(ii)(B)": {"CWE-1007", "CWE-754"},
+	"164.308(a)(7)(ii)(C)": {"CWE-1007", "CWE-754"},
+	"164.308(a)(9)":        {"CWE-1104", "CWE-937"},
+	"164.310(a)(1)":        {"CWE-668", "CWE-284"},
+	"164.310(a)(2)(iii)":   {"CWE-287", "CWE-798"},
+	"164.310(c)":           {"CWE-668", "CWE-284"},
+	"164.310(d)(2)(i)":     {"CWE-226", "CWE-228"},
+	"164.310(d)(2)(ii)":    {"CWE-226", "CWE-228"},
+	"164.310(d)(2)(iv)":    {"CWE-494", "CWE-1007"},
+	"164.312(a)(1)":        {"CWE-287", "CWE-798"},
+	"164.312(a)(2)(i)":     {"CWE-284", "CWE-285", "CWE-862"},
+	"164.312(a)(2)(iii)":   {"CWE-311", "CWE-312"},
+	"164.312(b)":           {"CWE-778"},
+	"164.312(c)(1)":        {"CWE-345", "CWE-353"},
+	"164.312(d)":           {"CWE-287", "CWE-308", "CWE-522"},
+	"164.312(e)(1)":        {"CWE-284", "CWE-285", "CWE-862"},
+	"164.312(e)(2)(ii)":    {"CWE-319", "CWE-326"},
+	"164.314(a)(1)":        {"CWE-1104", "CWE-937"},
+}
+
+func hipaaCWEs(controlID string) []string {
+	return hipaaCWEMap[controlID]
+}
+
 func embeddedControls() []grc.Control {
 	type c struct{ id, title, desc, family string }
 	items := []struct {
@@ -117,6 +152,7 @@ func embeddedControls() []grc.Control {
 				Family:      c.family,
 				Description: c.desc,
 				Level:       "required",
+				RelatedCWEs: hipaaCWEs(c.id),
 				References:  []grc.Reference{{Source: "45 CFR Part 164", Section: c.id}},
 			})
 		}
