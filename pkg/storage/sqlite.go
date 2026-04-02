@@ -1,12 +1,14 @@
 package storage
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
 	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 
 	_ "github.com/glebarez/go-sqlite"
@@ -300,8 +302,75 @@ func (s *SQLiteBackend) ListControlsByCWE(ctx context.Context, cwe string) ([]Co
 	return scanControlRows(rows)
 }
 
+type nvdRecord struct {
+	ID  string `json:"id"`
+	CVE struct {
+		Weaknesses []struct {
+			Description []struct {
+				Lang  string `json:"lang"`
+				Value string `json:"value"`
+			} `json:"description"`
+		} `json:"weaknesses"`
+	} `json:"cve"`
+}
+
+func extractVulnCWEs(record []byte) []string {
+	var vuln nvdRecord
+	if err := json.Unmarshal(record, &vuln); err != nil {
+		return nil
+	}
+	var cwes []string
+	seen := make(map[string]bool)
+	for _, w := range vuln.CVE.Weaknesses {
+		for _, d := range w.Description {
+			if d.Lang == "en" && strings.HasPrefix(d.Value, "CWE-") {
+				if !seen[d.Value] {
+					cwes = append(cwes, d.Value)
+					seen[d.Value] = true
+				}
+			}
+		}
+	}
+	return cwes
+}
+
 func (s *SQLiteBackend) ListControlsByCPE(ctx context.Context, cpe string) ([]ControlRow, error) {
-	return s.ListAllControls(ctx)
+	vulns, err := s.ListAllVulnerabilities(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("list vulnerabilities: %w", err)
+	}
+
+	cpeBytes := []byte(cpe)
+	cweSet := make(map[string]bool)
+	for _, vuln := range vulns {
+		if !bytes.Contains(vuln.Record, cpeBytes) {
+			continue
+		}
+		for _, cwe := range extractVulnCWEs(vuln.Record) {
+			cweSet[cwe] = true
+		}
+	}
+
+	if len(cweSet) == 0 {
+		return nil, nil
+	}
+
+	var result []ControlRow
+	seen := make(map[string]bool)
+	for cwe := range cweSet {
+		controls, err := s.ListControlsByCWE(ctx, cwe)
+		if err != nil {
+			return nil, fmt.Errorf("query controls by CWE %s: %w", cwe, err)
+		}
+		for _, ctrl := range controls {
+			if !seen[ctrl.ID] {
+				seen[ctrl.ID] = true
+				result = append(result, ctrl)
+			}
+		}
+	}
+
+	return result, nil
 }
 
 func (s *SQLiteBackend) ListControlsByFramework(ctx context.Context, framework string) ([]ControlRow, error) {
