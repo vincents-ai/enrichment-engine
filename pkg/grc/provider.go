@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"sort"
+	"sync"
 
 	"github.com/shift/enrichment-engine/pkg/storage"
 )
@@ -43,22 +45,93 @@ func (r *Registry) List() []string {
 	return names
 }
 
+func (r *Registry) SortedList() []string {
+	names := r.List()
+	sort.Strings(names)
+	return names
+}
+
 func (r *Registry) ProviderNames() []string {
 	return r.List()
 }
 
 func (r *Registry) RunAll(ctx context.Context, store storage.Backend, logger *slog.Logger) (int, error) {
-	total := 0
-	for name, fn := range r.providers {
-		p := fn(store, logger)
-		count, err := p.Run(ctx)
-		if err != nil {
-			logger.Warn("provider failed", "provider", name, "error", err)
-			continue
-		}
-		total += count
+	return r.RunSelected(ctx, nil, store, logger, 1)
+}
+
+func (r *Registry) RunSelected(ctx context.Context, names []string, store storage.Backend, logger *slog.Logger, maxParallel int) (int, error) {
+	if maxParallel <= 0 {
+		maxParallel = 1
 	}
-	return total, nil
+
+	type namedProvider struct {
+		name string
+		fn   providerFactory
+	}
+
+	var toRun []namedProvider
+	if len(names) > 0 {
+		nameSet := make(map[string]bool, len(names))
+		for _, n := range names {
+			nameSet[n] = true
+		}
+		for n, fn := range r.providers {
+			if nameSet[n] {
+				toRun = append(toRun, namedProvider{name: n, fn: fn})
+			}
+		}
+	} else {
+		for n, fn := range r.providers {
+			toRun = append(toRun, namedProvider{name: n, fn: fn})
+		}
+	}
+
+	if maxParallel == 1 {
+		total := 0
+		for _, np := range toRun {
+			p := np.fn(store, logger)
+			count, err := p.Run(ctx)
+			if err != nil {
+				logger.Warn("provider failed", "provider", np.name, "error", err)
+				continue
+			}
+			total += count
+		}
+		return total, nil
+	}
+
+	sem := make(chan struct{}, maxParallel)
+	var mu sync.Mutex
+	var total int
+	var firstErr error
+	var wg sync.WaitGroup
+
+	for _, np := range toRun {
+		wg.Add(1)
+		go func(np namedProvider) {
+			defer wg.Done()
+			sem <- struct{}{}
+			defer func() { <-sem }()
+
+			p := np.fn(store, logger)
+			count, err := p.Run(ctx)
+			if err != nil {
+				mu.Lock()
+				if firstErr == nil {
+					firstErr = fmt.Errorf("provider %s: %w", np.name, err)
+				}
+				mu.Unlock()
+				logger.Warn("provider failed", "provider", np.name, "error", err)
+				return
+			}
+			mu.Lock()
+			total += count
+			mu.Unlock()
+		}(np)
+	}
+	wg.Wait()
+
+	return total, firstErr
 }
 
 var defaultRegistry *Registry

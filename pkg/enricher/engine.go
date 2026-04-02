@@ -20,6 +20,7 @@ type Config struct {
 	ProviderNames []string
 	RunAll        bool
 	SkipProviders bool
+	SkipMapping   bool
 }
 
 type Engine struct {
@@ -27,7 +28,10 @@ type Engine struct {
 	maxParallel   int
 	logger        *slog.Logger
 	registry      *grc.Registry
+	runAll        bool
+	providerNames []string
 	skipProviders bool
+	skipMapping   bool
 }
 
 func New(cfg Config) *Engine {
@@ -39,7 +43,10 @@ func New(cfg Config) *Engine {
 		maxParallel:   cfg.MaxParallel,
 		logger:        cfg.Logger,
 		registry:      grcbuiltin.DefaultRegistry(),
+		runAll:        cfg.RunAll,
+		providerNames: cfg.ProviderNames,
 		skipProviders: cfg.SkipProviders,
+		skipMapping:   cfg.SkipMapping,
 	}
 }
 
@@ -65,23 +72,25 @@ func (e *Engine) Run(ctx context.Context) (*Result, error) {
 		result.ControlCount = controlCount
 	}
 
-	vulns, err := e.store.ListAllVulnerabilities(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("count vulnerabilities: %w", err)
-	}
-	result.VulnCount = len(vulns)
+	if !e.skipMapping {
+		vulns, err := e.store.ListAllVulnerabilities(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("count vulnerabilities: %w", err)
+		}
+		result.VulnCount = len(vulns)
 
-	cweMappings, err := e.mapByCWE(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("CWE mapping: %w", err)
-	}
-	result.MappingCount += cweMappings
+		cweMappings, err := e.mapByCWE(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("CWE mapping: %w", err)
+		}
+		result.MappingCount += cweMappings
 
-	cpeMappings, err := e.mapByCPE(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("CPE mapping: %w", err)
+		cpeMappings, err := e.mapByCPE(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("CPE mapping: %w", err)
+		}
+		result.MappingCount += cpeMappings
 	}
-	result.MappingCount += cpeMappings
 
 	result.Duration = time.Since(start)
 	e.logger.Info("enrichment pipeline complete",
@@ -95,9 +104,23 @@ func (e *Engine) Run(ctx context.Context) (*Result, error) {
 
 func (e *Engine) runProviders(ctx context.Context) (int, int, error) {
 	e.logger.Info("running GRC providers")
-	providerCount := len(e.registry.List())
-	controlCount, err := e.registry.RunAll(ctx, e.store, e.logger)
-	return providerCount, controlCount, err
+
+	names := e.providerNames
+	if len(names) == 0 {
+		names = nil
+	}
+
+	controlCount, err := e.registry.RunSelected(ctx, names, e.store, e.logger, e.maxParallel)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	providerCount := len(names)
+	if providerCount == 0 {
+		providerCount = len(e.registry.List())
+	}
+
+	return providerCount, controlCount, nil
 }
 
 type vulnRecord struct {

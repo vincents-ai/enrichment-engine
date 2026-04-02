@@ -2,6 +2,7 @@ package cli
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log/slog"
 	"os"
@@ -10,14 +11,33 @@ import (
 	grcbuiltin "github.com/shift/enrichment-engine/pkg/grc/builtin"
 	"github.com/shift/enrichment-engine/pkg/storage"
 	"github.com/spf13/cobra"
+
+	_ "github.com/glebarez/go-sqlite/compat"
 )
+
+type cliOption struct {
+	version string
+}
+
+type CLIOption func(*cliOption)
+
+func WithVersion(v string) CLIOption {
+	return func(o *cliOption) {
+		o.version = v
+	}
+}
 
 var (
 	workspace string
 	logLevel  string
 )
 
-func New() *cobra.Command {
+func New(opts ...CLIOption) *cobra.Command {
+	o := &cliOption{version: "dev"}
+	for _, opt := range opts {
+		opt(o)
+	}
+
 	root := &cobra.Command{
 		Use:   "enrich",
 		Short: "GRC enrichment engine - maps vulnerabilities to compliance controls",
@@ -45,7 +65,7 @@ func New() *cobra.Command {
 	root.AddCommand(runCmd())
 	root.AddCommand(providersCmd())
 	root.AddCommand(statusCmd())
-	root.AddCommand(versionCmd())
+	root.AddCommand(versionCmd(o.version))
 
 	return root
 }
@@ -54,6 +74,7 @@ func runCmd() *cobra.Command {
 	var all bool
 	var providers []string
 	var skipMapping bool
+	var maxParallel int
 
 	cmd := &cobra.Command{
 		Use:   "run [provider...]",
@@ -75,66 +96,43 @@ Use --provider to run specific providers, or --skip-mapping to only populate con
 			}
 			defer store.Close(ctx)
 
-			cfg := enricher.Config{
-				Store:       store,
-				MaxParallel: 4,
-				Logger:      logger,
+			providerNames := providers
+			if len(providerNames) == 0 && len(args) > 0 {
+				providerNames = args
 			}
 
-			if all {
-				cfg.RunAll = true
+			cfg := enricher.Config{
+				Store:         store,
+				MaxParallel:   maxParallel,
+				Logger:        logger,
+				ProviderNames: providerNames,
+				RunAll:        all,
+				SkipMapping:   skipMapping,
 			}
 
 			engine := enricher.New(cfg)
+			result, err := engine.Run(ctx)
+			if err != nil {
+				return fmt.Errorf("enrichment pipeline: %w", err)
+			}
 
-			if !skipMapping {
-				result, err := engine.Run(ctx)
-				if err != nil {
-					return fmt.Errorf("enrichment pipeline: %w", err)
-				}
-
-				logger.Info("enrichment complete",
+			if skipMapping {
+				logger.Info("providers complete",
+					"providers", result.ProviderCount,
 					"controls", result.ControlCount,
-					"mappings", result.MappingCount,
 					"duration", result.Duration)
-
-				fmt.Printf("Enrichment complete: %d controls, %d mappings in %s\n",
-					result.ControlCount, result.MappingCount, result.Duration)
+				fmt.Printf("Providers complete: %d providers, %d controls in %s\n",
+					result.ProviderCount, result.ControlCount, result.Duration)
 				return nil
 			}
 
-			reg := grcbuiltin.DefaultRegistry()
-			if all {
-				controlCount, err := reg.RunAll(ctx, store, logger)
-				if err != nil {
-					return fmt.Errorf("providers: %w", err)
-				}
-				fmt.Printf("Providers complete: %d controls written\n", controlCount)
-				return nil
-			}
+			logger.Info("enrichment complete",
+				"controls", result.ControlCount,
+				"mappings", result.MappingCount,
+				"duration", result.Duration)
 
-			runProviders := providers
-			if len(runProviders) == 0 && len(args) > 0 {
-				runProviders = args
-			}
-
-			total := 0
-			for _, name := range runProviders {
-				p, err := reg.Get(name, store, logger)
-				if err != nil {
-					logger.Warn("provider not found", "provider", name, "error", err)
-					continue
-				}
-				count, err := p.Run(ctx)
-				if err != nil {
-					logger.Warn("provider failed", "provider", name, "error", err)
-					continue
-				}
-				total += count
-				logger.Info("provider completed", "provider", name, "controls", count)
-			}
-
-			fmt.Printf("Providers complete: %d controls written\n", total)
+			fmt.Printf("Enrichment complete: %d controls, %d mappings in %s\n",
+				result.ControlCount, result.MappingCount, result.Duration)
 			return nil
 		},
 	}
@@ -142,6 +140,7 @@ Use --provider to run specific providers, or --skip-mapping to only populate con
 	cmd.Flags().BoolVarP(&all, "all", "a", false, "Run all providers")
 	cmd.Flags().StringSliceVarP(&providers, "provider", "p", nil, "Run specific providers")
 	cmd.Flags().BoolVar(&skipMapping, "skip-mapping", false, "Skip CWE/CPE mapping phase (controls only)")
+	cmd.Flags().IntVar(&maxParallel, "max-parallel", 4, "Maximum parallel provider execution")
 
 	return cmd
 }
@@ -152,7 +151,7 @@ func providersCmd() *cobra.Command {
 		Short: "List registered GRC providers",
 		Run: func(cmd *cobra.Command, args []string) {
 			reg := grcbuiltin.DefaultRegistry()
-			names := reg.List()
+			names := reg.SortedList()
 			fmt.Printf("Registered providers (%d):\n", len(names))
 			for _, name := range names {
 				fmt.Printf("  %s\n", name)
@@ -168,6 +167,47 @@ func statusCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			fmt.Println("Workspace:", workspace)
 
+			if _, err := os.Stat(workspace); os.IsNotExist(err) {
+				fmt.Println("Workspace directory: MISSING")
+				return nil
+			}
+			fmt.Println("Workspace directory: OK")
+
+			dbPath := workspace + "/enrichment.db"
+			if _, err := os.Stat(dbPath); os.IsNotExist(err) {
+				fmt.Println("Database:", "MISSING")
+				return nil
+			}
+			fmt.Println("Database:", "OK")
+
+			db, err := sql.Open("sqlite", dbPath+"?mode=ro")
+			if err != nil {
+				fmt.Printf("Database: ERROR (%v)\n", err)
+				return nil
+			}
+			defer db.Close()
+
+			var controlCount int
+			if err := db.QueryRowContext(context.Background(), "SELECT COUNT(*) FROM grc_controls").Scan(&controlCount); err != nil {
+				fmt.Printf("Controls: ERROR (%v)\n", err)
+			} else {
+				fmt.Printf("Controls: %d in database\n", controlCount)
+			}
+
+			var vulnCount int
+			if err := db.QueryRowContext(context.Background(), "SELECT COUNT(*) FROM vulnerabilities").Scan(&vulnCount); err != nil {
+				fmt.Printf("Vulnerabilities: ERROR (%v)\n", err)
+			} else {
+				fmt.Printf("Vulnerabilities: %d in database\n", vulnCount)
+			}
+
+			var mappingCount int
+			if err := db.QueryRowContext(context.Background(), "SELECT COUNT(*) FROM vulnerability_grc_mappings").Scan(&mappingCount); err != nil {
+				fmt.Printf("Mappings: ERROR (%v)\n", err)
+			} else {
+				fmt.Printf("Mappings: %d in database\n", mappingCount)
+			}
+
 			reg := grcbuiltin.DefaultRegistry()
 			fmt.Printf("Providers: %d registered\n", len(reg.List()))
 
@@ -177,12 +217,12 @@ func statusCmd() *cobra.Command {
 	}
 }
 
-func versionCmd() *cobra.Command {
+func versionCmd(version string) *cobra.Command {
 	return &cobra.Command{
 		Use:   "version",
 		Short: "Show version",
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println("enrichment-engine v0.2.0")
+			fmt.Printf("enrichment-engine v%s\n", version)
 		},
 	}
 }
