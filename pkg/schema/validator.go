@@ -2,6 +2,7 @@ package schema
 
 import (
 	"embed"
+	"encoding/json"
 	"fmt"
 	"sync"
 
@@ -17,9 +18,8 @@ const (
 )
 
 var (
-	registry     = make(map[string]*jsonschema.Schema)
-	registryOnce sync.Once
-	registryMu   sync.RWMutex
+	loadMu   sync.Mutex
+	compiled = make(map[string]*jsonschema.Schema)
 )
 
 // Validator validates data against registered JSON schemas.
@@ -30,10 +30,13 @@ type Validator struct {
 
 // NewValidator creates a new validator with all embedded schemas loaded.
 func NewValidator() (*Validator, error) {
-	registryOnce.Do(func() {
+	loadMu.Lock()
+	defer loadMu.Unlock()
+
+	if len(compiled) == 0 {
 		entries, err := schemaFS.ReadDir("schemas")
 		if err != nil {
-			return
+			return nil, fmt.Errorf("read schema directory: %w", err)
 		}
 		compiler := jsonschema.NewCompiler()
 		for _, entry := range entries {
@@ -42,21 +45,29 @@ func NewValidator() (*Validator, error) {
 			}
 			data, err := schemaFS.ReadFile("schemas/" + entry.Name())
 			if err != nil {
-				continue
+				return nil, fmt.Errorf("read schema %s: %w", entry.Name(), err)
 			}
-			schema, err := compiler.Compile(string(data))
+			var doc map[string]interface{}
+			if err := json.Unmarshal(data, &doc); err != nil {
+				return nil, fmt.Errorf("parse schema %s: %w", entry.Name(), err)
+			}
+			url := "file:///" + entry.Name()
+			if err := compiler.AddResource(url, doc); err != nil {
+				return nil, fmt.Errorf("add resource %s: %w", entry.Name(), err)
+			}
+			schema, err := compiler.Compile(url)
 			if err != nil {
-				continue
+				return nil, fmt.Errorf("compile schema %s: %w", entry.Name(), err)
 			}
-			registry[entry.Name()] = schema
+			compiled[entry.Name()] = schema
 		}
-	})
-
-	v := &Validator{
-		schemas: make(map[string]*jsonschema.Schema),
 	}
 
-	for name, schema := range registry {
+	v := &Validator{
+		schemas: make(map[string]*jsonschema.Schema, len(compiled)),
+	}
+
+	for name, schema := range compiled {
 		v.schemas[name] = schema
 	}
 

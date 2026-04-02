@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"sync"
 
-	_ "github.com/mattn/go-sqlite3"
+	_ "github.com/glebarez/go-sqlite"
 )
 
 // Backend is the storage interface for vulnerabilities, GRC controls, and mappings.
@@ -85,7 +85,7 @@ func NewSQLiteBackend(path string) (*SQLiteBackend, error) {
 	tempPath := path + ".tmp"
 	os.Remove(tempPath)
 
-	db, err := sql.Open("sqlite3", tempPath)
+	db, err := sql.Open("sqlite", tempPath)
 	if err != nil {
 		return nil, fmt.Errorf("open database: %w", err)
 	}
@@ -288,7 +288,7 @@ func (s *SQLiteBackend) ListAllControls(ctx context.Context) ([]ControlRow, erro
 }
 
 func (s *SQLiteBackend) ListControlsByCWE(ctx context.Context, cwe string) ([]ControlRow, error) {
-	pattern := `"%"` + cwe + `"%"`
+	pattern := `%` + cwe + `%`
 	rows, err := s.db.QueryContext(ctx,
 		"SELECT id, framework, control_id, title, family, description, related_cwes, record FROM grc_controls WHERE related_cwes LIKE ?",
 		pattern)
