@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"os"
 	"testing"
+	"time"
 
 	_ "github.com/glebarez/go-sqlite/compat"
 	"github.com/shift/enrichment-engine/pkg/enricher"
@@ -166,8 +167,9 @@ func TestIntegration_CWEMapping(t *testing.T) {
 	}
 
 	engine := enricher.New(enricher.Config{
-		Store:  backend,
-		Logger: testLogger(),
+		Store:         backend,
+		Logger:        testLogger(),
+		SkipProviders: true,
 	})
 	count, err := engine.Run(ctx)
 	if err != nil {
@@ -265,7 +267,8 @@ func TestIntegration_EnrichSBOM(t *testing.T) {
 
 func TestIntegration_FullPipeline(t *testing.T) {
 	backend := setupTestDB(t)
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
+	defer cancel()
 	logger := testLogger()
 
 	for _, vuln := range sampleVulns {

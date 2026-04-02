@@ -19,23 +19,27 @@ import (
 )
 
 type testState struct {
-	backend       *storage.SQLiteBackend
-	registry      *grc.Registry
-	engine        *enricher.Engine
-	result        *enricher.Result
-	provider      grc.GRCProvider
-	providerCount int
-	controlCount  int
-	mappingCount  int
-	controls      []storage.ControlRow
-	mappings      []storage.MappingRow
-	enriched      []grc.EnrichedComponent
-	err           error
-	vulnID        string
-	ctrlID        string
-	found         bool
-	tempDir       string
-	dbPath        string
+	backend           *storage.SQLiteBackend
+	registry          *grc.Registry
+	engine            *enricher.Engine
+	result            *enricher.Result
+	provider          grc.GRCProvider
+	providerCount     int
+	controlCount      int
+	mappingCount      int
+	controls          []storage.ControlRow
+	mappings          []storage.MappingRow
+	enriched          []grc.EnrichedComponent
+	err               error
+	vulnID            string
+	ctrlID            string
+	found             bool
+	tempDir           string
+	dbPath            string
+	firstMappingCount int
+	readControlData   json.RawMessage
+	cliOutput         string
+	cliError          error
 }
 
 func InitializeScenario(ctx *godog.ScenarioContext) {
@@ -116,6 +120,8 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^a control with ID "([^"]*)" exists$`, state.aControlWithIDExists)
 	ctx.Step(`^I close and reopen the database$`, state.iCloseAndReopenTheDatabase)
 	ctx.Step(`^the control "([^"]*)" should still exist$`, state.theControlShouldStillExist)
+
+	RegisterExtendedSteps(ctx, state)
 }
 
 func (s *testState) iListAllRegisteredProviders() error {
