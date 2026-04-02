@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/shift/enrichment-engine/pkg/storage"
@@ -99,5 +100,30 @@ func TestProviderName(t *testing.T) {
 	p := &Provider{}
 	if got := p.Name(); got != "cis_controls" {
 		t.Errorf("Name() = %q, want %q", got, "cis_controls")
+	}
+}
+
+func TestRelatedCWEsPopulated(t *testing.T) {
+	if len(embeddedCatalog) == 0 {
+		t.Skip("no embedded catalog available")
+	}
+	p := &Provider{}
+	controls, err := p.parse(embeddedCatalog)
+	if err != nil {
+		t.Fatalf("parse failed: %v", err)
+	}
+	populatedCount := 0
+	for _, ctrl := range controls {
+		if len(ctrl.RelatedCWEs) > 0 {
+			populatedCount++
+			for _, cwe := range ctrl.RelatedCWEs {
+				if !strings.HasPrefix(cwe, "CWE-") {
+					t.Errorf("control %s has invalid CWE format: %s", ctrl.ControlID, cwe)
+				}
+			}
+		}
+	}
+	if populatedCount == 0 {
+		t.Errorf("expected some CIS Controls to have RelatedCWEs populated, got 0")
 	}
 }

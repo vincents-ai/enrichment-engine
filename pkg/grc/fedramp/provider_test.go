@@ -3,6 +3,7 @@ package fedramp
 import (
 	"context"
 	"log/slog"
+	"strings"
 	"testing"
 
 	"github.com/shift/enrichment-engine/pkg/storage"
@@ -32,11 +33,21 @@ func (m *mockBackend) ReadControl(ctx context.Context, id string) ([]byte, error
 func (m *mockBackend) ListMappings(ctx context.Context, vulnID string) ([]storage.MappingRow, error) {
 	return nil, nil
 }
-func (m *mockBackend) ListAllVulnerabilities(ctx context.Context) ([]storage.VulnerabilityRow, error) { return nil, nil }
-func (m *mockBackend) ListAllControls(ctx context.Context) ([]storage.ControlRow, error) { return nil, nil }
-func (m *mockBackend) ListControlsByCWE(ctx context.Context, cwe string) ([]storage.ControlRow, error) { return nil, nil }
-func (m *mockBackend) ListControlsByCPE(ctx context.Context, cpe string) ([]storage.ControlRow, error) { return nil, nil }
-func (m *mockBackend) ListControlsByFramework(ctx context.Context, framework string) ([]storage.ControlRow, error) { return nil, nil }
+func (m *mockBackend) ListAllVulnerabilities(ctx context.Context) ([]storage.VulnerabilityRow, error) {
+	return nil, nil
+}
+func (m *mockBackend) ListAllControls(ctx context.Context) ([]storage.ControlRow, error) {
+	return nil, nil
+}
+func (m *mockBackend) ListControlsByCWE(ctx context.Context, cwe string) ([]storage.ControlRow, error) {
+	return nil, nil
+}
+func (m *mockBackend) ListControlsByCPE(ctx context.Context, cpe string) ([]storage.ControlRow, error) {
+	return nil, nil
+}
+func (m *mockBackend) ListControlsByFramework(ctx context.Context, framework string) ([]storage.ControlRow, error) {
+	return nil, nil
+}
 func (m *mockBackend) Close(ctx context.Context) error { return nil }
 
 func TestEmbeddedControls(t *testing.T) {
@@ -105,5 +116,23 @@ func TestProviderName(t *testing.T) {
 	p := &Provider{}
 	if got := p.Name(); got != "fedramp" {
 		t.Errorf("Name() = %q, want %q", got, "fedramp")
+	}
+}
+
+func TestRelatedCWEsPopulated(t *testing.T) {
+	controls := embeddedControls()
+	populatedCount := 0
+	for _, ctrl := range controls {
+		if len(ctrl.RelatedCWEs) > 0 {
+			populatedCount++
+			for _, cwe := range ctrl.RelatedCWEs {
+				if !strings.HasPrefix(cwe, "CWE-") {
+					t.Errorf("control %s has invalid CWE format: %s", ctrl.ControlID, cwe)
+				}
+			}
+		}
+	}
+	if populatedCount == 0 {
+		t.Errorf("expected some FedRAMP controls to have RelatedCWEs populated, got 0")
 	}
 }
