@@ -222,8 +222,29 @@ func TestIntegration_EnrichSBOM(t *testing.T) {
 		ControlID:   "TC-1",
 		Title:       "Test Control",
 		Description: "A test control",
+		RelatedCWEs: []string{"CWE-79"},
 	}
 	backend.WriteControl(ctx, "TEST_FW/TC-1", control)
+
+	vulnRecord := map[string]interface{}{
+		"id": "CVE-2024-SBOM-TEST",
+		"cve": map[string]interface{}{
+			"id": "CVE-2024-SBOM-TEST",
+			"weaknesses": []map[string]interface{}{
+				{"description": []map[string]string{{"lang": "en", "value": "CWE-79"}}},
+			},
+			"configurations": []map[string]interface{}{
+				{"nodes": []map[string]interface{}{
+					{"cpeMatch": []map[string]string{
+						{"criteria": "cpe:2.3:a:apache:log4j:2.14.0:*:*:*:*:*:*:*"},
+					}},
+				}},
+			},
+		},
+	}
+	if err := backend.WriteVulnerability(ctx, "CVE-2024-SBOM-TEST", vulnRecord); err != nil {
+		t.Fatalf("write vuln: %v", err)
+	}
 
 	engine := enricher.New(enricher.Config{
 		Store:  backend,

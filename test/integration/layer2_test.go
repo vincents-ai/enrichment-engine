@@ -667,6 +667,26 @@ func TestLayer2_EnrichSBOMWithRealData(t *testing.T) {
 		t.Fatalf("write vuln: %v", err)
 	}
 
+	vulnForNginx := map[string]interface{}{
+		"id": "CVE-2024-NGINX-TEST",
+		"cve": map[string]interface{}{
+			"id": "CVE-2024-NGINX-TEST",
+			"weaknesses": []map[string]interface{}{
+				{"description": []map[string]string{{"lang": "en", "value": "CWE-79"}}},
+			},
+			"configurations": []map[string]interface{}{
+				{"nodes": []map[string]interface{}{
+					{"cpeMatch": []map[string]string{
+						{"criteria": "cpe:2.3:a:f5:nginx:1.24.0:*:*:*:*:*:*:*"},
+					}},
+				}},
+			},
+		},
+	}
+	if err := backend.WriteVulnerability(ctx, "CVE-2024-NGINX-TEST", vulnForNginx); err != nil {
+		t.Fatalf("write nginx vuln: %v", err)
+	}
+
 	engine := enricher.New(enricher.Config{
 		Store:         backend,
 		Logger:        logger,
