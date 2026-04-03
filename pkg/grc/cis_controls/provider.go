@@ -71,6 +71,14 @@ func (p *Provider) Run(ctx context.Context) (int, error) {
 		return 0, fmt.Errorf("parse catalog: %w", err)
 	}
 
+	if len(controls) == 0 {
+		p.logger.Warn("parsed 0 controls from downloaded catalog, falling back to embedded", "url", CatalogURL)
+		controls, err = p.parse(embeddedCatalog)
+		if err != nil {
+			return 0, fmt.Errorf("parse embedded catalog: %w", err)
+		}
+	}
+
 	p.logger.Info("parsed CIS Controls", "count", len(controls))
 
 	count := 0
@@ -179,7 +187,7 @@ var cisCWEMap = map[string][]string{
 	"2.4":   {"CWE-1104", "CWE-1024"},
 	"2.5":   {"CWE-94", "CWE-1104"},
 	"2.6":   {"CWE-1357", "CWE-1104"},
-	"2.7":   {"CWE-94", "CWE-95"},
+	"2.7":   {"CWE-94", "CWE-95", "CWE-22"},
 	"3.3":   {"CWE-284", "CWE-285", "CWE-862"},
 	"3.5":   {"CWE-226", "CWE-228"},
 	"3.6":   {"CWE-311", "CWE-312"},
@@ -239,7 +247,7 @@ var cisCWEMap = map[string][]string{
 	"16.3":  {"CWE-1104", "CWE-937"},
 	"16.5":  {"CWE-1104", "CWE-1357"},
 	"16.10": {"CWE-1059", "CWE-693"},
-	"16.12": {"CWE-94", "CWE-95", "CWE-1336"},
+	"16.12": {"CWE-94", "CWE-95", "CWE-119", "CWE-1336", "CWE-502", "CWE-22"},
 	"16.13": {"CWE-1104", "CWE-937"},
 	"17.3":  {"CWE-16", "CWE-778"},
 	"17.4":  {"CWE-778", "CWE-693"},

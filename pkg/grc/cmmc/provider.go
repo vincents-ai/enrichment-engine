@@ -246,10 +246,10 @@ var cmmcCWEMap = map[string][]string{
 	"SC.L2-3.13.4": {"CWE-400", "CWE-693"},
 	"SC.L2-3.13.5": {"CWE-287", "CWE-345"},
 	"SC.L2-3.13.8": {"CWE-668"},
-	"SI.L1-3.14.1": {"CWE-94", "CWE-506"},
+	"SI.L1-3.14.1": {"CWE-94", "CWE-119", "CWE-506", "CWE-502"},
 	"SI.L2-3.14.2": {"CWE-1104"},
 	"SI.L2-3.14.3": {"CWE-1104", "CWE-937"},
-	"SI.L2-3.14.6": {"CWE-250", "CWE-269", "CWE-787"},
+	"SI.L2-3.14.6": {"CWE-250", "CWE-269", "CWE-78", "CWE-787"},
 }
 
 func cmmcCWEs(controlID string) []string {

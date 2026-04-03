@@ -74,7 +74,8 @@ var fedrampCWEMap = map[string][]string{
 	"SC-13": {"CWE-311", "CWE-326"},
 	"SC-28": {"CWE-311", "CWE-312"},
 	"SI-2":  {"CWE-1104"},
-	"SI-3":  {"CWE-94", "CWE-506"},
+	"SI-3":  {"CWE-94", "CWE-78", "CWE-119", "CWE-506", "CWE-502"},
+	"SI-10": {"CWE-20", "CWE-22", "CWE-78", "CWE-89"},
 	"SI-4":  {"CWE-778", "CWE-693"},
 	"SI-7":  {"CWE-345", "CWE-353"},
 }
@@ -148,6 +149,7 @@ func embeddedControls() []grc.Control {
 			{"SI-3", "Malicious Code Protection", "The organization employs malicious code protection mechanisms to detect and eradicate malicious code.", "System and Information Integrity", "low"},
 			{"SI-4", "System Monitoring", "The organization monitors the system to detect attacks, unauthorized access, and anomalous behavior.", "System and Information Integrity", "moderate"},
 			{"SI-7", "Software, Firmware, and Information Integrity", "The organization verifies software, firmware, and information integrity using cryptographic verification.", "System and Information Integrity", "moderate"},
+			{"SI-10", "Information Input Validation", "The organization validates information inputs from untrusted sources to detect and handle improper inputs including path traversal, injection, and malformed data.", "System and Information Integrity", "moderate"},
 		}},
 		{"Privacy", []c{
 			{"PR-1", "Policy and Procedures", "The organization develops, documents, and disseminates privacy policy and procedures.", "Privacy", "low"},

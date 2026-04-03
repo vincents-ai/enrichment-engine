@@ -44,7 +44,7 @@ func (p *Provider) writeEmbeddedControls(ctx context.Context) (int, error) {
 }
 
 var cisBenchCWEMap = map[string][]string{
-	"OS-1.2": {"CWE-250", "CWE-269"},
+	"OS-1.2": {"CWE-250", "CWE-269", "CWE-22"},
 	"OS-1.3": {"CWE-250", "CWE-269"},
 	"OS-2.1": {"CWE-319"},
 	"OS-2.2": {"CWE-778"},
@@ -54,13 +54,13 @@ var cisBenchCWEMap = map[string][]string{
 	"OS-3.2": {"CWE-521"},
 	"OS-3.3": {"CWE-307", "CWE-287"},
 	"OS-4.1": {"CWE-250", "CWE-269"},
-	"OS-4.2": {"CWE-693"},
+	"OS-4.2": {"CWE-693", "CWE-78", "CWE-119"},
 	"OS-5.1": {"CWE-778", "CWE-311"},
 	"OS-5.2": {"CWE-778"},
 	"OS-5.3": {"CWE-778", "CWE-250"},
 	"CT-1.1": {"CWE-284", "CWE-668", "CWE-319"},
 	"CT-1.2": {"CWE-778"},
-	"CT-2.1": {"CWE-250", "CWE-269", "CWE-284"},
+	"CT-2.1": {"CWE-250", "CWE-78", "CWE-269", "CWE-284"},
 	"CT-2.2": {"CWE-1104", "CWE-345"},
 	"CT-2.3": {"CWE-284", "CWE-668"},
 	"CT-3.1": {"CWE-732", "CWE-284"},

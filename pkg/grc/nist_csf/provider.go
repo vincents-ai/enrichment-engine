@@ -214,7 +214,7 @@ var nistCsfCWEMap = map[string][]string{
 	"PR.IR-02": {"CWE-16", "CWE-494"},
 	"PR.IR-03": {"CWE-16", "CWE-1188"},
 	"PR.IR-04": {"CWE-1104"},
-	"PR.IR-05": {"CWE-94", "CWE-95", "CWE-96", "CWE-1336"},
+	"PR.IR-05": {"CWE-94", "CWE-78", "CWE-95", "CWE-96", "CWE-119", "CWE-1336", "CWE-502"},
 	"PR.IR-06": {"CWE-693", "CWE-1004", "CWE-1059"},
 	"DE.CM-01": {"CWE-778"},
 	"DE.CM-02": {"CWE-778"},

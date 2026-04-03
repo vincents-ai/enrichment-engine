@@ -53,8 +53,8 @@ func (m *mockBackend) Close(ctx context.Context) error { return nil }
 func TestEmbeddedControls(t *testing.T) {
 	controls := embeddedControls()
 
-	if len(controls) != 50 {
-		t.Errorf("expected 50 embedded controls, got %d", len(controls))
+	if len(controls) != 51 {
+		t.Errorf("expected 51 embedded controls, got %d", len(controls))
 	}
 
 	families := make(map[string]int)
@@ -80,8 +80,8 @@ func TestEmbeddedControls(t *testing.T) {
 	if families["System and Communications Protection"] != 6 {
 		t.Errorf("expected 6 System and Communications Protection, got %d", families["System and Communications Protection"])
 	}
-	if families["System and Information Integrity"] != 5 {
-		t.Errorf("expected 5 System and Information Integrity, got %d", families["System and Information Integrity"])
+	if families["System and Information Integrity"] != 6 {
+		t.Errorf("expected 6 System and Information Integrity, got %d", families["System and Information Integrity"])
 	}
 	if families["Privacy"] != 4 {
 		t.Errorf("expected 4 Privacy, got %d", families["Privacy"])
@@ -104,11 +104,11 @@ func TestProviderWriteEmbeddedControls(t *testing.T) {
 		t.Fatalf("writeEmbeddedControls failed: %v", err)
 	}
 
-	if count != 50 {
-		t.Errorf("expected 50 controls written, got %d", count)
+	if count != 51 {
+		t.Errorf("expected 51 controls written, got %d", count)
 	}
-	if len(backend.controls) != 50 {
-		t.Errorf("expected 50 controls in backend, got %d", len(backend.controls))
+	if len(backend.controls) != 51 {
+		t.Errorf("expected 51 controls in backend, got %d", len(backend.controls))
 	}
 }
 

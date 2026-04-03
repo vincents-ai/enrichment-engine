@@ -210,7 +210,7 @@ var soc2CWEMap = map[string][]string{
 	"CC6.5": {"CWE-285", "CWE-863"},
 	"CC6.6": {"CWE-284", "CWE-668"},
 	"CC6.7": {"CWE-311", "CWE-319"},
-	"CC6.8": {"CWE-94", "CWE-506"},
+	"CC6.8": {"CWE-94", "CWE-78", "CWE-119", "CWE-506", "CWE-502"},
 	"CC7.1": {"CWE-16", "CWE-778"},
 	"CC7.2": {"CWE-778", "CWE-693"},
 	"CC7.3": {"CWE-778", "CWE-693"},
