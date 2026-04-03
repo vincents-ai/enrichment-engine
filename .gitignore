@@ -1,0 +1,15 @@
+bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+*.prof
+*.db
+*.db.tmp
+*.db-wal
+*.db-shm
+vendor/
+testdata/rapid/
