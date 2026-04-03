@@ -202,14 +202,22 @@ func TestProperty_MappingUpsert(t *testing.T) {
 		ev := randomString(t, 0, 50)
 
 		backend.WriteMapping(ctx, "upsert-v", "upsert-c", "FW", mapType, conf, ev)
-		backend.WriteMapping(ctx, "upsert-v", "upsert-c", "FW", randomString(t, 3, 10), pgregory.Float64Range(0.0, 1.0).Draw(t, "conf2"), randomString(t, 0, 50))
+
+		mapType2 := randomString(t, 3, 10)
+		backend.WriteMapping(ctx, "upsert-v", "upsert-c", "FW", mapType2, pgregory.Float64Range(0.0, 1.0).Draw(t, "conf2"), randomString(t, 0, 50))
 
 		rows, err := backend.ListMappings(ctx, "upsert-v")
 		if err != nil {
 			t.Fatalf("ListMappings: %v", err)
 		}
-		if len(rows) != 1 {
-			t.Fatalf("expected 1 mapping after upsert, got %d", len(rows))
+		if mapType != mapType2 {
+			if len(rows) != 2 {
+				t.Fatalf("expected 2 mappings (different mapping_types), got %d", len(rows))
+			}
+		} else {
+			if len(rows) != 1 {
+				t.Fatalf("expected 1 mapping after upsert (same mapping_type), got %d", len(rows))
+			}
 		}
 	})
 }

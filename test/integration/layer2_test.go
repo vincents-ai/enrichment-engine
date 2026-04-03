@@ -252,7 +252,7 @@ func TestLayer2_CPEIndirectMapping(t *testing.T) {
 	}
 
 	for _, m := range mappings {
-		if m.ControlID == "TEST_CPE_FW/CPE-CTRL-1" {
+		if m.ControlID == "TEST_CPE_FW/CPE-CTRL-1" && m.MappingType == "cpe" {
 			if m.Confidence != 0.6 {
 				t.Errorf("CPE indirect mapping confidence: got %f, expected 0.6", m.Confidence)
 			}
@@ -260,6 +260,16 @@ func TestLayer2_CPEIndirectMapping(t *testing.T) {
 				t.Errorf("CPE indirect mapping type: got %q, expected cpe", m.MappingType)
 			}
 		}
+	}
+
+	foundCPE := false
+	for _, m := range mappings {
+		if m.ControlID == "TEST_CPE_FW/CPE-CTRL-1" && m.MappingType == "cpe" {
+			foundCPE = true
+		}
+	}
+	if !foundCPE {
+		t.Error("expected CPE indirect mapping for TEST_CPE_FW/CPE-CTRL-1")
 	}
 
 	t.Logf("CPE indirect mapping: %d total mappings (engine reported %d)", len(mappings), result.MappingCount)

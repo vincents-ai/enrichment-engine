@@ -150,11 +150,12 @@ func (s *SQLiteBackend) initialize() error {
 			mapping_type TEXT NOT NULL,
 			confidence REAL NOT NULL,
 			evidence TEXT,
-			PRIMARY KEY (vulnerability_id, control_id, framework)
+			PRIMARY KEY (vulnerability_id, control_id, framework, mapping_type)
 		);
 		CREATE INDEX IF NOT EXISTS idx_mapping_vuln ON vulnerability_grc_mappings(vulnerability_id);
 		CREATE INDEX IF NOT EXISTS idx_mapping_control ON vulnerability_grc_mappings(control_id);
 		CREATE INDEX IF NOT EXISTS idx_mapping_framework ON vulnerability_grc_mappings(framework);
+		CREATE INDEX IF NOT EXISTS idx_mapping_type ON vulnerability_grc_mappings(mapping_type);
 	`
 
 	if _, err := s.db.Exec(schema); err != nil {

@@ -705,14 +705,36 @@ func TestMappingPrimaryKey(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ListMappings: %v", err)
 	}
-	if len(rows) != 1 {
-		t.Fatalf("expected 1 mapping (upsert), got %d", len(rows))
+
+	if len(rows) != 2 {
+		t.Fatalf("expected 2 mappings (different mapping_types coexist), got %d", len(rows))
 	}
-	if rows[0].MappingType != "indirect" {
-		t.Errorf("MappingType = %q, want %q (should be updated)", rows[0].MappingType, "indirect")
+
+	byType := make(map[string]MappingRow)
+	for _, r := range rows {
+		byType[r.MappingType] = r
 	}
-	if rows[0].Confidence != 0.8 {
-		t.Errorf("Confidence = %f, want 0.8", rows[0].Confidence)
+
+	if byType["direct"].Confidence != 0.9 {
+		t.Errorf("direct confidence = %f, want 0.9", byType["direct"].Confidence)
+	}
+	if byType["indirect"].Confidence != 0.8 {
+		t.Errorf("indirect confidence = %f, want 0.8", byType["indirect"].Confidence)
+	}
+
+	err3 := b.WriteMapping(ctx, "vuln-pk", "ctrl-pk", "FW-PK", "direct", 0.7, "updated")
+	if err3 != nil {
+		t.Fatalf("third WriteMapping (upsert same type): %v", err3)
+	}
+
+	rows2, _ := b.ListMappings(ctx, "vuln-pk")
+	if len(rows2) != 2 {
+		t.Fatalf("expected 2 mappings after upsert of same type, got %d", len(rows2))
+	}
+	for _, r := range rows2 {
+		if r.MappingType == "direct" && r.Confidence != 0.7 {
+			t.Errorf("direct confidence after upsert = %f, want 0.7", r.Confidence)
+		}
 	}
 }
 
