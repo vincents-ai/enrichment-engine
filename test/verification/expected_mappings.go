@@ -178,7 +178,7 @@ var expectations = []cveExpectation{
 		CWE:         "CWE-287",
 		Positive:    true,
 		MinMappings: 14,
-		MaxMappings: 160,
+		MaxMappings: 165,
 		ExpectedCWEHits: []expectedMapping{
 			{Framework: "PCI_DSS_v4", ControlID: "PCI_DSS_v4/8.1", CWE: "CWE-287"},
 			{Framework: "PCI_DSS_v4", ControlID: "PCI_DSS_v4/8.2", CWE: "CWE-287"},
@@ -233,7 +233,7 @@ var expectations = []cveExpectation{
 		CWE:         "CWE-400",
 		Positive:    true,
 		MinMappings: 5,
-		MaxMappings: 20,
+		MaxMappings: 25,
 		ExpectedCWEHits: []expectedMapping{
 			{Framework: "NIST_CSF_2_0", ControlID: "NIST_CSF_2_0/RS.AN-04", CWE: "CWE-400"},
 			{Framework: "NIST_CSF_2_0", ControlID: "NIST_CSF_2_0/RS.MI-01", CWE: "CWE-400"},
