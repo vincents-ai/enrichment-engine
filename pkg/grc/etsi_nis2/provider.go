@@ -15,8 +15,9 @@ import (
 
 const (
 	FrameworkID = "ETSI_TR_104_168"
-	CatalogURL  = "https://raw.githubusercontent.com/etsi-standards/nis2-controls/main/controls.json"
 )
+
+var CatalogURL = "https://raw.githubusercontent.com/etsi-standards/nis2-controls/main/controls.json"
 
 // Provider fetches and parses ETSI TR 104 168 NIS2 critical security controls.
 type Provider struct {

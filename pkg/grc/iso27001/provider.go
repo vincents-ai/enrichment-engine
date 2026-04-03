@@ -16,8 +16,9 @@ import (
 
 const (
 	FrameworkID = "ISO_27001_2022"
-	CatalogURL  = "https://raw.githubusercontent.com/ISMS-tool/ISO27001-controls/main/iso27001_2022_controls.json"
 )
+
+var CatalogURL = "https://raw.githubusercontent.com/ISMS-tool/ISO27001-controls/main/iso27001_2022_controls.json"
 
 // Provider fetches and parses ISO 27001/27002:2022 controls.
 type Provider struct {

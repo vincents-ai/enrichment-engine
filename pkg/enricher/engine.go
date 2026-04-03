@@ -21,6 +21,7 @@ type Config struct {
 	RunAll        bool
 	SkipProviders bool
 	SkipMapping   bool
+	Registry      *grc.Registry
 }
 
 type Engine struct {
@@ -38,11 +39,15 @@ func New(cfg Config) *Engine {
 	if cfg.MaxParallel <= 0 {
 		cfg.MaxParallel = 1
 	}
+	registry := cfg.Registry
+	if registry == nil {
+		registry = grcbuiltin.DefaultRegistry()
+	}
 	return &Engine{
 		store:         cfg.Store,
 		maxParallel:   cfg.MaxParallel,
 		logger:        cfg.Logger,
-		registry:      grcbuiltin.DefaultRegistry(),
+		registry:      registry,
 		runAll:        cfg.RunAll,
 		providerNames: cfg.ProviderNames,
 		skipProviders: cfg.SkipProviders,

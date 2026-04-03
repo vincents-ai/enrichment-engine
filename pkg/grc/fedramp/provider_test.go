@@ -2,6 +2,7 @@ package fedramp
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"strings"
 	"testing"
@@ -49,6 +50,81 @@ func (m *mockBackend) ListControlsByFramework(ctx context.Context, framework str
 	return nil, nil
 }
 func (m *mockBackend) Close(ctx context.Context) error { return nil }
+
+type failWriteBackend struct{}
+
+func (f *failWriteBackend) WriteVulnerability(ctx context.Context, id string, record interface{}) error {
+	return fmt.Errorf("forced error")
+}
+func (f *failWriteBackend) WriteControl(ctx context.Context, id string, control interface{}) error {
+	return fmt.Errorf("forced error")
+}
+func (f *failWriteBackend) WriteMapping(ctx context.Context, vulnID, controlID, framework, mappingType string, confidence float64, evidence string) error {
+	return nil
+}
+func (f *failWriteBackend) ReadVulnerability(ctx context.Context, id string) ([]byte, error) {
+	return nil, nil
+}
+func (f *failWriteBackend) ReadControl(ctx context.Context, id string) ([]byte, error) {
+	return nil, nil
+}
+func (f *failWriteBackend) ListMappings(ctx context.Context, vulnID string) ([]storage.MappingRow, error) {
+	return nil, nil
+}
+func (f *failWriteBackend) ListAllVulnerabilities(ctx context.Context) ([]storage.VulnerabilityRow, error) {
+	return nil, nil
+}
+func (f *failWriteBackend) ListAllControls(ctx context.Context) ([]storage.ControlRow, error) {
+	return nil, nil
+}
+func (f *failWriteBackend) ListControlsByCWE(ctx context.Context, cwe string) ([]storage.ControlRow, error) {
+	return nil, nil
+}
+func (f *failWriteBackend) ListControlsByCPE(ctx context.Context, cpe string) ([]storage.ControlRow, error) {
+	return nil, nil
+}
+func (f *failWriteBackend) ListControlsByFramework(ctx context.Context, framework string) ([]storage.ControlRow, error) {
+	return nil, nil
+}
+func (f *failWriteBackend) Close(ctx context.Context) error { return nil }
+
+func TestNew(t *testing.T) {
+	p := New(nil, nil)
+	if p == nil {
+		t.Fatal("New() returned nil")
+	}
+	if got := p.Name(); got != "fedramp" {
+		t.Errorf("Name() = %q, want %q", got, "fedramp")
+	}
+}
+
+func TestRun(t *testing.T) {
+	backend := &mockBackend{}
+	p := New(backend, slog.Default())
+
+	count, err := p.Run(context.Background())
+	if err != nil {
+		t.Fatalf("Run failed: %v", err)
+	}
+	if count != 51 {
+		t.Errorf("expected 51 controls written, got %d", count)
+	}
+	if len(backend.controls) != 51 {
+		t.Errorf("expected 51 controls in backend, got %d", len(backend.controls))
+	}
+}
+
+func TestRunWithWriteError(t *testing.T) {
+	p := New(&failWriteBackend{}, slog.Default())
+
+	count, err := p.Run(context.Background())
+	if err != nil {
+		t.Fatalf("Run failed: %v", err)
+	}
+	if count != 0 {
+		t.Errorf("expected 0 controls written on error, got %d", count)
+	}
+}
 
 func TestEmbeddedControls(t *testing.T) {
 	controls := embeddedControls()

@@ -15,8 +15,9 @@ import (
 
 const (
 	FrameworkID = "EU_CRA_2024_2847"
-	CatalogURL  = "https://raw.githubusercontent.com/eu-cra/cyber-resilience-act/main/requirements.json"
 )
+
+var CatalogURL = "https://raw.githubusercontent.com/eu-cra/cyber-resilience-act/main/requirements.json"
 
 // Provider fetches and parses EU Cyber Resilience Act (CRA) requirements.
 type Provider struct {

@@ -1,0 +1,51 @@
+# 2026/04/03 12:25:20.980280 [TestProperty_MappingUpsert] [rapid] draw str: "AAA"
+# 2026/04/03 12:25:20.980347 [TestProperty_MappingUpsert] [rapid] draw conf: 1
+# 2026/04/03 12:25:20.980363 [TestProperty_MappingUpsert] [rapid] draw str: ""
+# 2026/04/03 12:25:20.981202 [TestProperty_MappingUpsert] [rapid] draw str: "AAa"
+# 2026/04/03 12:25:20.981219 [TestProperty_MappingUpsert] [rapid] draw conf2: 1
+# 2026/04/03 12:25:20.981236 [TestProperty_MappingUpsert] [rapid] draw str: ""
+# 2026/04/03 12:25:20.982326 [TestProperty_MappingUpsert] expected 1 mapping after upsert, got 2
+# 
+v0.4.8#3697957338944888523
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x1
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0

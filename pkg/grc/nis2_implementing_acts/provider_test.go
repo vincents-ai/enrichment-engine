@@ -2,7 +2,9 @@ package nis2_implementing_acts
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
+	"os"
 	"testing"
 
 	"github.com/shift/enrichment-engine/pkg/storage"
@@ -10,12 +12,16 @@ import (
 
 type mockBackend struct {
 	controls map[string]interface{}
+	err      error
 }
 
 func (m *mockBackend) WriteVulnerability(ctx context.Context, id string, record interface{}) error {
 	return nil
 }
 func (m *mockBackend) WriteControl(ctx context.Context, id string, control interface{}) error {
+	if m.err != nil {
+		return m.err
+	}
 	if m.controls == nil {
 		m.controls = make(map[string]interface{})
 	}
@@ -32,12 +38,37 @@ func (m *mockBackend) ReadControl(ctx context.Context, id string) ([]byte, error
 func (m *mockBackend) ListMappings(ctx context.Context, vulnID string) ([]storage.MappingRow, error) {
 	return nil, nil
 }
-func (m *mockBackend) ListAllVulnerabilities(ctx context.Context) ([]storage.VulnerabilityRow, error) { return nil, nil }
-func (m *mockBackend) ListAllControls(ctx context.Context) ([]storage.ControlRow, error) { return nil, nil }
-func (m *mockBackend) ListControlsByCWE(ctx context.Context, cwe string) ([]storage.ControlRow, error) { return nil, nil }
-func (m *mockBackend) ListControlsByCPE(ctx context.Context, cpe string) ([]storage.ControlRow, error) { return nil, nil }
-func (m *mockBackend) ListControlsByFramework(ctx context.Context, framework string) ([]storage.ControlRow, error) { return nil, nil }
+func (m *mockBackend) ListAllVulnerabilities(ctx context.Context) ([]storage.VulnerabilityRow, error) {
+	return nil, nil
+}
+func (m *mockBackend) ListAllControls(ctx context.Context) ([]storage.ControlRow, error) {
+	return nil, nil
+}
+func (m *mockBackend) ListControlsByCWE(ctx context.Context, cwe string) ([]storage.ControlRow, error) {
+	return nil, nil
+}
+func (m *mockBackend) ListControlsByCPE(ctx context.Context, cpe string) ([]storage.ControlRow, error) {
+	return nil, nil
+}
+func (m *mockBackend) ListControlsByFramework(ctx context.Context, framework string) ([]storage.ControlRow, error) {
+	return nil, nil
+}
 func (m *mockBackend) Close(ctx context.Context) error { return nil }
+
+func TestNew(t *testing.T) {
+	backend := &mockBackend{}
+	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelError}))
+	p := New(backend, logger)
+	if p == nil {
+		t.Fatal("New returned nil")
+	}
+	if p.store != backend {
+		t.Error("store not set")
+	}
+	if p.logger != logger {
+		t.Error("logger not set")
+	}
+}
 
 func TestEmbeddedControls(t *testing.T) {
 	controls := embeddedControls()
@@ -86,6 +117,17 @@ func TestEmbeddedControls(t *testing.T) {
 	}
 }
 
+func TestEmbeddedControlsUniqueIDs(t *testing.T) {
+	controls := embeddedControls()
+	ids := make(map[string]bool)
+	for _, ctrl := range controls {
+		if ids[ctrl.ControlID] {
+			t.Errorf("duplicate control ID: %s", ctrl.ControlID)
+		}
+		ids[ctrl.ControlID] = true
+	}
+}
+
 func TestProviderWriteEmbeddedControls(t *testing.T) {
 	backend := &mockBackend{}
 	p := &Provider{store: backend, logger: slog.Default()}
@@ -103,9 +145,52 @@ func TestProviderWriteEmbeddedControls(t *testing.T) {
 	}
 }
 
+func TestRun(t *testing.T) {
+	backend := &mockBackend{}
+	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelError}))
+	p := New(backend, logger)
+	count, err := p.Run(context.Background())
+	if err != nil {
+		t.Fatalf("Run failed: %v", err)
+	}
+	if count != 31 {
+		t.Errorf("expected 31 controls written, got %d", count)
+	}
+}
+
+func TestRunWriteError(t *testing.T) {
+	backend := &mockBackend{err: fmt.Errorf("write failed")}
+	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelError}))
+	p := New(backend, logger)
+	count, err := p.Run(context.Background())
+	if err != nil {
+		t.Fatalf("Run should not return error on write failure, got: %v", err)
+	}
+	if count != 0 {
+		t.Errorf("expected 0 controls written, got %d", count)
+	}
+}
+
 func TestProviderName(t *testing.T) {
 	p := &Provider{}
 	if got := p.Name(); got != "nis2_implementing_acts" {
 		t.Errorf("Name() = %q, want %q", got, "nis2_implementing_acts")
+	}
+}
+
+func TestEmbeddedControlsStoredCorrectly(t *testing.T) {
+	backend := &mockBackend{}
+	p := New(backend, slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelError})))
+	p.Run(context.Background())
+
+	for id, ctrl := range backend.controls {
+		c, ok := ctrl.(Control)
+		if !ok {
+			t.Errorf("expected Control, got %T for id %s", ctrl, id)
+			continue
+		}
+		if c.Framework != FrameworkID {
+			t.Errorf("expected Framework %s, got %s", FrameworkID, c.Framework)
+		}
 	}
 }

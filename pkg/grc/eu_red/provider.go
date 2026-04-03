@@ -15,8 +15,9 @@ import (
 
 const (
 	FrameworkID = "EU_RED_Delegated_Act_2022"
-	CatalogURL  = "https://raw.githubusercontent.com/eu-red/cybersecurity/main/controls.json"
 )
+
+var CatalogURL = "https://raw.githubusercontent.com/eu-red/cybersecurity/main/controls.json"
 
 // Provider fetches and parses EU Radio Equipment Directive cybersecurity requirements.
 type Provider struct {

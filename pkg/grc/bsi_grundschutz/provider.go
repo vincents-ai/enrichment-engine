@@ -17,8 +17,9 @@ import (
 
 const (
 	FrameworkID = "BSI_IT_Grundschutz_2023"
-	CatalogURL  = "https://www.bsi.bund.de/SharedDocs/Downloads/DE/BSI/Grundschutz/IT-GS-Kompendium/XML_Kompendium_2023.xml?__blob=publicationFile&v=4"
 )
+
+var CatalogURL = "https://www.bsi.bund.de/SharedDocs/Downloads/DE/BSI/Grundschutz/IT-GS-Kompendium/XML_Kompendium_2023.xml?__blob=publicationFile&v=4"
 
 // DocBook XML namespace
 const docbookNS = "http://docbook.org/ns/docbook"

@@ -15,8 +15,9 @@ import (
 
 const (
 	FrameworkID = "EUCC_2024"
-	CatalogURL  = "https://raw.githubusercontent.com/eu-cloud-certification/eucc/main/controls.json"
 )
+
+var CatalogURL = "https://raw.githubusercontent.com/eu-cloud-certification/eucc/main/controls.json"
 
 // Provider fetches and parses EU Cybersecurity Certification for Cloud Services (EUCC) controls.
 type Provider struct {

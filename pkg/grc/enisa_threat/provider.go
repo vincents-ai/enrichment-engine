@@ -16,8 +16,9 @@ import (
 
 const (
 	FrameworkID = "ENISA_ETL_2024"
-	CatalogURL  = "https://www.enisa.europa.eu/publications/enisa-threat-landscape-2024"
 )
+
+var CatalogURL = "https://www.enisa.europa.eu/publications/enisa-threat-landscape-2024"
 
 // Provider fetches and parses ENISA Threat Landscape (ETL) taxonomy data.
 type Provider struct {

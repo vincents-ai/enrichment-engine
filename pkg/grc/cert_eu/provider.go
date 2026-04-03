@@ -15,8 +15,9 @@ import (
 
 const (
 	FrameworkID = "CERT_EU_2024"
-	CatalogURL  = "https://raw.githubusercontent.com/cert-eu/advisories/main/controls.json"
 )
+
+var CatalogURL = "https://raw.githubusercontent.com/cert-eu/advisories/main/controls.json"
 
 // Provider fetches and parses CERT-EU advisories and threat intelligence controls.
 type Provider struct {

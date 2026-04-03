@@ -16,8 +16,9 @@ import (
 
 const (
 	FrameworkID = "DORA_2022_2554"
-	CatalogURL  = "https://raw.githubusercontent.com/dora-regulation/controls/main/dora_controls.json"
 )
+
+var CatalogURL = "https://raw.githubusercontent.com/dora-regulation/controls/main/dora_controls.json"
 
 // Provider fetches and parses DORA (Digital Operational Resilience Act) controls.
 type Provider struct {

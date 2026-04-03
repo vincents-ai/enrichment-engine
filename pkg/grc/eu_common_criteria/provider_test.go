@@ -2,21 +2,33 @@ package eu_common_criteria
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"log/slog"
+	"net/http"
+	"net/http/httptest"
 	"os"
+	"path/filepath"
+	"strings"
 	"testing"
+	"time"
 
+	"github.com/shift/enrichment-engine/pkg/grc"
 	"github.com/shift/enrichment-engine/pkg/storage"
 )
 
 type mockBackend struct {
 	controls map[string]interface{}
+	err      error
 }
 
 func (m *mockBackend) WriteVulnerability(ctx context.Context, id string, record interface{}) error {
 	return nil
 }
 func (m *mockBackend) WriteControl(ctx context.Context, id string, control interface{}) error {
+	if m.err != nil {
+		return m.err
+	}
 	if m.controls == nil {
 		m.controls = make(map[string]interface{})
 	}
@@ -54,6 +66,28 @@ func testLogger() *slog.Logger {
 	return slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelError}))
 }
 
+func TestNew(t *testing.T) {
+	backend := &mockBackend{}
+	logger := testLogger()
+	p := New(backend, logger)
+	if p == nil {
+		t.Fatal("New returned nil")
+	}
+	if p.store != backend {
+		t.Error("store not set")
+	}
+	if p.logger != logger {
+		t.Error("logger not set")
+	}
+}
+
+func TestProviderName(t *testing.T) {
+	p := &Provider{}
+	if got := p.Name(); got != "eu_common_criteria" {
+		t.Errorf("Name() = %q, want %q", got, "eu_common_criteria")
+	}
+}
+
 func TestEmbeddedControls(t *testing.T) {
 	p := &Provider{}
 	controls := p.generateEmbeddedControls()
@@ -62,7 +96,7 @@ func TestEmbeddedControls(t *testing.T) {
 	}
 	for _, ctrl := range controls {
 		if ctrl.ControlID == "" {
-			t.Errorf("control has empty ControlID: %+v", ctrl)
+			t.Errorf("control has empty ControlID")
 		}
 		if ctrl.Framework == "" {
 			t.Errorf("control %s has empty Framework", ctrl.ControlID)
@@ -73,25 +107,340 @@ func TestEmbeddedControls(t *testing.T) {
 	}
 }
 
-func TestProviderWriteEmbeddedControls(t *testing.T) {
+func TestEmbeddedControlsUniqueIDs(t *testing.T) {
+	p := &Provider{}
+	controls := p.generateEmbeddedControls()
+	ids := make(map[string]bool)
+	for _, ctrl := range controls {
+		if ids[ctrl.ControlID] {
+			t.Errorf("duplicate control ID: %s", ctrl.ControlID)
+		}
+		ids[ctrl.ControlID] = true
+	}
+}
+
+func TestBuildControl(t *testing.T) {
+	p := &Provider{}
+	ctrl := p.buildControl(ccControl{
+		ID: "CC-99", Title: "Test", Family: "Test Family",
+		Description: "Desc", Level: "high", EAL: "EAL4",
+	})
+	if ctrl.ControlID != "CC-99" {
+		t.Errorf("expected ControlID CC-99, got %s", ctrl.ControlID)
+	}
+	if ctrl.Framework != FrameworkID {
+		t.Errorf("expected Framework %s", FrameworkID)
+	}
+	if ctrl.Level != "high" {
+		t.Errorf("expected Level high, got %s", ctrl.Level)
+	}
+	if ctrl.References[0].Section != "EAL4" {
+		t.Errorf("expected Section EAL4, got %s", ctrl.References[0].Section)
+	}
+}
+
+func TestParseSuccess(t *testing.T) {
+	catalog := ccCatalog{
+		Controls: []ccControl{
+			{ID: "CC-01", Title: "Test 1", Family: "Family 1", Description: "Desc 1", Level: "critical", EAL: "EAL2+"},
+			{ID: "CC-02", Title: "Test 2", Family: "Family 2", Description: "Desc 2", Level: "high", EAL: "EAL4"},
+		},
+	}
+	data, _ := json.Marshal(catalog)
+
+	dir := t.TempDir()
+	path := filepath.Join(dir, "test.json")
+	os.WriteFile(path, data, 0644)
+
+	p := &Provider{}
+	controls, err := p.parse(path)
+	if err != nil {
+		t.Fatalf("parse failed: %v", err)
+	}
+	if len(controls) != 2 {
+		t.Fatalf("expected 2 controls, got %d", len(controls))
+	}
+}
+
+func TestParseInvalidJSON(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "bad.json")
+	os.WriteFile(path, []byte("not json"), 0644)
+
+	p := &Provider{}
+	_, err := p.parse(path)
+	if err == nil {
+		t.Fatal("expected error for invalid JSON, got nil")
+	}
+}
+
+func TestParseFileNotFound(t *testing.T) {
+	p := &Provider{}
+	_, err := p.parse("/nonexistent/path/file.json")
+	if err == nil {
+		t.Fatal("expected error for missing file, got nil")
+	}
+}
+
+func TestDownloadSuccess(t *testing.T) {
+	catalog := ccCatalog{Controls: []ccControl{{ID: "01", Title: "T"}}}
+	data, _ := json.Marshal(catalog)
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(data)
+	}))
+	defer server.Close()
+
+	origClient := grc.HTTPClient
+	defer func() { grc.HTTPClient = origClient }()
+	grc.HTTPClient = server.Client()
+
+	p := &Provider{logger: testLogger()}
+	f, err := os.CreateTemp("", "cc_download_*.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.Remove(f.Name())
+	f.Close()
+
+	err = p.download(context.Background(), server.URL, f.Name())
+	if err != nil {
+		t.Fatalf("download failed: %v", err)
+	}
+
+	readData, err := os.ReadFile(f.Name())
+	if err != nil {
+		t.Fatalf("failed to read file: %v", err)
+	}
+	if len(readData) == 0 {
+		t.Error("downloaded file is empty")
+	}
+}
+
+func TestDownloadNon200(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	defer server.Close()
+
+	origClient := grc.HTTPClient
+	defer func() { grc.HTTPClient = origClient }()
+	grc.HTTPClient = server.Client()
+
+	p := &Provider{logger: testLogger()}
+	f, err := os.CreateTemp("", "cc_download_err_*.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.Remove(f.Name())
+	f.Close()
+
+	err = p.download(context.Background(), server.URL, f.Name())
+	if err == nil {
+		t.Fatal("expected error for non-200 status, got nil")
+	}
+}
+
+func TestRunDownloadSuccess(t *testing.T) {
+	catalog := ccCatalog{Controls: []ccControl{{ID: "01", Title: "T"}}}
+	data, _ := json.Marshal(catalog)
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(data)
+	}))
+	defer server.Close()
+
+	origClient := grc.HTTPClient
+	origURL := CatalogURL
+	defer func() { grc.HTTPClient = origClient; CatalogURL = origURL }()
+	grc.HTTPClient = server.Client()
+	CatalogURL = server.URL
+
 	backend := &mockBackend{}
-	logger := testLogger()
-	p := New(backend, logger)
+	p := New(backend, testLogger())
 	count, err := p.Run(context.Background())
 	if err != nil {
 		t.Fatalf("Run failed: %v", err)
 	}
-	if count < 5 {
-		t.Errorf("expected at least 5 controls written, got %d", count)
-	}
-	if len(backend.controls) < 5 {
-		t.Errorf("expected at least 5 controls in backend, got %d", len(backend.controls))
+	if count != 1 {
+		t.Errorf("expected 1 control, got %d", count)
 	}
 }
 
-func TestProviderName(t *testing.T) {
-	p := &Provider{}
-	if got := p.Name(); got != "eu_common_criteria" {
-		t.Errorf("Name() = %q, want %q", got, "eu_common_criteria")
+func TestRunDownloadErrorFallback(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	defer server.Close()
+
+	origClient := grc.HTTPClient
+	origURL := CatalogURL
+	defer func() { grc.HTTPClient = origClient; CatalogURL = origURL }()
+	grc.HTTPClient = server.Client()
+	CatalogURL = server.URL
+
+	backend := &mockBackend{}
+	p := New(backend, testLogger())
+	count, err := p.Run(context.Background())
+	if err != nil {
+		t.Fatalf("Run should fall back to embedded, got: %v", err)
+	}
+	if count < 5 {
+		t.Errorf("expected embedded controls as fallback, got %d", count)
 	}
 }
+
+func TestRunParseErrorFallback(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte("not json"))
+	}))
+	defer server.Close()
+
+	origClient := grc.HTTPClient
+	origURL := CatalogURL
+	defer func() { grc.HTTPClient = origClient; CatalogURL = origURL }()
+	grc.HTTPClient = server.Client()
+	CatalogURL = server.URL
+
+	backend := &mockBackend{}
+	p := New(backend, testLogger())
+	count, err := p.Run(context.Background())
+	if err != nil {
+		t.Fatalf("Run should fall back to embedded, got: %v", err)
+	}
+	if count < 5 {
+		t.Errorf("expected embedded controls as fallback, got %d", count)
+	}
+}
+
+func TestRunWriteError(t *testing.T) {
+	backend := &mockBackend{err: fmt.Errorf("write failed")}
+	p := New(backend, testLogger())
+	count, err := p.Run(context.Background())
+	if err != nil {
+		t.Fatalf("Run should not return error on write failure, got: %v", err)
+	}
+	if count != 0 {
+		t.Errorf("expected 0 controls written, got %d", count)
+	}
+}
+
+func TestRunControlsStoredCorrectly(t *testing.T) {
+	backend := &mockBackend{}
+	p := New(backend, testLogger())
+	p.Run(context.Background())
+
+	for id, ctrl := range backend.controls {
+		c, ok := ctrl.(grc.Control)
+		if !ok {
+			t.Errorf("expected grc.Control, got %T for id %s", ctrl, id)
+			continue
+		}
+		if !strings.HasPrefix(id, FrameworkID+"/") {
+			t.Errorf("expected id to start with %s/, got %s", FrameworkID, id)
+		}
+		if c.Framework != FrameworkID {
+			t.Errorf("expected Framework %s, got %s", FrameworkID, c.Framework)
+		}
+	}
+}
+
+
+func TestDownloadIOCopyError(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		if f, ok := w.(http.Flusher); ok {
+			f.Flush()
+		}
+		time.Sleep(200 * time.Millisecond)
+		w.Write([]byte(`{}`))
+	}))
+	defer server.Close()
+
+	origClient := grc.HTTPClient
+	defer func() { grc.HTTPClient = origClient }()
+	grc.HTTPClient = server.Client()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Millisecond)
+	defer cancel()
+
+	p := &Provider{logger: testLogger()}
+	f, err := os.CreateTemp("", "iocopy_err_*.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	dest := f.Name()
+	f.Close()
+	defer os.Remove(dest)
+
+	err = p.download(ctx, server.URL, dest)
+	if err == nil {
+		t.Fatal("expected error from io.Copy failure")
+	}
+}
+
+
+
+func TestDownloadMalformedURL(t *testing.T) {
+	p := &Provider{logger: testLogger()}
+	f, _ := os.CreateTemp("", "malformed_*.json")
+	dest := f.Name()
+	f.Close()
+	defer os.Remove(dest)
+
+	err := p.download(context.Background(), "://bad", dest)
+	if err == nil {
+		t.Fatal("expected error for malformed URL")
+	}
+}
+
+func TestDownloadConnectionRefused(t *testing.T) {
+	p := &Provider{logger: testLogger()}
+	f, _ := os.CreateTemp("", "conn_refused_*.json")
+	dest := f.Name()
+	f.Close()
+	defer os.Remove(dest)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+	defer cancel()
+
+	err := p.download(ctx, "http://127.0.0.1:1", dest)
+	if err == nil {
+		t.Fatal("expected error for connection refused")
+	}
+}
+
+func TestDownloadCreateError(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+
+	origClient := grc.HTTPClient
+	defer func() { grc.HTTPClient = origClient }()
+	grc.HTTPClient = server.Client()
+
+	p := &Provider{logger: testLogger()}
+	err := p.download(context.Background(), server.URL, "/nonexistent/dir/file.json")
+	if err == nil {
+		t.Fatal("expected error for invalid dest path")
+	}
+}
+
+
+func TestRunCreateTempError(t *testing.T) {
+	t.Setenv("TMPDIR", "/nonexistent/path/that/does/not/exist")
+	p := New(nil, testLogger())
+	count, err := p.Run(context.Background())
+	if err == nil {
+		t.Fatal("expected error when CreateTemp fails")
+	}
+	if count != 0 {
+		t.Errorf("expected 0, got %d", count)
+	}
+}
+

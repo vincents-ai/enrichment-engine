@@ -15,8 +15,9 @@ import (
 
 const (
 	FrameworkID = "ENISA_CRA_Mapping_2024"
-	CatalogURL  = "https://www.enisa.europa.eu/publications/cra-harmonised-standards-mapping"
 )
+
+var CatalogURL = "https://www.enisa.europa.eu/publications/cra-harmonised-standards-mapping"
 
 // Provider fetches and parses ENISA CRA-to-standards mapping data.
 type Provider struct {

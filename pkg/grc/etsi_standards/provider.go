@@ -15,8 +15,9 @@ import (
 
 const (
 	FrameworkID = "ETSI_Cybersecurity_2024"
-	CatalogURL  = "https://raw.githubusercontent.com/etsi-standards/cybersecurity/main/controls.json"
 )
+
+var CatalogURL = "https://raw.githubusercontent.com/etsi-standards/cybersecurity/main/controls.json"
 
 // Provider fetches and parses ETSI cybersecurity standards controls.
 type Provider struct {

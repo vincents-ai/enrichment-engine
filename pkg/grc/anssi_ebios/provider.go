@@ -16,8 +16,9 @@ import (
 
 const (
 	FrameworkID = "ANSSI_EBIOS_RM_2024"
-	CatalogURL  = "https://raw.githubusercontent.com/ANSSI-France/ebios-rm/main/knowledge_base.json"
 )
+
+var CatalogURL = "https://raw.githubusercontent.com/ANSSI-France/ebios-rm/main/knowledge_base.json"
 
 // Provider fetches and parses ANSSI EBIOS Risk Manager knowledge base
 // for French critical infrastructure (OIV/OSE) compliance.

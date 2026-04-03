@@ -15,8 +15,9 @@ import (
 
 const (
 	FrameworkID = "EU_Common_Criteria_2024"
-	CatalogURL  = "https://raw.githubusercontent.com/eu-common-criteria/certification/main/controls.json"
 )
+
+var CatalogURL = "https://raw.githubusercontent.com/eu-common-criteria/certification/main/controls.json"
 
 // Provider fetches and parses EU Common Criteria certification controls.
 type Provider struct {

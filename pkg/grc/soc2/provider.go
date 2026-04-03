@@ -16,8 +16,9 @@ import (
 
 const (
 	FrameworkID = "SOC2_TSC_2017"
-	CatalogURL  = "https://raw.githubusercontent.com/Drakkar-Software/SOC2-controls/main/soc2_tsc_2017.json"
 )
+
+var CatalogURL = "https://raw.githubusercontent.com/Drakkar-Software/SOC2-controls/main/soc2_tsc_2017.json"
 
 // Provider fetches and parses SOC 2 Trust Services Criteria controls.
 type Provider struct {

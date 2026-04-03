@@ -3,6 +3,7 @@ package disa_stigs
 import (
 	"context"
 	"log/slog"
+	"os"
 	"strings"
 	"testing"
 
@@ -11,12 +12,16 @@ import (
 
 type mockBackend struct {
 	controls map[string]interface{}
+	err      error
 }
 
 func (m *mockBackend) WriteVulnerability(ctx context.Context, id string, record interface{}) error {
 	return nil
 }
 func (m *mockBackend) WriteControl(ctx context.Context, id string, control interface{}) error {
+	if m.err != nil {
+		return m.err
+	}
 	if m.controls == nil {
 		m.controls = make(map[string]interface{})
 	}
@@ -49,6 +54,21 @@ func (m *mockBackend) ListControlsByFramework(ctx context.Context, framework str
 	return nil, nil
 }
 func (m *mockBackend) Close(ctx context.Context) error { return nil }
+
+func TestNew(t *testing.T) {
+	backend := &mockBackend{}
+	logger := slog.Default()
+	p := New(backend, logger)
+	if p == nil {
+		t.Fatal("New() returned nil")
+	}
+	if p.store != backend {
+		t.Error("New() did not set store")
+	}
+	if p.logger != logger {
+		t.Error("New() did not set logger")
+	}
+}
 
 func TestEmbeddedControls(t *testing.T) {
 	controls := embeddedControls()
@@ -97,6 +117,19 @@ func TestProviderWriteEmbeddedControls(t *testing.T) {
 	}
 }
 
+func TestProviderWriteEmbeddedControlsError(t *testing.T) {
+	backend := &mockBackend{err: os.ErrPermission}
+	p := &Provider{store: backend, logger: slog.Default()}
+
+	count, err := p.writeEmbeddedControls(context.Background())
+	if err != nil {
+		t.Fatalf("writeEmbeddedControls should not return error on individual write failures: %v", err)
+	}
+	if count != 0 {
+		t.Errorf("expected 0 controls written when all writes fail, got %d", count)
+	}
+}
+
 func TestProviderName(t *testing.T) {
 	p := &Provider{}
 	if got := p.Name(); got != "disa_stigs" {
@@ -119,5 +152,42 @@ func TestRelatedCWEsPopulated(t *testing.T) {
 	}
 	if populatedCount == 0 {
 		t.Errorf("expected some DISA STIGs controls to have RelatedCWEs populated, got 0")
+	}
+}
+
+func TestDisaCWEs(t *testing.T) {
+	cwes := disaCWEs("WS-2022.1.2")
+	if len(cwes) != 2 {
+		t.Errorf("expected 2 CWEs for WS-2022.1.2, got %d", len(cwes))
+	}
+	cwes = disaCWEs("nonexistent")
+	if cwes != nil {
+		t.Errorf("expected nil for unknown control, got %v", cwes)
+	}
+}
+
+func TestRun(t *testing.T) {
+	backend := &mockBackend{}
+	p := New(backend, slog.Default())
+
+	count, err := p.Run(context.Background())
+	if err != nil {
+		t.Fatalf("Run failed: %v", err)
+	}
+	if count != 35 {
+		t.Errorf("expected 35 controls, got %d", count)
+	}
+}
+
+func TestRunWithWriteError(t *testing.T) {
+	backend := &mockBackend{err: os.ErrPermission}
+	p := New(backend, slog.Default())
+
+	count, err := p.Run(context.Background())
+	if err != nil {
+		t.Fatalf("Run should not return error on individual write failures: %v", err)
+	}
+	if count != 0 {
+		t.Errorf("expected 0 controls written when all writes fail, got %d", count)
 	}
 }

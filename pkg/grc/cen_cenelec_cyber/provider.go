@@ -15,8 +15,9 @@ import (
 
 const (
 	FrameworkID = "CEN_CENELEC_Cyber_2024"
-	CatalogURL  = "https://raw.githubusercontent.com/cen-cenelec/cybersecurity-standards/main/controls.json"
 )
+
+var CatalogURL = "https://raw.githubusercontent.com/cen-cenelec/cybersecurity-standards/main/controls.json"
 
 // Provider fetches and parses CEN-CENELEC cybersecurity standards controls.
 type Provider struct {

@@ -15,8 +15,9 @@ import (
 
 const (
 	FrameworkID = "EU_Cybersecurity_Act_2019_881"
-	CatalogURL  = "https://raw.githubusercontent.com/eu-cybersecurity-act/certification/main/requirements.json"
 )
+
+var CatalogURL = "https://raw.githubusercontent.com/eu-cybersecurity-act/certification/main/requirements.json"
 
 // Provider fetches and parses EU Cybersecurity Act certification framework requirements.
 type Provider struct {

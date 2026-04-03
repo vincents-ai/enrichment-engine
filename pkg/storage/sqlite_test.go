@@ -2,11 +2,13 @@ package storage
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"os"
 	"sync"
 	"testing"
+	"time"
 )
 
 func setupTestDB(t *testing.T) *SQLiteBackend {
@@ -2018,5 +2020,705 @@ func TestListControlsByFramework_MultipleDistinctFrameworks(t *testing.T) {
 	}
 	if len(allRows) != 10 {
 		t.Errorf("expected 10 total controls, got %d", len(allRows))
+	}
+}
+
+type unmarshallableType struct {
+	Ch chan int
+}
+
+func TestWriteVulnerability_Unmarshallable(t *testing.T) {
+	b := setupTestDB(t)
+	ctx := context.Background()
+
+	err := b.WriteVulnerability(ctx, "bad-vuln", unmarshallableType{Ch: make(chan int)})
+	if err == nil {
+		t.Fatal("expected error marshaling unmarshallable type, got nil")
+	}
+}
+
+func TestWriteControl_Unmarshallable(t *testing.T) {
+	b := setupTestDB(t)
+	ctx := context.Background()
+
+	err := b.WriteControl(ctx, "bad-ctrl", unmarshallableType{Ch: make(chan int)})
+	if err == nil {
+		t.Fatal("expected error marshaling unmarshallable type, got nil")
+	}
+}
+
+func TestWriteControl_NonStructControl(t *testing.T) {
+	b := setupTestDB(t)
+	ctx := context.Background()
+
+	err := b.WriteControl(ctx, "non-struct-ctrl", "just a string")
+	if err == nil {
+		t.Fatal("expected error unmarshaling non-struct control, got nil")
+	}
+}
+
+func TestNewSQLiteBackend_InitializeError(t *testing.T) {
+	tmpDir := t.TempDir()
+	subDir := tmpDir + "/subdir"
+	if err := os.MkdirAll(subDir, 0755); err != nil {
+		t.Fatalf("MkdirAll: %v", err)
+	}
+
+	path := subDir + "/test.db"
+	backend, err := NewSQLiteBackend(path)
+	if err != nil {
+		t.Fatalf("NewSQLiteBackend: %v", err)
+	}
+
+	os.RemoveAll(subDir)
+
+	_, err = NewSQLiteBackend(path)
+	if err == nil {
+		backend.Close(context.Background())
+		t.Fatal("expected error when creating backend in removed directory, got nil")
+	}
+	backend.Close(context.Background())
+}
+
+func TestNewSQLiteBackend_InvalidPath(t *testing.T) {
+	_, err := NewSQLiteBackend("/proc/nonexistent/foo/bar/test.db")
+	if err == nil {
+		t.Fatal("expected error creating backend with invalid path, got nil")
+	}
+}
+
+func TestClose_AfterCloseReturnsNil(t *testing.T) {
+	path := t.TempDir() + "/double-close.db"
+	b, err := NewSQLiteBackend(path)
+	if err != nil {
+		t.Fatalf("NewSQLiteBackend: %v", err)
+	}
+
+	if err := b.Close(context.Background()); err != nil {
+		t.Fatalf("first Close: %v", err)
+	}
+	if err := b.Close(context.Background()); err != nil {
+		t.Errorf("second Close should return nil, got: %v", err)
+	}
+	if err := b.Close(context.Background()); err != nil {
+		t.Errorf("third Close should return nil, got: %v", err)
+	}
+}
+
+func TestClose_WALCheckpointError(t *testing.T) {
+	path := t.TempDir() + "/close-wal-err.db"
+	b, err := NewSQLiteBackend(path)
+	if err != nil {
+		t.Fatalf("NewSQLiteBackend: %v", err)
+	}
+
+	b.db.Close()
+	b.closed = false
+
+	err = b.Close(context.Background())
+	if err == nil {
+		t.Fatal("expected error when db already closed for wal_checkpoint, got nil")
+	}
+}
+
+func TestListAllVulnerabilities_CanceledContext(t *testing.T) {
+	b := setupTestDB(t)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	_, err := b.ListAllVulnerabilities(ctx)
+	if err == nil {
+		t.Fatal("expected error on canceled context, got nil")
+	}
+}
+
+func TestListMappings_CanceledContext(t *testing.T) {
+	b := setupTestDB(t)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	_, err := b.ListMappings(ctx, "any-vuln")
+	if err == nil {
+		t.Fatal("expected error on canceled context, got nil")
+	}
+}
+
+func TestListControlsByCPE_CanceledContext(t *testing.T) {
+	b := setupTestDB(t)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	_, err := b.ListControlsByCPE(ctx, "cpe:2.3:a:any:app:1.0:*:*:*:*:*:*:*")
+	if err == nil {
+		t.Fatal("expected error on canceled context, got nil")
+	}
+}
+
+func TestListAllControls_CanceledContext(t *testing.T) {
+	b := setupTestDB(t)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	_, err := b.ListAllControls(ctx)
+	if err == nil {
+		t.Fatal("expected error on canceled context, got nil")
+	}
+}
+
+func TestListControlsByCWE_CanceledContext(t *testing.T) {
+	b := setupTestDB(t)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	_, err := b.ListControlsByCWE(ctx, "CWE-79")
+	if err == nil {
+		t.Fatal("expected error on canceled context, got nil")
+	}
+}
+
+func TestListControlsByFramework_CanceledContext(t *testing.T) {
+	b := setupTestDB(t)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	_, err := b.ListControlsByFramework(ctx, "NIST")
+	if err == nil {
+		t.Fatal("expected error on canceled context, got nil")
+	}
+}
+
+func TestReadVulnerability_CanceledContext(t *testing.T) {
+	b := setupTestDB(t)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	_, err := b.ReadVulnerability(ctx, "any-id")
+	if err == nil {
+		t.Fatal("expected error on canceled context, got nil")
+	}
+}
+
+func TestReadControl_CanceledContext(t *testing.T) {
+	b := setupTestDB(t)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	_, err := b.ReadControl(ctx, "any-id")
+	if err == nil {
+		t.Fatal("expected error on canceled context, got nil")
+	}
+}
+
+func TestWriteVulnerability_CanceledContext(t *testing.T) {
+	b := setupTestDB(t)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	err := b.WriteVulnerability(ctx, "any-id", map[string]interface{}{"test": true})
+	if err == nil {
+		t.Fatal("expected error on canceled context, got nil")
+	}
+}
+
+func TestWriteControl_CanceledContext(t *testing.T) {
+	b := setupTestDB(t)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	err := b.WriteControl(ctx, "any-id", map[string]interface{}{"Framework": "FW", "ControlID": "C-1", "Title": "T"})
+	if err == nil {
+		t.Fatal("expected error on canceled context, got nil")
+	}
+}
+
+func TestWriteMapping_CanceledContext(t *testing.T) {
+	b := setupTestDB(t)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	err := b.WriteMapping(ctx, "v", "c", "FW", "direct", 0.9, "ev")
+	if err == nil {
+		t.Fatal("expected error on canceled context, got nil")
+	}
+}
+
+func TestExtractVulnCWEs_InvalidJSON(t *testing.T) {
+	cwes := extractVulnCWEs([]byte("not valid json"))
+	if cwes != nil {
+		t.Errorf("expected nil for invalid JSON, got %v", cwes)
+	}
+}
+
+func TestExtractVulnCWEs_EmptyJSON(t *testing.T) {
+	cwes := extractVulnCWEs([]byte(`{}`))
+	if len(cwes) != 0 {
+		t.Errorf("expected empty for empty JSON, got %v", cwes)
+	}
+}
+
+func TestExtractVulnCWEs_NoCVEField(t *testing.T) {
+	cwes := extractVulnCWEs([]byte(`{"id":"CVE-2024-1234"}`))
+	if len(cwes) != 0 {
+		t.Errorf("expected empty with no cve field, got %v", cwes)
+	}
+}
+
+func TestExtractVulnCWEs_NoWeaknesses(t *testing.T) {
+	cwes := extractVulnCWEs([]byte(`{"id":"CVE-2024-1234","cve":{"id":"CVE-2024-1234"}}`))
+	if len(cwes) != 0 {
+		t.Errorf("expected empty with no weaknesses, got %v", cwes)
+	}
+}
+
+func TestExtractVulnCWEs_NonEnglish(t *testing.T) {
+	cwes := extractVulnCWEs([]byte(`{"cve":{"weaknesses":[{"description":[{"lang":"fr","value":"CWE-79"}]}]}}`))
+	if len(cwes) != 0 {
+		t.Errorf("expected empty for non-English weakness, got %v", cwes)
+	}
+}
+
+func TestExtractVulnCWEs_NonCWEPrefix(t *testing.T) {
+	cwes := extractVulnCWEs([]byte(`{"cve":{"weaknesses":[{"description":[{"lang":"en","value":"NVD-CWE-Other"}]}]}}`))
+	if len(cwes) != 0 {
+		t.Errorf("expected empty for non-CWE- prefix, got %v", cwes)
+	}
+}
+
+func TestExtractVulnCWEs_Deduplicates(t *testing.T) {
+	cwes := extractVulnCWEs([]byte(`{"cve":{"weaknesses":[{"description":[{"lang":"en","value":"CWE-79"}]},{"description":[{"lang":"en","value":"CWE-79"}]}]}}`))
+	if len(cwes) != 1 {
+		t.Errorf("expected 1 deduplicated CWE, got %d: %v", len(cwes), cwes)
+	}
+}
+
+func TestExtractVulnCWEs_MultipleWeaknesses(t *testing.T) {
+	cwes := extractVulnCWEs([]byte(`{"cve":{"weaknesses":[{"description":[{"lang":"en","value":"CWE-79"},{"lang":"en","value":"CWE-89"}]}]}}`))
+	if len(cwes) != 2 {
+		t.Errorf("expected 2 CWEs, got %d: %v", len(cwes), cwes)
+	}
+}
+
+func TestListControlsByCPE_ListControlsByCWEError(t *testing.T) {
+	b := setupTestDB(t)
+	ctx := context.Background()
+
+	vuln := makeNVDVuln("CVE-2024-CWEERR", "cpe:2.3:a:cweerr:app:1.0:*:*:*:*:*:*:*", []string{"CWE-79"})
+	if err := b.WriteVulnerability(ctx, "vuln-cwe-err", vuln); err != nil {
+		t.Fatalf("WriteVulnerability: %v", err)
+	}
+
+	b.db.Exec("DROP TABLE grc_controls")
+	b.db.Exec("CREATE TABLE grc_controls (id TEXT PRIMARY KEY)")
+
+	_, err := b.ListControlsByCPE(ctx, "cpe:2.3:a:cweerr:app:1.0:*:*:*:*:*:*:*")
+	if err == nil {
+		t.Fatal("expected error when ListControlsByCWE fails inside ListControlsByCPE, got nil")
+	}
+}
+
+func TestListControlsByCPE_ListAllVulnsError(t *testing.T) {
+	b := setupTestDB(t)
+	ctx := context.Background()
+
+	b.db.Exec("DROP TABLE vulnerabilities")
+	b.db.Exec("CREATE TABLE vulnerabilities (id TEXT PRIMARY KEY)")
+
+	_, err := b.ListControlsByCPE(ctx, "cpe:2.3:a:any:app:1.0:*:*:*:*:*:*:*")
+	if err == nil {
+		t.Fatal("expected error when ListAllVulnerabilities fails inside ListControlsByCPE, got nil")
+	}
+}
+
+func TestListControlsByCPE_VulnWithCPEButNoMatchingControls(t *testing.T) {
+	b := setupTestDB(t)
+	ctx := context.Background()
+
+	vuln := makeNVDVuln("CVE-2024-NOMATCH", "cpe:2.3:a:nomatch:app:1.0:*:*:*:*:*:*:*", []string{"CWE-999"})
+	if err := b.WriteVulnerability(ctx, "vuln-nomatch", vuln); err != nil {
+		t.Fatalf("WriteVulnerability: %v", err)
+	}
+
+	ctrl := map[string]interface{}{
+		"Framework":   "NOMATCH-FW",
+		"ControlID":   "NM-1",
+		"Title":       "Unrelated Control",
+		"RelatedCWEs": []string{"CWE-79"},
+	}
+	if err := b.WriteControl(ctx, "nomatch-ctrl", ctrl); err != nil {
+		t.Fatalf("WriteControl: %v", err)
+	}
+
+	rows, err := b.ListControlsByCPE(ctx, "cpe:2.3:a:nomatch:app:1.0:*:*:*:*:*:*:*")
+	if err != nil {
+		t.Fatalf("ListControlsByCPE: %v", err)
+	}
+	if len(rows) != 0 {
+		t.Errorf("expected 0 controls when CWE has no matching controls, got %d", len(rows))
+	}
+}
+
+func TestListControlsByCPE_MultipleVulnsDifferentCWEs(t *testing.T) {
+	b := setupTestDB(t)
+	ctx := context.Background()
+
+	vuln1 := makeNVDVuln("CVE-2024-MULTI1", "cpe:2.3:a:multi:app:1.0:*:*:*:*:*:*:*", []string{"CWE-79"})
+	vuln2 := makeNVDVuln("CVE-2024-MULTI2", "cpe:2.3:a:multi:app:2.0:*:*:*:*:*:*:*", []string{"CWE-89"})
+	if err := b.WriteVulnerability(ctx, "vuln-multi-1", vuln1); err != nil {
+		t.Fatalf("WriteVulnerability vuln1: %v", err)
+	}
+	if err := b.WriteVulnerability(ctx, "vuln-multi-2", vuln2); err != nil {
+		t.Fatalf("WriteVulnerability vuln2: %v", err)
+	}
+
+	ctrl79 := map[string]interface{}{
+		"Framework":   "MULTI-CPE-FW",
+		"ControlID":   "MCP-79",
+		"Title":       "XSS Control",
+		"RelatedCWEs": []string{"CWE-79"},
+	}
+	ctrl89 := map[string]interface{}{
+		"Framework":   "MULTI-CPE-FW",
+		"ControlID":   "MCP-89",
+		"Title":       "SQLi Control",
+		"RelatedCWEs": []string{"CWE-89"},
+	}
+	if err := b.WriteControl(ctx, "multi-cpe-79", ctrl79); err != nil {
+		t.Fatalf("WriteControl ctrl79: %v", err)
+	}
+	if err := b.WriteControl(ctx, "multi-cpe-89", ctrl89); err != nil {
+		t.Fatalf("WriteControl ctrl89: %v", err)
+	}
+
+	cpe := "cpe:2.3:a:multi:app"
+	rows, err := b.ListControlsByCPE(ctx, cpe)
+	if err != nil {
+		t.Fatalf("ListControlsByCPE: %v", err)
+	}
+	if len(rows) != 2 {
+		t.Fatalf("expected 2 controls from different CWEs, got %d", len(rows))
+	}
+
+	ids := map[string]bool{}
+	for _, r := range rows {
+		ids[r.ControlID] = true
+	}
+	if !ids["MCP-79"] || !ids["MCP-89"] {
+		t.Errorf("expected both MCP-79 and MCP-89, got %v", ids)
+	}
+}
+
+func TestClose_RenamesTempFile_Failure(t *testing.T) {
+	path := t.TempDir() + "/rename-fail.db"
+	b, err := NewSQLiteBackend(path)
+	if err != nil {
+		t.Fatalf("NewSQLiteBackend: %v", err)
+	}
+
+	os.MkdirAll(path, 0755)
+
+	err = b.Close(context.Background())
+	if err == nil {
+		t.Fatal("expected error when temp file can't be renamed to a directory, got nil")
+	}
+}
+
+func TestNewSQLiteBackend_ThenForceCloseDB(t *testing.T) {
+	path := t.TempDir() + "/force-close.db"
+	b, err := NewSQLiteBackend(path)
+	if err != nil {
+		t.Fatalf("NewSQLiteBackend: %v", err)
+	}
+
+	b.db.Close()
+	b.closed = false
+
+	err = b.Close(context.Background())
+	if err == nil {
+		t.Fatal("expected error when db is already closed and wal_checkpoint fails, got nil")
+	}
+}
+
+func TestOperationsAfterClose_ListControlsByCPE(t *testing.T) {
+	path := t.TempDir() + "/after-close-cpe.db"
+	backend, err := NewSQLiteBackend(path)
+	if err != nil {
+		t.Fatalf("NewSQLiteBackend: %v", err)
+	}
+	backend.Close(context.Background())
+
+	_, err = backend.ListControlsByCPE(context.Background(), "cpe:2.3:a:any:app:1.0:*:*:*:*:*:*:*")
+	if err == nil {
+		t.Error("expected error listing by CPE after close, got nil")
+	}
+}
+
+func TestWriteControl_MarshalErrorLocked(t *testing.T) {
+	b := setupTestDB(t)
+	ctx := context.Background()
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		b.mu.Lock()
+		time.Sleep(50 * time.Millisecond)
+		b.mu.Unlock()
+	}()
+
+	time.Sleep(5 * time.Millisecond)
+
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		b.WriteControl(ctx, "lock-test", unmarshallableType{Ch: make(chan int)})
+	}()
+
+	<-done
+	wg.Wait()
+}
+
+func TestWriteVulnerability_MarshalErrorLocked(t *testing.T) {
+	b := setupTestDB(t)
+	ctx := context.Background()
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		b.mu.Lock()
+		time.Sleep(50 * time.Millisecond)
+		b.mu.Unlock()
+	}()
+
+	time.Sleep(5 * time.Millisecond)
+
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		b.WriteVulnerability(ctx, "lock-test", unmarshallableType{Ch: make(chan int)})
+	}()
+
+	<-done
+	wg.Wait()
+}
+
+func TestInitialize_PragmaError(t *testing.T) {
+	db, err := sql.Open("sqlite", t.TempDir()+"/pragma-fail.db")
+	if err != nil {
+		t.Fatalf("sql.Open: %v", err)
+	}
+	db.Close()
+
+	b := &SQLiteBackend{
+		db: db,
+	}
+
+	err = b.initialize()
+	if err == nil {
+		t.Fatal("expected error from initialize with closed db, got nil")
+	}
+}
+
+func TestInitialize_SchemaError(t *testing.T) {
+	path := t.TempDir() + "/schema-fail.db"
+	db, err := sql.Open("sqlite", path)
+	if err != nil {
+		t.Fatalf("sql.Open: %v", err)
+	}
+	db.SetMaxOpenConns(1)
+	db.SetMaxIdleConns(1)
+
+	_, err = db.Exec("CREATE TABLE vulnerabilities (id TEXT PRIMARY KEY, record BLOB NOT NULL)")
+	if err != nil {
+		db.Close()
+		t.Fatalf("create table: %v", err)
+	}
+
+	b := &SQLiteBackend{
+		db: db,
+	}
+
+	err = b.initialize()
+	db.Close()
+	if err != nil {
+		t.Fatalf("first initialize should succeed: %v", err)
+	}
+}
+
+func TestInitialize_SchemaExecError(t *testing.T) {
+	path := t.TempDir() + "/schema-exec-fail.db"
+	db, err := sql.Open("sqlite", path)
+	if err != nil {
+		t.Fatalf("sql.Open: %v", err)
+	}
+	db.SetMaxOpenConns(1)
+	db.SetMaxIdleConns(1)
+	defer db.Close()
+
+	_, err = db.Exec("CREATE VIEW vulnerabilities AS SELECT 1")
+	if err != nil {
+		t.Fatalf("create view: %v", err)
+	}
+
+	b := &SQLiteBackend{
+		db: db,
+	}
+
+	err = b.initialize()
+	if err == nil {
+		t.Fatal("expected error when schema can't create table (view exists), got nil")
+	}
+}
+
+func TestScanControlRows_ColumnMismatch(t *testing.T) {
+	path := t.TempDir() + "/scan-fail.db"
+	db, err := sql.Open("sqlite", path)
+	if err != nil {
+		t.Fatalf("sql.Open: %v", err)
+	}
+	db.SetMaxOpenConns(1)
+	db.SetMaxIdleConns(1)
+	defer db.Close()
+
+	_, err = db.Exec("CREATE TABLE grc_controls (id TEXT PRIMARY KEY, record BLOB NOT NULL)")
+	if err != nil {
+		t.Fatalf("create table: %v", err)
+	}
+	_, err = db.Exec("INSERT INTO grc_controls (id, record) VALUES ('x', '\"test\"')")
+	if err != nil {
+		t.Fatalf("insert: %v", err)
+	}
+
+	rows, err := db.Query("SELECT id, record FROM grc_controls")
+	if err != nil {
+		t.Fatalf("query: %v", err)
+	}
+	defer rows.Close()
+
+	_, err = scanControlRows(rows)
+	if err == nil {
+		t.Fatal("expected scan error with column mismatch, got nil")
+	}
+}
+
+func TestListMappings_ScanError(t *testing.T) {
+	b := setupTestDB(t)
+
+	b.db.Exec("DROP TABLE vulnerability_grc_mappings")
+	b.db.Exec(`CREATE TABLE vulnerability_grc_mappings (
+		vulnerability_id BLOB NOT NULL,
+		control_id BLOB NOT NULL,
+		framework BLOB NOT NULL,
+		mapping_type BLOB NOT NULL,
+		confidence BLOB NOT NULL,
+		evidence BLOB NOT NULL
+	)`)
+	b.db.Exec(`INSERT INTO vulnerability_grc_mappings VALUES (x'00',x'00',x'00',x'00',x'00',x'00')`)
+
+	ctx := context.Background()
+	_, err := b.ListMappings(ctx, "v")
+	t.Logf("ListMappings error: %v", err)
+	if err == nil {
+		t.Fatal("expected scan error with type mismatch, got nil")
+	}
+}
+
+func TestListAllVulnerabilities_ScanError(t *testing.T) {
+	b := setupTestDB(t)
+
+	b.db.Exec("DROP TABLE vulnerabilities")
+	b.db.Exec(`CREATE TABLE vulnerabilities (
+		id INTEGER PRIMARY KEY,
+		record INTEGER NOT NULL
+	)`)
+	b.db.Exec(`INSERT INTO vulnerabilities VALUES (1, 2)`)
+
+	ctx := context.Background()
+	_, err := b.ListAllVulnerabilities(ctx)
+	t.Logf("ListAllVulnerabilities error: %v", err)
+	if err == nil {
+		t.Fatal("expected scan error with type mismatch, got nil")
+	}
+}
+
+func TestListControlsByFramework_ScanError(t *testing.T) {
+	b := setupTestDB(t)
+
+	b.db.Exec("DROP TABLE grc_controls")
+	b.db.Exec("CREATE TABLE grc_controls (id TEXT PRIMARY KEY)")
+
+	ctx := context.Background()
+	_, err := b.ListControlsByFramework(ctx, "FW")
+	if err == nil {
+		t.Fatal("expected error with column mismatch, got nil")
+	}
+}
+
+func TestListControlsByCWE_ScanError(t *testing.T) {
+	b := setupTestDB(t)
+
+	b.db.Exec("DROP TABLE grc_controls")
+	b.db.Exec("CREATE TABLE grc_controls (id TEXT PRIMARY KEY)")
+
+	ctx := context.Background()
+	_, err := b.ListControlsByCWE(ctx, "CWE-79")
+	if err == nil {
+		t.Fatal("expected error with column mismatch, got nil")
+	}
+}
+
+func TestListAllControls_ScanError(t *testing.T) {
+	b := setupTestDB(t)
+
+	b.db.Exec("DROP TABLE grc_controls")
+	b.db.Exec("CREATE TABLE grc_controls (id TEXT PRIMARY KEY)")
+
+	ctx := context.Background()
+	_, err := b.ListAllControls(ctx)
+	if err == nil {
+		t.Fatal("expected error with column mismatch, got nil")
+	}
+}
+
+func TestClose_DbCloseError(t *testing.T) {
+	path := t.TempDir() + "/close-db-err.db"
+	b, err := NewSQLiteBackend(path)
+	if err != nil {
+		t.Fatalf("NewSQLiteBackend: %v", err)
+	}
+
+	b.db.Close()
+	b.closed = false
+
+	err = b.Close(context.Background())
+	if err == nil {
+		t.Fatal("expected error when db.Close fails (already closed), got nil")
+	}
+}
+
+func TestClose_RenameErrorTempFileGone(t *testing.T) {
+	path := t.TempDir() + "/close-norename.db"
+	b, err := NewSQLiteBackend(path)
+	if err != nil {
+		t.Fatalf("NewSQLiteBackend: %v", err)
+	}
+
+	os.Remove(b.tempPath)
+	b.tempPath = "/nonexistent/path/that/does/not/exist.db"
+
+	err = b.Close(context.Background())
+	if err != nil {
+		t.Fatalf("Close should succeed when temp file doesn't exist: %v", err)
 	}
 }

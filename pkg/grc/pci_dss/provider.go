@@ -16,8 +16,9 @@ import (
 
 const (
 	FrameworkID = "PCI_DSS_v4"
-	CatalogURL  = "https://raw.githubusercontent.com/pci-dss/controls/main/pci_dss_v4_controls.json"
 )
+
+var CatalogURL = "https://raw.githubusercontent.com/pci-dss/controls/main/pci_dss_v4_controls.json"
 
 // Provider fetches and parses PCI DSS v4.0 controls.
 type Provider struct {

@@ -13,10 +13,9 @@ import (
 	"github.com/shift/enrichment-engine/pkg/storage"
 )
 
-const (
-	FrameworkID = "NIS2_Directive_2022"
-	CatalogURL  = "https://raw.githubusercontent.com/ENISA-EU/nis2-directive/main/nis2_requirements.json"
-)
+const FrameworkID = "NIS2_Directive_2022"
+
+var CatalogURL = "https://raw.githubusercontent.com/ENISA-EU/nis2-directive/main/nis2_requirements.json"
 
 // Provider fetches NIS2 Directive compliance requirements from the EU cybersecurity directive.
 type Provider struct {

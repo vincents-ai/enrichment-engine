@@ -15,10 +15,9 @@ import (
 	"github.com/shift/enrichment-engine/pkg/storage"
 )
 
-const (
-	FrameworkID = "CIS_Controls_v8"
-	CatalogURL  = "https://bitbucket.org/cis-it-workspace/cis-controls-v8.1_oscal/raw/75ec5f4f79f103a74420e2b93553ce429160a92c/src/catalogs/json/cis-controls-v8.1_catalog.json"
-)
+const FrameworkID = "CIS_Controls_v8"
+
+var catalogURL = "https://bitbucket.org/cis-it-workspace/cis-controls-v8.1_oscal/raw/75ec5f4f79f103a74420e2b93553ce429160a92c/src/catalogs/json/cis-controls-v8.1_catalog.json"
 
 //go:embed cis_controls_v8.json
 var embeddedCatalog []byte
@@ -44,7 +43,7 @@ func (p *Provider) Name() string {
 
 // Run fetches the CIS Controls catalog, parses controls, and writes them to storage.
 func (p *Provider) Run(ctx context.Context) (int, error) {
-	p.logger.Info("fetching CIS Controls v8.1 catalog", "url", CatalogURL)
+	p.logger.Info("fetching CIS Controls v8.1 catalog", "url", catalogURL)
 
 	f, err := os.CreateTemp("", "cis_controls_v8_*.json")
 	if err != nil {
@@ -56,7 +55,7 @@ func (p *Provider) Run(ctx context.Context) (int, error) {
 
 	var data []byte
 
-	if err = p.download(ctx, CatalogURL, destPath); err != nil {
+	if err = p.download(ctx, catalogURL, destPath); err != nil {
 		p.logger.Warn("failed to download catalog, using embedded fallback", "error", err)
 		data = embeddedCatalog
 	} else {
@@ -72,7 +71,7 @@ func (p *Provider) Run(ctx context.Context) (int, error) {
 	}
 
 	if len(controls) == 0 {
-		p.logger.Warn("parsed 0 controls from downloaded catalog, falling back to embedded", "url", CatalogURL)
+		p.logger.Warn("parsed 0 controls from downloaded catalog, falling back to embedded", "url", catalogURL)
 		controls, err = p.parse(embeddedCatalog)
 		if err != nil {
 			return 0, fmt.Errorf("parse embedded catalog: %w", err)

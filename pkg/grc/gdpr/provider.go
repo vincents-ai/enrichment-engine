@@ -14,10 +14,9 @@ import (
 	"github.com/shift/enrichment-engine/pkg/storage"
 )
 
-const (
-	FrameworkID = "GDPR_2016_679"
-	CatalogURL  = "https://raw.githubusercontent.com/gdpr-controls/registry/main/gdpr_controls.json"
-)
+const FrameworkID = "GDPR_2016_679"
+
+var CatalogURL = "https://raw.githubusercontent.com/gdpr-controls/registry/main/gdpr_controls.json"
 
 // Provider fetches and parses GDPR (General Data Protection Regulation) controls.
 type Provider struct {

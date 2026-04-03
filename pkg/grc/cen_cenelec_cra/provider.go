@@ -15,8 +15,9 @@ import (
 
 const (
 	FrameworkID = "CEN_CENELEC_CRA_2024"
-	CatalogURL  = "https://raw.githubusercontent.com/cen-cenelec/cra-standards/main/controls.json"
 )
+
+var CatalogURL = "https://raw.githubusercontent.com/cen-cenelec/cra-standards/main/controls.json"
 
 // Provider fetches and parses CEN-CENELEC CRA harmonised standards controls.
 type Provider struct {

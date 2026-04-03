@@ -14,10 +14,9 @@ import (
 	"github.com/shift/enrichment-engine/pkg/storage"
 )
 
-const (
-	FrameworkID = "CMMC_v2"
-	CatalogURL  = "https://raw.githubusercontent.com/cmmc-assessment/controls/main/cmmc_v2_controls.json"
-)
+const FrameworkID = "CMMC_v2"
+
+var catalogURL = "https://raw.githubusercontent.com/cmmc-assessment/controls/main/cmmc_v2_controls.json"
 
 // Provider fetches and parses CMMC v2 (Cybersecurity Maturity Model Certification) controls.
 type Provider struct {
@@ -40,7 +39,7 @@ func (p *Provider) Name() string {
 
 // Run fetches the CMMC v2 controls catalog, parses controls, and writes them to storage.
 func (p *Provider) Run(ctx context.Context) (int, error) {
-	p.logger.Info("fetching CMMC v2 controls catalog", "url", CatalogURL)
+	p.logger.Info("fetching CMMC v2 controls catalog", "url", catalogURL)
 
 	f, err := os.CreateTemp("", "cmmc_catalog_*.json")
 	if err != nil {
@@ -49,7 +48,7 @@ func (p *Provider) Run(ctx context.Context) (int, error) {
 	destPath := f.Name()
 	f.Close()
 	defer os.Remove(destPath)
-	if err := p.download(ctx, CatalogURL, destPath); err != nil {
+	if err := p.download(ctx, catalogURL, destPath); err != nil {
 		p.logger.Warn("failed to download catalog, using embedded fallback", "error", err)
 		return p.writeEmbeddedControls(ctx)
 	}

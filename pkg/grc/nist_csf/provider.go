@@ -16,8 +16,9 @@ import (
 
 const (
 	FrameworkID = "NIST_CSF_2_0"
-	CatalogURL  = "https://raw.githubusercontent.com/usnistgov/cybersecurity-framework/main/csf_2_0_catalog.json"
 )
+
+var CatalogURL = "https://raw.githubusercontent.com/usnistgov/cybersecurity-framework/main/csf_2_0_catalog.json"
 
 // Provider fetches and parses NIST Cybersecurity Framework 2.0 outcomes.
 type Provider struct {

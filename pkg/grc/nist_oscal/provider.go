@@ -14,10 +14,9 @@ import (
 	"github.com/shift/enrichment-engine/pkg/storage"
 )
 
-const (
-	NISTCatalogURL = "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json"
-	FrameworkID    = "NIST_800_53_r5"
-)
+const FrameworkID = "NIST_800_53_r5"
+
+var NISTCatalogURL = "https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-53/rev5/json/NIST_SP-800-53_rev5_catalog.json"
 
 // Provider fetches and parses NIST SP 800-53 rev5 controls from OSCAL format.
 type Provider struct {
