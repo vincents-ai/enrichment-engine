@@ -633,3 +633,111 @@ func TestConcurrentCVELoading(t *testing.T) {
 	result := runMappingPhase(t, backend)
 	t.Logf("concurrent load: %d CVEs -> %d mappings", len(allCVEs), result.MappingCount)
 }
+
+func TestConfluenceDeepVerification(t *testing.T) {
+	backend := setupVerificationDB(t)
+	runFullPipeline(t, backend)
+
+	cve := CVE_2022_26134
+	loadCVEs(t, backend, []cveRecord{cve})
+	result := runMappingPhase(t, backend)
+
+	t.Logf("Confluence RCE (CWE-287): %d total mappings", result.MappingCount)
+
+	ctx := context.Background()
+	mappings, _ := backend.ListMappings(ctx, cve.ID)
+
+	frameworks := make(map[string][]string)
+	cweMappings := 0
+	cpeMappings := 0
+	for _, m := range mappings {
+		switch m.MappingType {
+		case "cwe":
+			cweMappings++
+		case "cpe":
+			cpeMappings++
+		}
+		frameworks[m.Framework] = append(frameworks[m.Framework], m.ControlID)
+	}
+
+	t.Logf("  CWE mappings: %d, CPE mappings: %d", cweMappings, cpeMappings)
+	t.Logf("  Frameworks hit: %d", len(frameworks))
+
+	for fw, controls := range frameworks {
+		t.Logf("  %s: %v", fw, controls)
+	}
+
+	requiredFrameworks := []string{"PCI_DSS_v4", "ISO_27001_2022", "SOC2_TSC_2017", "FEDRAMP_REV5", "CIS_Controls_v8"}
+	for _, fw := range requiredFrameworks {
+		if _, ok := frameworks[fw]; !ok {
+			t.Errorf("Confluence RCE (CWE-287) should map to %s framework", fw)
+		}
+	}
+
+	if cweMappings == 0 {
+		t.Error("expected CWE mappings for Confluence (CWE-287) but got 0")
+	}
+
+	for _, m := range mappings {
+		if m.Confidence <= 0 {
+			t.Errorf("mapping %s/%s has zero confidence", m.Framework, m.ControlID)
+		}
+		if m.Evidence == "" {
+			t.Errorf("mapping %s/%s has no evidence", m.Framework, m.ControlID)
+		}
+	}
+}
+
+func TestPwnKitDeepVerification(t *testing.T) {
+	backend := setupVerificationDB(t)
+	runFullPipeline(t, backend)
+
+	cve := CVE_2021_4034
+	loadCVEs(t, backend, []cveRecord{cve})
+	result := runMappingPhase(t, backend)
+
+	t.Logf("PwnKit (CWE-269): %d total mappings", result.MappingCount)
+
+	ctx := context.Background()
+	mappings, _ := backend.ListMappings(ctx, cve.ID)
+
+	frameworks := make(map[string][]string)
+	cweMappings := 0
+	cpeMappings := 0
+	for _, m := range mappings {
+		switch m.MappingType {
+		case "cwe":
+			cweMappings++
+		case "cpe":
+			cpeMappings++
+		}
+		frameworks[m.Framework] = append(frameworks[m.Framework], m.ControlID)
+	}
+
+	t.Logf("  CWE mappings: %d, CPE mappings: %d", cweMappings, cpeMappings)
+	t.Logf("  Frameworks hit: %d", len(frameworks))
+
+	for fw, controls := range frameworks {
+		t.Logf("  %s: %v", fw, controls)
+	}
+
+	requiredFrameworks := []string{"ISO_27001_2022", "CIS_Controls_v8", "FEDRAMP_REV5"}
+	for _, fw := range requiredFrameworks {
+		if _, ok := frameworks[fw]; !ok {
+			t.Errorf("PwnKit (CWE-269) should map to %s framework", fw)
+		}
+	}
+
+	if cweMappings == 0 {
+		t.Error("expected CWE mappings for PwnKit (CWE-269) but got 0")
+	}
+
+	for _, m := range mappings {
+		if m.Confidence <= 0 {
+			t.Errorf("mapping %s/%s has zero confidence", m.Framework, m.ControlID)
+		}
+		if m.Evidence == "" {
+			t.Errorf("mapping %s/%s has no evidence", m.Framework, m.ControlID)
+		}
+	}
+}

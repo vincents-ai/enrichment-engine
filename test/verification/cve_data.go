@@ -790,6 +790,916 @@ var (
 			},
 		},
 	}
+
+	CVE_2022_26134 = cveRecord{
+		ID: "CVE-2022-26134",
+		CVE: struct {
+			ID           string `json:"id"`
+			Published    string `json:"published"`
+			LastModified string `json:"lastModified"`
+			Descriptions []struct {
+				Lang  string `json:"lang"`
+				Value string `json:"value"`
+			} `json:"descriptions"`
+			Weaknesses []struct {
+				Description []struct {
+					Lang  string `json:"lang"`
+					Value string `json:"value"`
+				} `json:"description"`
+			} `json:"weaknesses"`
+			Configurations []struct {
+				Nodes []struct {
+					CPEMatch []struct {
+						Criteria              string `json:"criteria"`
+						Vulnerable            bool   `json:"vulnerable"`
+						VersionEndExcluding   string `json:"versionEndExcluding,omitempty"`
+						VersionStartIncluding string `json:"versionStartIncluding,omitempty"`
+					} `json:"cpeMatch"`
+				} `json:"nodes"`
+			} `json:"configurations"`
+			Metrics struct {
+				CvssMetricV31 []struct {
+					CvssData struct {
+						BaseScore    float64 `json:"baseScore"`
+						BaseSeverity string  `json:"baseSeverity"`
+						VectorString string  `json:"vectorString"`
+					} `json:"cvssData"`
+				} `json:"cvssMetricV31"`
+			} `json:"metrics"`
+			References []struct {
+				URL    string `json:"url"`
+				Source string `json:"source"`
+			} `json:"references"`
+		}{
+			ID:           "CVE-2022-26134",
+			Published:    "2022-06-02T18:15:09.337Z",
+			LastModified: "2024-11-21T05:22:41.440Z",
+			Descriptions: []struct {
+				Lang  string `json:"lang"`
+				Value string `json:"value"`
+			}{
+				{Lang: "en", Value: "Broken access control in Atlassian Confluence Server and Data Center allowed an unauthenticated attacker to reset Confluence and perform RCE."},
+			},
+			Weaknesses: []struct {
+				Description []struct {
+					Lang  string `json:"lang"`
+					Value string `json:"value"`
+				} `json:"description"`
+			}{
+				{Description: []struct {
+					Lang  string `json:"lang"`
+					Value string `json:"value"`
+				}{{Lang: "en", Value: "CWE-287"}}},
+			},
+			Configurations: []struct {
+				Nodes []struct {
+					CPEMatch []struct {
+						Criteria              string `json:"criteria"`
+						Vulnerable            bool   `json:"vulnerable"`
+						VersionEndExcluding   string `json:"versionEndExcluding,omitempty"`
+						VersionStartIncluding string `json:"versionStartIncluding,omitempty"`
+					} `json:"cpeMatch"`
+				} `json:"nodes"`
+			}{
+				{Nodes: []struct {
+					CPEMatch []struct {
+						Criteria              string `json:"criteria"`
+						Vulnerable            bool   `json:"vulnerable"`
+						VersionEndExcluding   string `json:"versionEndExcluding,omitempty"`
+						VersionStartIncluding string `json:"versionStartIncluding,omitempty"`
+					} `json:"cpeMatch"`
+				}{
+					{CPEMatch: []struct {
+						Criteria              string `json:"criteria"`
+						Vulnerable            bool   `json:"vulnerable"`
+						VersionEndExcluding   string `json:"versionEndExcluding,omitempty"`
+						VersionStartIncluding string `json:"versionStartIncluding,omitempty"`
+					}{
+						{Criteria: "cpe:2.3:a:atlassian:confluence:*:*:*:*:*:*:*:*", Vulnerable: true, VersionEndExcluding: "7.14.0"},
+					}},
+				}},
+			},
+		},
+	}
+
+	CVE_2021_4034 = cveRecord{
+		ID: "CVE-2021-4034",
+		CVE: struct {
+			ID           string `json:"id"`
+			Published    string `json:"published"`
+			LastModified string `json:"lastModified"`
+			Descriptions []struct {
+				Lang  string `json:"lang"`
+				Value string `json:"value"`
+			} `json:"descriptions"`
+			Weaknesses []struct {
+				Description []struct {
+					Lang  string `json:"lang"`
+					Value string `json:"value"`
+				} `json:"description"`
+			} `json:"weaknesses"`
+			Configurations []struct {
+				Nodes []struct {
+					CPEMatch []struct {
+						Criteria              string `json:"criteria"`
+						Vulnerable            bool   `json:"vulnerable"`
+						VersionEndExcluding   string `json:"versionEndExcluding,omitempty"`
+						VersionStartIncluding string `json:"versionStartIncluding,omitempty"`
+					} `json:"cpeMatch"`
+				} `json:"nodes"`
+			} `json:"configurations"`
+			Metrics struct {
+				CvssMetricV31 []struct {
+					CvssData struct {
+						BaseScore    float64 `json:"baseScore"`
+						BaseSeverity string  `json:"baseSeverity"`
+						VectorString string  `json:"vectorString"`
+					} `json:"cvssData"`
+				} `json:"cvssMetricV31"`
+			} `json:"metrics"`
+			References []struct {
+				URL    string `json:"url"`
+				Source string `json:"source"`
+			} `json:"references"`
+		}{
+			ID:           "CVE-2021-4034",
+			Published:    "2022-01-25T21:15:08.020Z",
+			LastModified: "2024-11-21T05:22:41.590Z",
+			Descriptions: []struct {
+				Lang  string `json:"lang"`
+				Value string `json:"value"`
+			}{
+				{Lang: "en", Value: "A local privilege escalation vulnerability was found in polkit's pkexec. This vulnerability allows any unprivileged user to gain full root privileges on the system."},
+			},
+			Weaknesses: []struct {
+				Description []struct {
+					Lang  string `json:"lang"`
+					Value string `json:"value"`
+				} `json:"description"`
+			}{
+				{Description: []struct {
+					Lang  string `json:"lang"`
+					Value string `json:"value"`
+				}{{Lang: "en", Value: "CWE-269"}}},
+			},
+			Configurations: []struct {
+				Nodes []struct {
+					CPEMatch []struct {
+						Criteria              string `json:"criteria"`
+						Vulnerable            bool   `json:"vulnerable"`
+						VersionEndExcluding   string `json:"versionEndExcluding,omitempty"`
+						VersionStartIncluding string `json:"versionStartIncluding,omitempty"`
+					} `json:"cpeMatch"`
+				} `json:"nodes"`
+			}{
+				{Nodes: []struct {
+					CPEMatch []struct {
+						Criteria              string `json:"criteria"`
+						Vulnerable            bool   `json:"vulnerable"`
+						VersionEndExcluding   string `json:"versionEndExcluding,omitempty"`
+						VersionStartIncluding string `json:"versionStartIncluding,omitempty"`
+					} `json:"cpeMatch"`
+				}{
+					{CPEMatch: []struct {
+						Criteria              string `json:"criteria"`
+						Vulnerable            bool   `json:"vulnerable"`
+						VersionEndExcluding   string `json:"versionEndExcluding,omitempty"`
+						VersionStartIncluding string `json:"versionStartIncluding,omitempty"`
+					}{
+						{Criteria: "cpe:2.3:a:polkit_project:polkit:*:*:*:*:*:*:*:*", Vulnerable: true, VersionEndExcluding: "0.120"},
+					}},
+				}},
+			},
+		},
+	}
+
+	CVE_2023_42793 = cveRecord{
+		ID: "CVE-2023-42793",
+		CVE: struct {
+			ID           string `json:"id"`
+			Published    string `json:"published"`
+			LastModified string `json:"lastModified"`
+			Descriptions []struct {
+				Lang  string `json:"lang"`
+				Value string `json:"value"`
+			} `json:"descriptions"`
+			Weaknesses []struct {
+				Description []struct {
+					Lang  string `json:"lang"`
+					Value string `json:"value"`
+				} `json:"description"`
+			} `json:"weaknesses"`
+			Configurations []struct {
+				Nodes []struct {
+					CPEMatch []struct {
+						Criteria              string `json:"criteria"`
+						Vulnerable            bool   `json:"vulnerable"`
+						VersionEndExcluding   string `json:"versionEndExcluding,omitempty"`
+						VersionStartIncluding string `json:"versionStartIncluding,omitempty"`
+					} `json:"cpeMatch"`
+				} `json:"nodes"`
+			} `json:"configurations"`
+			Metrics struct {
+				CvssMetricV31 []struct {
+					CvssData struct {
+						BaseScore    float64 `json:"baseScore"`
+						BaseSeverity string  `json:"baseSeverity"`
+						VectorString string  `json:"vectorString"`
+					} `json:"cvssData"`
+				} `json:"cvssMetricV31"`
+			} `json:"metrics"`
+			References []struct {
+				URL    string `json:"url"`
+				Source string `json:"source"`
+			} `json:"references"`
+		}{
+			ID:           "CVE-2023-42793",
+			Published:    "2023-09-19T14:15:11.437Z",
+			LastModified: "2024-11-21T05:20:44.630Z",
+			Descriptions: []struct {
+				Lang  string `json:"lang"`
+				Value string `json:"value"`
+			}{
+				{Lang: "en", Value: "JetBrains TeamCity was vulnerable to an authentication bypass that allowed an unauthenticated attacker to perform RCE."},
+			},
+			Weaknesses: []struct {
+				Description []struct {
+					Lang  string `json:"lang"`
+					Value string `json:"value"`
+				} `json:"description"`
+			}{
+				{Description: []struct {
+					Lang  string `json:"lang"`
+					Value string `json:"value"`
+				}{{Lang: "en", Value: "CWE-862"}}},
+			},
+			Configurations: []struct {
+				Nodes []struct {
+					CPEMatch []struct {
+						Criteria              string `json:"criteria"`
+						Vulnerable            bool   `json:"vulnerable"`
+						VersionEndExcluding   string `json:"versionEndExcluding,omitempty"`
+						VersionStartIncluding string `json:"versionStartIncluding,omitempty"`
+					} `json:"cpeMatch"`
+				} `json:"nodes"`
+			}{
+				{Nodes: []struct {
+					CPEMatch []struct {
+						Criteria              string `json:"criteria"`
+						Vulnerable            bool   `json:"vulnerable"`
+						VersionEndExcluding   string `json:"versionEndExcluding,omitempty"`
+						VersionStartIncluding string `json:"versionStartIncluding,omitempty"`
+					} `json:"cpeMatch"`
+				}{
+					{CPEMatch: []struct {
+						Criteria              string `json:"criteria"`
+						Vulnerable            bool   `json:"vulnerable"`
+						VersionEndExcluding   string `json:"versionEndExcluding,omitempty"`
+						VersionStartIncluding string `json:"versionStartIncluding,omitempty"`
+					}{
+						{Criteria: "cpe:2.3:a:jetbrains:teamcity:*:*:*:*:*:*:*:*", Vulnerable: true, VersionEndExcluding: "2023.05.4"},
+					}},
+				}},
+			},
+		},
+	}
+
+	CVE_2023_44487 = cveRecord{
+		ID: "CVE-2023-44487",
+		CVE: struct {
+			ID           string `json:"id"`
+			Published    string `json:"published"`
+			LastModified string `json:"lastModified"`
+			Descriptions []struct {
+				Lang  string `json:"lang"`
+				Value string `json:"value"`
+			} `json:"descriptions"`
+			Weaknesses []struct {
+				Description []struct {
+					Lang  string `json:"lang"`
+					Value string `json:"value"`
+				} `json:"description"`
+			} `json:"weaknesses"`
+			Configurations []struct {
+				Nodes []struct {
+					CPEMatch []struct {
+						Criteria              string `json:"criteria"`
+						Vulnerable            bool   `json:"vulnerable"`
+						VersionEndExcluding   string `json:"versionEndExcluding,omitempty"`
+						VersionStartIncluding string `json:"versionStartIncluding,omitempty"`
+					} `json:"cpeMatch"`
+				} `json:"nodes"`
+			} `json:"configurations"`
+			Metrics struct {
+				CvssMetricV31 []struct {
+					CvssData struct {
+						BaseScore    float64 `json:"baseScore"`
+						BaseSeverity string  `json:"baseSeverity"`
+						VectorString string  `json:"vectorString"`
+					} `json:"cvssData"`
+				} `json:"cvssMetricV31"`
+			} `json:"metrics"`
+			References []struct {
+				URL    string `json:"url"`
+				Source string `json:"source"`
+			} `json:"references"`
+		}{
+			ID:           "CVE-2023-44487",
+			Published:    "2023-10-10T18:15:10.747Z",
+			LastModified: "2024-11-21T05:20:44.630Z",
+			Descriptions: []struct {
+				Lang  string `json:"lang"`
+				Value string `json:"value"`
+			}{
+				{Lang: "en", Value: "Multiple HTTP/2 implementations are vulnerable to a denial of service attack through rapid stream resets."},
+			},
+			Weaknesses: []struct {
+				Description []struct {
+					Lang  string `json:"lang"`
+					Value string `json:"value"`
+				} `json:"description"`
+			}{
+				{Description: []struct {
+					Lang  string `json:"lang"`
+					Value string `json:"value"`
+				}{{Lang: "en", Value: "CWE-400"}}},
+			},
+			Configurations: []struct {
+				Nodes []struct {
+					CPEMatch []struct {
+						Criteria              string `json:"criteria"`
+						Vulnerable            bool   `json:"vulnerable"`
+						VersionEndExcluding   string `json:"versionEndExcluding,omitempty"`
+						VersionStartIncluding string `json:"versionStartIncluding,omitempty"`
+					} `json:"cpeMatch"`
+				} `json:"nodes"`
+			}{
+				{Nodes: []struct {
+					CPEMatch []struct {
+						Criteria              string `json:"criteria"`
+						Vulnerable            bool   `json:"vulnerable"`
+						VersionEndExcluding   string `json:"versionEndExcluding,omitempty"`
+						VersionStartIncluding string `json:"versionStartIncluding,omitempty"`
+					} `json:"cpeMatch"`
+				}{
+					{CPEMatch: []struct {
+						Criteria              string `json:"criteria"`
+						Vulnerable            bool   `json:"vulnerable"`
+						VersionEndExcluding   string `json:"versionEndExcluding,omitempty"`
+						VersionStartIncluding string `json:"versionStartIncluding,omitempty"`
+					}{
+						{Criteria: "cpe:2.3:a:cloudflare:cloudflare:*:*:*:*:*:*:*:*", Vulnerable: true},
+					}},
+				}},
+			},
+		},
+	}
+
+	CVE_2023_20198 = cveRecord{
+		ID: "CVE-2023-20198",
+		CVE: struct {
+			ID           string `json:"id"`
+			Published    string `json:"published"`
+			LastModified string `json:"lastModified"`
+			Descriptions []struct {
+				Lang  string `json:"lang"`
+				Value string `json:"value"`
+			} `json:"descriptions"`
+			Weaknesses []struct {
+				Description []struct {
+					Lang  string `json:"lang"`
+					Value string `json:"value"`
+				} `json:"description"`
+			} `json:"weaknesses"`
+			Configurations []struct {
+				Nodes []struct {
+					CPEMatch []struct {
+						Criteria              string `json:"criteria"`
+						Vulnerable            bool   `json:"vulnerable"`
+						VersionEndExcluding   string `json:"versionEndExcluding,omitempty"`
+						VersionStartIncluding string `json:"versionStartIncluding,omitempty"`
+					} `json:"cpeMatch"`
+				} `json:"nodes"`
+			} `json:"configurations"`
+			Metrics struct {
+				CvssMetricV31 []struct {
+					CvssData struct {
+						BaseScore    float64 `json:"baseScore"`
+						BaseSeverity string  `json:"baseSeverity"`
+						VectorString string  `json:"vectorString"`
+					} `json:"cvssData"`
+				} `json:"cvssMetricV31"`
+			} `json:"metrics"`
+			References []struct {
+				URL    string `json:"url"`
+				Source string `json:"source"`
+			} `json:"references"`
+		}{
+			ID:           "CVE-2023-20198",
+			Published:    "2023-10-16T20:15:11.397Z",
+			LastModified: "2024-11-21T05:20:44.630Z",
+			Descriptions: []struct {
+				Lang  string `json:"lang"`
+				Value string `json:"value"`
+			}{
+				{Lang: "en", Value: "A vulnerability in the web UI feature of Cisco IOS XE Software could allow an unauthenticated attacker to bypass authentication and execute arbitrary commands."},
+			},
+			Weaknesses: []struct {
+				Description []struct {
+					Lang  string `json:"lang"`
+					Value string `json:"value"`
+				} `json:"description"`
+			}{
+				{Description: []struct {
+					Lang  string `json:"lang"`
+					Value string `json:"value"`
+				}{{Lang: "en", Value: "CWE-306"}}},
+			},
+			Configurations: []struct {
+				Nodes []struct {
+					CPEMatch []struct {
+						Criteria              string `json:"criteria"`
+						Vulnerable            bool   `json:"vulnerable"`
+						VersionEndExcluding   string `json:"versionEndExcluding,omitempty"`
+						VersionStartIncluding string `json:"versionStartIncluding,omitempty"`
+					} `json:"cpeMatch"`
+				} `json:"nodes"`
+			}{
+				{Nodes: []struct {
+					CPEMatch []struct {
+						Criteria              string `json:"criteria"`
+						Vulnerable            bool   `json:"vulnerable"`
+						VersionEndExcluding   string `json:"versionEndExcluding,omitempty"`
+						VersionStartIncluding string `json:"versionStartIncluding,omitempty"`
+					} `json:"cpeMatch"`
+				}{
+					{CPEMatch: []struct {
+						Criteria              string `json:"criteria"`
+						Vulnerable            bool   `json:"vulnerable"`
+						VersionEndExcluding   string `json:"versionEndExcluding,omitempty"`
+						VersionStartIncluding string `json:"versionStartIncluding,omitempty"`
+					}{
+						{Criteria: "cpe:2.3:a:cisco:ios_xe:*:*:*:*:*:*:*:*", Vulnerable: true, VersionStartIncluding: "16.9.1", VersionEndExcluding: "17.3.8a"},
+					}},
+				}},
+			},
+		},
+	}
+
+	CVE_2019_11510 = cveRecord{
+		ID: "CVE-2019-11510",
+		CVE: struct {
+			ID           string `json:"id"`
+			Published    string `json:"published"`
+			LastModified string `json:"lastModified"`
+			Descriptions []struct {
+				Lang  string `json:"lang"`
+				Value string `json:"value"`
+			} `json:"descriptions"`
+			Weaknesses []struct {
+				Description []struct {
+					Lang  string `json:"lang"`
+					Value string `json:"value"`
+				} `json:"description"`
+			} `json:"weaknesses"`
+			Configurations []struct {
+				Nodes []struct {
+					CPEMatch []struct {
+						Criteria              string `json:"criteria"`
+						Vulnerable            bool   `json:"vulnerable"`
+						VersionEndExcluding   string `json:"versionEndExcluding,omitempty"`
+						VersionStartIncluding string `json:"versionStartIncluding,omitempty"`
+					} `json:"cpeMatch"`
+				} `json:"nodes"`
+			} `json:"configurations"`
+			Metrics struct {
+				CvssMetricV31 []struct {
+					CvssData struct {
+						BaseScore    float64 `json:"baseScore"`
+						BaseSeverity string  `json:"baseSeverity"`
+						VectorString string  `json:"vectorString"`
+					} `json:"cvssData"`
+				} `json:"cvssMetricV31"`
+			} `json:"metrics"`
+			References []struct {
+				URL    string `json:"url"`
+				Source string `json:"source"`
+			} `json:"references"`
+		}{
+			ID:           "CVE-2019-11510",
+			Published:    "2019-08-08T20:15:12.717Z",
+			LastModified: "2024-11-21T05:20:44.630Z",
+			Descriptions: []struct {
+				Lang  string `json:"lang"`
+				Value string `json:"value"`
+			}{
+				{Lang: "en", Value: "An arbitrary file reading vulnerability in Pulse Secure Pulse Connect Secure allows an unauthenticated attacker to read sensitive files."},
+			},
+			Weaknesses: []struct {
+				Description []struct {
+					Lang  string `json:"lang"`
+					Value string `json:"value"`
+				} `json:"description"`
+			}{
+				{Description: []struct {
+					Lang  string `json:"lang"`
+					Value string `json:"value"`
+				}{{Lang: "en", Value: "CWE-200"}}},
+			},
+			Configurations: []struct {
+				Nodes []struct {
+					CPEMatch []struct {
+						Criteria              string `json:"criteria"`
+						Vulnerable            bool   `json:"vulnerable"`
+						VersionEndExcluding   string `json:"versionEndExcluding,omitempty"`
+						VersionStartIncluding string `json:"versionStartIncluding,omitempty"`
+					} `json:"cpeMatch"`
+				} `json:"nodes"`
+			}{
+				{Nodes: []struct {
+					CPEMatch []struct {
+						Criteria              string `json:"criteria"`
+						Vulnerable            bool   `json:"vulnerable"`
+						VersionEndExcluding   string `json:"versionEndExcluding,omitempty"`
+						VersionStartIncluding string `json:"versionStartIncluding,omitempty"`
+					} `json:"cpeMatch"`
+				}{
+					{CPEMatch: []struct {
+						Criteria              string `json:"criteria"`
+						Vulnerable            bool   `json:"vulnerable"`
+						VersionEndExcluding   string `json:"versionEndExcluding,omitempty"`
+						VersionStartIncluding string `json:"versionStartIncluding,omitempty"`
+					}{
+						{Criteria: "cpe:2.3:a:pulse_secure:pulse_connect_secure:*:*:*:*:*:*:*:*", Vulnerable: true, VersionEndExcluding: "9.1R11.4"},
+					}},
+				}},
+			},
+		},
+	}
+
+	CVE_2024_0001 = cveRecord{
+		ID: "CVE-2024-0001",
+		CVE: struct {
+			ID           string `json:"id"`
+			Published    string `json:"published"`
+			LastModified string `json:"lastModified"`
+			Descriptions []struct {
+				Lang  string `json:"lang"`
+				Value string `json:"value"`
+			} `json:"descriptions"`
+			Weaknesses []struct {
+				Description []struct {
+					Lang  string `json:"lang"`
+					Value string `json:"value"`
+				} `json:"description"`
+			} `json:"weaknesses"`
+			Configurations []struct {
+				Nodes []struct {
+					CPEMatch []struct {
+						Criteria              string `json:"criteria"`
+						Vulnerable            bool   `json:"vulnerable"`
+						VersionEndExcluding   string `json:"versionEndExcluding,omitempty"`
+						VersionStartIncluding string `json:"versionStartIncluding,omitempty"`
+					} `json:"cpeMatch"`
+				} `json:"nodes"`
+			} `json:"configurations"`
+			Metrics struct {
+				CvssMetricV31 []struct {
+					CvssData struct {
+						BaseScore    float64 `json:"baseScore"`
+						BaseSeverity string  `json:"baseSeverity"`
+						VectorString string  `json:"vectorString"`
+					} `json:"cvssData"`
+				} `json:"cvssMetricV31"`
+			} `json:"metrics"`
+			References []struct {
+				URL    string `json:"url"`
+				Source string `json:"source"`
+			} `json:"references"`
+		}{
+			ID:           "CVE-2024-0001",
+			Published:    "2024-01-18T23:15:09.287Z",
+			LastModified: "2024-11-21T05:20:44.630Z",
+			Descriptions: []struct {
+				Lang  string `json:"lang"`
+				Value string `json:"value"`
+			}{
+				{Lang: "en", Value: "A vulnerability in the DNSSEC verification mechanism for EdDSA signatures in BIND 9 allows an attacker to cause the resolver to crash."},
+			},
+			Weaknesses: []struct {
+				Description []struct {
+					Lang  string `json:"lang"`
+					Value string `json:"value"`
+				} `json:"description"`
+			}{
+				{Description: []struct {
+					Lang  string `json:"lang"`
+					Value string `json:"value"`
+				}{{Lang: "en", Value: "CWE-319"}}},
+			},
+			Configurations: []struct {
+				Nodes []struct {
+					CPEMatch []struct {
+						Criteria              string `json:"criteria"`
+						Vulnerable            bool   `json:"vulnerable"`
+						VersionEndExcluding   string `json:"versionEndExcluding,omitempty"`
+						VersionStartIncluding string `json:"versionStartIncluding,omitempty"`
+					} `json:"cpeMatch"`
+				} `json:"nodes"`
+			}{
+				{Nodes: []struct {
+					CPEMatch []struct {
+						Criteria              string `json:"criteria"`
+						Vulnerable            bool   `json:"vulnerable"`
+						VersionEndExcluding   string `json:"versionEndExcluding,omitempty"`
+						VersionStartIncluding string `json:"versionStartIncluding,omitempty"`
+					} `json:"cpeMatch"`
+				}{
+					{CPEMatch: []struct {
+						Criteria              string `json:"criteria"`
+						Vulnerable            bool   `json:"vulnerable"`
+						VersionEndExcluding   string `json:"versionEndExcluding,omitempty"`
+						VersionStartIncluding string `json:"versionStartIncluding,omitempty"`
+					}{
+						{Criteria: "cpe:2.3:a:isc:bind:9.16.0:*:*:*:*:*:*:*:*", Vulnerable: true, VersionEndExcluding: "9.16.42"},
+					}},
+				}},
+			},
+		},
+	}
+
+	CVE_2021_22555 = cveRecord{
+		ID: "CVE-2021-22555",
+		CVE: struct {
+			ID           string `json:"id"`
+			Published    string `json:"published"`
+			LastModified string `json:"lastModified"`
+			Descriptions []struct {
+				Lang  string `json:"lang"`
+				Value string `json:"value"`
+			} `json:"descriptions"`
+			Weaknesses []struct {
+				Description []struct {
+					Lang  string `json:"lang"`
+					Value string `json:"value"`
+				} `json:"description"`
+			} `json:"weaknesses"`
+			Configurations []struct {
+				Nodes []struct {
+					CPEMatch []struct {
+						Criteria              string `json:"criteria"`
+						Vulnerable            bool   `json:"vulnerable"`
+						VersionEndExcluding   string `json:"versionEndExcluding,omitempty"`
+						VersionStartIncluding string `json:"versionStartIncluding,omitempty"`
+					} `json:"cpeMatch"`
+				} `json:"nodes"`
+			} `json:"configurations"`
+			Metrics struct {
+				CvssMetricV31 []struct {
+					CvssData struct {
+						BaseScore    float64 `json:"baseScore"`
+						BaseSeverity string  `json:"baseSeverity"`
+						VectorString string  `json:"vectorString"`
+					} `json:"cvssData"`
+				} `json:"cvssMetricV31"`
+			} `json:"metrics"`
+			References []struct {
+				URL    string `json:"url"`
+				Source string `json:"source"`
+			} `json:"references"`
+		}{
+			ID:           "CVE-2021-22555",
+			Published:    "2021-07-20T23:15:08.210Z",
+			LastModified: "2024-11-21T05:20:44.630Z",
+			Descriptions: []struct {
+				Lang  string `json:"lang"`
+				Value string `json:"value"`
+			}{
+				{Lang: "en", Value: "Use-after-free in netfilter nf_tables in Linux kernel allows local privilege escalation."},
+			},
+			Weaknesses: []struct {
+				Description []struct {
+					Lang  string `json:"lang"`
+					Value string `json:"value"`
+				} `json:"description"`
+			}{
+				{Description: []struct {
+					Lang  string `json:"lang"`
+					Value string `json:"value"`
+				}{{Lang: "en", Value: "CWE-122"}}},
+			},
+			Configurations: []struct {
+				Nodes []struct {
+					CPEMatch []struct {
+						Criteria              string `json:"criteria"`
+						Vulnerable            bool   `json:"vulnerable"`
+						VersionEndExcluding   string `json:"versionEndExcluding,omitempty"`
+						VersionStartIncluding string `json:"versionStartIncluding,omitempty"`
+					} `json:"cpeMatch"`
+				} `json:"nodes"`
+			}{
+				{Nodes: []struct {
+					CPEMatch []struct {
+						Criteria              string `json:"criteria"`
+						Vulnerable            bool   `json:"vulnerable"`
+						VersionEndExcluding   string `json:"versionEndExcluding,omitempty"`
+						VersionStartIncluding string `json:"versionStartIncluding,omitempty"`
+					} `json:"cpeMatch"`
+				}{
+					{CPEMatch: []struct {
+						Criteria              string `json:"criteria"`
+						Vulnerable            bool   `json:"vulnerable"`
+						VersionEndExcluding   string `json:"versionEndExcluding,omitempty"`
+						VersionStartIncluding string `json:"versionStartIncluding,omitempty"`
+					}{
+						{Criteria: "cpe:2.3:a:kernel:linux_kernel:5.4.0:*:*:*:*:*:*:*:*", Vulnerable: true},
+					}},
+				}},
+			},
+		},
+	}
+
+	CVE_2020_9452 = cveRecord{
+		ID: "CVE-2020-9452",
+		CVE: struct {
+			ID           string `json:"id"`
+			Published    string `json:"published"`
+			LastModified string `json:"lastModified"`
+			Descriptions []struct {
+				Lang  string `json:"lang"`
+				Value string `json:"value"`
+			} `json:"descriptions"`
+			Weaknesses []struct {
+				Description []struct {
+					Lang  string `json:"lang"`
+					Value string `json:"value"`
+				} `json:"description"`
+			} `json:"weaknesses"`
+			Configurations []struct {
+				Nodes []struct {
+					CPEMatch []struct {
+						Criteria              string `json:"criteria"`
+						Vulnerable            bool   `json:"vulnerable"`
+						VersionEndExcluding   string `json:"versionEndExcluding,omitempty"`
+						VersionStartIncluding string `json:"versionStartIncluding,omitempty"`
+					} `json:"cpeMatch"`
+				} `json:"nodes"`
+			} `json:"configurations"`
+			Metrics struct {
+				CvssMetricV31 []struct {
+					CvssData struct {
+						BaseScore    float64 `json:"baseScore"`
+						BaseSeverity string  `json:"baseSeverity"`
+						VectorString string  `json:"vectorString"`
+					} `json:"cvssData"`
+				} `json:"cvssMetricV31"`
+			} `json:"metrics"`
+			References []struct {
+				URL    string `json:"url"`
+				Source string `json:"source"`
+			} `json:"references"`
+		}{
+			ID:           "CVE-2020-9452",
+			Published:    "2020-03-11T18:15:11.743Z",
+			LastModified: "2024-11-21T05:20:44.630Z",
+			Descriptions: []struct {
+				Lang  string `json:"lang"`
+				Value string `json:"value"`
+			}{
+				{Lang: "en", Value: "Cross-site scripting in Zimbra allows attackers to steal cookies and session tokens."},
+			},
+			Weaknesses: []struct {
+				Description []struct {
+					Lang  string `json:"lang"`
+					Value string `json:"value"`
+				} `json:"description"`
+			}{
+				{Description: []struct {
+					Lang  string `json:"lang"`
+					Value string `json:"value"`
+				}{{Lang: "en", Value: "CWE-352"}}},
+			},
+			Configurations: []struct {
+				Nodes []struct {
+					CPEMatch []struct {
+						Criteria              string `json:"criteria"`
+						Vulnerable            bool   `json:"vulnerable"`
+						VersionEndExcluding   string `json:"versionEndExcluding,omitempty"`
+						VersionStartIncluding string `json:"versionStartIncluding,omitempty"`
+					} `json:"cpeMatch"`
+				} `json:"nodes"`
+			}{
+				{Nodes: []struct {
+					CPEMatch []struct {
+						Criteria              string `json:"criteria"`
+						Vulnerable            bool   `json:"vulnerable"`
+						VersionEndExcluding   string `json:"versionEndExcluding,omitempty"`
+						VersionStartIncluding string `json:"versionStartIncluding,omitempty"`
+					} `json:"cpeMatch"`
+				}{
+					{CPEMatch: []struct {
+						Criteria              string `json:"criteria"`
+						Vulnerable            bool   `json:"vulnerable"`
+						VersionEndExcluding   string `json:"versionEndExcluding,omitempty"`
+						VersionStartIncluding string `json:"versionStartIncluding,omitempty"`
+					}{
+						{Criteria: "cpe:2.3:a:zimbra:zimbra_collaboration_suite:*:*:*:*:*:*:*:*", Vulnerable: true, VersionEndExcluding: "8.8.15"},
+					}},
+				}},
+			},
+		},
+	}
+
+	CVE_2023_5363 = cveRecord{
+		ID: "CVE-2023-5363",
+		CVE: struct {
+			ID           string `json:"id"`
+			Published    string `json:"published"`
+			LastModified string `json:"lastModified"`
+			Descriptions []struct {
+				Lang  string `json:"lang"`
+				Value string `json:"value"`
+			} `json:"descriptions"`
+			Weaknesses []struct {
+				Description []struct {
+					Lang  string `json:"lang"`
+					Value string `json:"value"`
+				} `json:"description"`
+			} `json:"weaknesses"`
+			Configurations []struct {
+				Nodes []struct {
+					CPEMatch []struct {
+						Criteria              string `json:"criteria"`
+						Vulnerable            bool   `json:"vulnerable"`
+						VersionEndExcluding   string `json:"versionEndExcluding,omitempty"`
+						VersionStartIncluding string `json:"versionStartIncluding,omitempty"`
+					} `json:"cpeMatch"`
+				} `json:"nodes"`
+			} `json:"configurations"`
+			Metrics struct {
+				CvssMetricV31 []struct {
+					CvssData struct {
+						BaseScore    float64 `json:"baseScore"`
+						BaseSeverity string  `json:"baseSeverity"`
+						VectorString string  `json:"vectorString"`
+					} `json:"cvssData"`
+				} `json:"cvssMetricV31"`
+			} `json:"metrics"`
+			References []struct {
+				URL    string `json:"url"`
+				Source string `json:"source"`
+			} `json:"references"`
+		}{
+			ID:           "CVE-2023-5363",
+			Published:    "2023-10-24T17:15:08.490Z",
+			LastModified: "2024-11-21T05:20:44.630Z",
+			Descriptions: []struct {
+				Lang  string `json:"lang"`
+				Value string `json:"value"`
+			}{
+				{Lang: "en", Value: "Processing a certificate or certificate request with a very large PSS parameter can cause infinite loop."},
+			},
+			Weaknesses: []struct {
+				Description []struct {
+					Lang  string `json:"lang"`
+					Value string `json:"value"`
+				} `json:"description"`
+			}{
+				{Description: []struct {
+					Lang  string `json:"lang"`
+					Value string `json:"value"`
+				}{{Lang: "en", Value: "CWE-125"}}},
+			},
+			Configurations: []struct {
+				Nodes []struct {
+					CPEMatch []struct {
+						Criteria              string `json:"criteria"`
+						Vulnerable            bool   `json:"vulnerable"`
+						VersionEndExcluding   string `json:"versionEndExcluding,omitempty"`
+						VersionStartIncluding string `json:"versionStartIncluding,omitempty"`
+					} `json:"cpeMatch"`
+				} `json:"nodes"`
+			}{
+				{Nodes: []struct {
+					CPEMatch []struct {
+						Criteria              string `json:"criteria"`
+						Vulnerable            bool   `json:"vulnerable"`
+						VersionEndExcluding   string `json:"versionEndExcluding,omitempty"`
+						VersionStartIncluding string `json:"versionStartIncluding,omitempty"`
+					} `json:"cpeMatch"`
+				}{
+					{CPEMatch: []struct {
+						Criteria              string `json:"criteria"`
+						Vulnerable            bool   `json:"vulnerable"`
+						VersionEndExcluding   string `json:"versionEndExcluding,omitempty"`
+						VersionStartIncluding string `json:"versionStartIncluding,omitempty"`
+					}{
+						{Criteria: "cpe:2.3:a:openssl:openssl:*:*:*:*:*:*:*:*", Vulnerable: true, VersionStartIncluding: "3.1.0", VersionEndExcluding: "3.1.4"},
+					}},
+				}},
+			},
+		},
+	}
 )
 
 func AllRealCVEs() []cveRecord {
@@ -802,6 +1712,16 @@ func AllRealCVEs() []cveRecord {
 		CVE_2017_5638,
 		CVE_2021_41773,
 		CVE_2023_34362,
+		CVE_2022_26134,
+		CVE_2021_4034,
+		CVE_2023_42793,
+		CVE_2023_44487,
+		CVE_2023_20198,
+		CVE_2019_11510,
+		CVE_2024_0001,
+		CVE_2021_22555,
+		CVE_2020_9452,
+		CVE_2023_5363,
 	}
 }
 
