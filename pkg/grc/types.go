@@ -13,6 +13,7 @@ type Control struct {
 	References             []Reference `json:"References,omitempty"`
 	ImplementationGuidance string      `json:"ImplementationGuidance,omitempty"`
 	AssessmentMethods      []string    `json:"AssessmentMethods,omitempty"`
+	Tags                   []string    `json:"Tags,omitempty"`
 }
 
 // Reference is an external citation or documentation link for a control.

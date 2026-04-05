@@ -75,6 +75,7 @@ func runCmd() *cobra.Command {
 	var providers []string
 	var skipMapping bool
 	var maxParallel int
+	var enableTagMapping bool
 
 	cmd := &cobra.Command{
 		Use:   "run [provider...]",
@@ -102,12 +103,13 @@ Use --provider to run specific providers, or --skip-mapping to only populate con
 			}
 
 			cfg := enricher.Config{
-				Store:         store,
-				MaxParallel:   maxParallel,
-				Logger:        logger,
-				ProviderNames: providerNames,
-				RunAll:        all,
-				SkipMapping:   skipMapping,
+				Store:            store,
+				MaxParallel:      maxParallel,
+				Logger:           logger,
+				ProviderNames:    providerNames,
+				RunAll:           all,
+				SkipMapping:      skipMapping,
+				EnableTagMapping: enableTagMapping,
 			}
 
 			engine := enricher.New(cfg)
@@ -140,6 +142,7 @@ Use --provider to run specific providers, or --skip-mapping to only populate con
 	cmd.Flags().BoolVarP(&all, "all", "a", false, "Run all providers")
 	cmd.Flags().StringSliceVarP(&providers, "provider", "p", nil, "Run specific providers")
 	cmd.Flags().BoolVar(&skipMapping, "skip-mapping", false, "Skip CWE/CPE mapping phase (controls only)")
+	cmd.Flags().BoolVar(&enableTagMapping, "enable-tag-mapping", false, "Enable tag-based mapping phase (confidence 0.4)")
 	cmd.Flags().IntVar(&maxParallel, "max-parallel", 4, "Maximum parallel provider execution")
 
 	return cmd

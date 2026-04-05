@@ -88,6 +88,10 @@ func (m *mockBackend) ListControlsByFramework(_ context.Context, framework strin
 	return result, nil
 }
 
+func (m *mockBackend) ListControlsByTag(_ context.Context, _ string) ([]storage.ControlRow, error) {
+	return nil, nil
+}
+
 type cweLookupErrMock struct {
 	mockBackend
 }
@@ -1194,5 +1198,99 @@ func TestMapByCPEListControlsError(t *testing.T) {
 	_, err := e.mapByCPE(context.Background())
 	if err == nil {
 		t.Fatal("expected error from ListAllControls failure")
+	}
+}
+
+func TestMapByTag(t *testing.T) {
+	backend, err := storage.NewSQLiteBackend(t.TempDir() + "/test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer backend.Close(context.Background())
+
+	ctx := context.Background()
+	backend.WriteVulnerability(ctx, "CVE-2021-44228", map[string]interface{}{
+		"id": "CVE-2021-44228",
+		"cve": map[string]interface{}{
+			"id": "CVE-2021-44228",
+			"weaknesses": []interface{}{
+				map[string]interface{}{"description": []interface{}{map[string]interface{}{"lang": "en", "value": "CWE-502"}}},
+			},
+		},
+	})
+	backend.WriteControl(ctx, "ctrl-1", map[string]interface{}{
+		"Framework": "HIPAA", "ControlID": "164.308.a.1", "Title": "Test",
+		"Tags": []string{"deserialization"},
+	})
+
+	e := New(Config{Store: backend, Logger: testLogger(), EnableTagMapping: true, SkipProviders: true})
+	_, err = e.mapByTag(ctx)
+	if err != nil {
+		t.Fatalf("mapByTag: %v", err)
+	}
+
+	mappings, err := backend.ListMappings(ctx, "CVE-2021-44228")
+	if err != nil {
+		t.Fatal(err)
+	}
+	found := false
+	for _, m := range mappings {
+		if m.MappingType == "tag" && m.ControlID == "ctrl-1" && m.Confidence == 0.4 {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatal("expected tag mapping for CVE-2021-44228 -> ctrl-1")
+	}
+}
+
+func TestMapByTag_Disabled(t *testing.T) {
+	backend, err := storage.NewSQLiteBackend(t.TempDir() + "/test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer backend.Close(context.Background())
+
+	ctx := context.Background()
+	backend.WriteVulnerability(ctx, "CVE-2021-44228", map[string]interface{}{
+		"id": "CVE-2021-44228",
+		"cve": map[string]interface{}{
+			"id": "CVE-2021-44228",
+			"weaknesses": []interface{}{
+				map[string]interface{}{"description": []interface{}{map[string]interface{}{"lang": "en", "value": "CWE-502"}}},
+			},
+		},
+	})
+	backend.WriteControl(ctx, "ctrl-1", map[string]interface{}{
+		"Framework": "HIPAA", "ControlID": "164.308.a.1", "Title": "Test",
+		"Tags": []string{"deserialization"},
+	})
+
+	e := New(Config{Store: backend, Logger: testLogger(), SkipProviders: true})
+	result, err := e.Run(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.MappingCount != 0 {
+		t.Errorf("expected 0 mappings when tag mapping disabled, got %d", result.MappingCount)
+	}
+}
+
+func TestVulnTags(t *testing.T) {
+	tests := []struct {
+		cwes    []string
+		wantLen int
+	}{
+		{[]string{"CWE-502"}, 2},
+		{[]string{"CWE-119"}, 3},
+		{[]string{"CWE-287"}, 2},
+		{[]string{"CWE-999"}, 0},
+		{[]string{}, 0},
+	}
+	for _, tt := range tests {
+		tags := vulnTags(tt.cwes)
+		if len(tags) != tt.wantLen {
+			t.Errorf("vulnTags(%v) = %d tags, want %d", tt.cwes, len(tags), tt.wantLen)
+		}
 	}
 }

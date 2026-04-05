@@ -56,6 +56,10 @@ func (m *mockBackend) ListControlsByFramework(ctx context.Context, framework str
 	return nil, nil
 }
 
+func (m *mockBackend) ListControlsByTag(_ context.Context, _ string) ([]storage.ControlRow, error) {
+	return nil, nil
+}
+
 type failWriteBackend struct{}
 
 func (f *failWriteBackend) WriteVulnerability(ctx context.Context, id string, record interface{}) error {
@@ -90,6 +94,10 @@ func (f *failWriteBackend) ListControlsByCPE(ctx context.Context, cpe string) ([
 	return nil, nil
 }
 func (f *failWriteBackend) ListControlsByFramework(ctx context.Context, framework string) ([]storage.ControlRow, error) {
+	return nil, nil
+}
+
+func (f *failWriteBackend) ListControlsByTag(_ context.Context, _ string) ([]storage.ControlRow, error) {
 	return nil, nil
 }
 

@@ -59,6 +59,10 @@ func (m *mockBackend) ListControlsByFramework(ctx context.Context, framework str
 	return nil, nil
 }
 
+func (m *mockBackend) ListControlsByTag(_ context.Context, _ string) ([]storage.ControlRow, error) {
+	return nil, nil
+}
+
 func testLogger() *slog.Logger {
 	return slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelError}))
 }

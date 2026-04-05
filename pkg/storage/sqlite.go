@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -29,6 +30,7 @@ type Backend interface {
 	ListControlsByCWE(ctx context.Context, cwe string) ([]ControlRow, error)
 	ListControlsByCPE(ctx context.Context, cpe string) ([]ControlRow, error)
 	ListControlsByFramework(ctx context.Context, framework string) ([]ControlRow, error)
+	ListControlsByTag(ctx context.Context, tag string) ([]ControlRow, error)
 }
 
 // MappingRow represents a row from the vulnerability_grc_mappings table.
@@ -56,6 +58,7 @@ type ControlRow struct {
 	Family      string          `json:"family"`
 	Description string          `json:"description"`
 	RelatedCWEs []string        `json:"related_cwes,omitempty"`
+	Tags        []string        `json:"tags,omitempty"`
 	Record      json.RawMessage `json:"record"`
 }
 
@@ -66,6 +69,7 @@ type controlFields struct {
 	Family      string   `json:"Family,omitempty"`
 	Description string   `json:"Description,omitempty"`
 	RelatedCWEs []string `json:"RelatedCWEs,omitempty"`
+	Tags        []string `json:"Tags,omitempty"`
 }
 
 // SQLiteBackend implements Backend using SQLite.
@@ -85,7 +89,28 @@ func NewSQLiteBackend(path string) (*SQLiteBackend, error) {
 	}
 
 	tempPath := path + ".tmp"
-	os.Remove(tempPath)
+
+	if _, err := os.Stat(path); err == nil {
+		if _, err := os.Stat(tempPath); os.IsNotExist(err) {
+			src, err := os.Open(path)
+			if err != nil {
+				return nil, fmt.Errorf("open existing database: %w", err)
+			}
+			dst, err := os.Create(tempPath)
+			if err != nil {
+				src.Close()
+				return nil, fmt.Errorf("create temp database: %w", err)
+			}
+			_, err = io.Copy(dst, src)
+			src.Close()
+			dst.Close()
+			if err != nil {
+				return nil, fmt.Errorf("copy existing database: %w", err)
+			}
+		}
+	} else {
+		os.Remove(tempPath)
+	}
 
 	db, err := sql.Open("sqlite", tempPath)
 	if err != nil {
@@ -138,6 +163,7 @@ func (s *SQLiteBackend) initialize() error {
 			description TEXT,
 			related_cwes TEXT,
 			related_cves TEXT,
+			tags TEXT,
 			record BLOB NOT NULL
 		);
 		CREATE INDEX IF NOT EXISTS idx_grc_framework ON grc_controls(framework);
@@ -201,9 +227,15 @@ func (s *SQLiteBackend) WriteControl(ctx context.Context, id string, control int
 		relatedCWEs = string(b)
 	}
 
+	tags := ""
+	if len(ctrl.Tags) > 0 {
+		b, _ := json.Marshal(ctrl.Tags)
+		tags = string(b)
+	}
+
 	_, err = s.db.ExecContext(ctx,
-		`INSERT OR REPLACE INTO grc_controls (id, framework, control_id, title, family, description, related_cwes, record) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-		id, ctrl.Framework, ctrl.ControlID, ctrl.Title, ctrl.Family, ctrl.Description, relatedCWEs, data)
+		`INSERT OR REPLACE INTO grc_controls (id, framework, control_id, title, family, description, related_cwes, tags, record) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		id, ctrl.Framework, ctrl.ControlID, ctrl.Title, ctrl.Family, ctrl.Description, relatedCWEs, tags, data)
 	if err != nil {
 		return fmt.Errorf("insert control %s: %w", id, err)
 	}
@@ -281,7 +313,7 @@ func (s *SQLiteBackend) ListAllVulnerabilities(ctx context.Context) ([]Vulnerabi
 }
 
 func (s *SQLiteBackend) ListAllControls(ctx context.Context) ([]ControlRow, error) {
-	rows, err := s.db.QueryContext(ctx, "SELECT id, framework, control_id, title, family, description, related_cwes, record FROM grc_controls")
+	rows, err := s.db.QueryContext(ctx, "SELECT id, framework, control_id, title, family, description, related_cwes, tags, record FROM grc_controls")
 	if err != nil {
 		return nil, fmt.Errorf("query all controls: %w", err)
 	}
@@ -293,7 +325,7 @@ func (s *SQLiteBackend) ListAllControls(ctx context.Context) ([]ControlRow, erro
 func (s *SQLiteBackend) ListControlsByCWE(ctx context.Context, cwe string) ([]ControlRow, error) {
 	pattern := `%` + cwe + `%`
 	rows, err := s.db.QueryContext(ctx,
-		"SELECT id, framework, control_id, title, family, description, related_cwes, record FROM grc_controls WHERE related_cwes LIKE ?",
+		"SELECT id, framework, control_id, title, family, description, related_cwes, tags, record FROM grc_controls WHERE related_cwes LIKE ?",
 		pattern)
 	if err != nil {
 		return nil, fmt.Errorf("query controls by CWE %s: %w", cwe, err)
@@ -376,10 +408,23 @@ func (s *SQLiteBackend) ListControlsByCPE(ctx context.Context, cpe string) ([]Co
 
 func (s *SQLiteBackend) ListControlsByFramework(ctx context.Context, framework string) ([]ControlRow, error) {
 	rows, err := s.db.QueryContext(ctx,
-		"SELECT id, framework, control_id, title, family, description, related_cwes, record FROM grc_controls WHERE framework = ?",
+		"SELECT id, framework, control_id, title, family, description, related_cwes, tags, record FROM grc_controls WHERE framework = ?",
 		framework)
 	if err != nil {
 		return nil, fmt.Errorf("query controls by framework %s: %w", framework, err)
+	}
+	defer rows.Close()
+
+	return scanControlRows(rows)
+}
+
+func (s *SQLiteBackend) ListControlsByTag(ctx context.Context, tag string) ([]ControlRow, error) {
+	pattern := `%` + tag + `%`
+	rows, err := s.db.QueryContext(ctx,
+		"SELECT id, framework, control_id, title, family, description, related_cwes, tags, record FROM grc_controls WHERE tags LIKE ?",
+		pattern)
+	if err != nil {
+		return nil, fmt.Errorf("query controls by tag %s: %w", tag, err)
 	}
 	defer rows.Close()
 
@@ -391,13 +436,20 @@ func scanControlRows(rows *sql.Rows) ([]ControlRow, error) {
 	for rows.Next() {
 		var r ControlRow
 		var cwesRaw sql.NullString
-		if err := rows.Scan(&r.ID, &r.Framework, &r.ControlID, &r.Title, &r.Family, &r.Description, &cwesRaw, &r.Record); err != nil {
+		var tagsRaw sql.NullString
+		if err := rows.Scan(&r.ID, &r.Framework, &r.ControlID, &r.Title, &r.Family, &r.Description, &cwesRaw, &tagsRaw, &r.Record); err != nil {
 			return nil, fmt.Errorf("scan control row: %w", err)
 		}
 		if cwesRaw.Valid && cwesRaw.String != "" {
 			var cwes []string
 			if err := json.Unmarshal([]byte(cwesRaw.String), &cwes); err == nil {
 				r.RelatedCWEs = cwes
+			}
+		}
+		if tagsRaw.Valid && tagsRaw.String != "" {
+			var tags []string
+			if err := json.Unmarshal([]byte(tagsRaw.String), &tags); err == nil {
+				r.Tags = tags
 			}
 		}
 		result = append(result, r)

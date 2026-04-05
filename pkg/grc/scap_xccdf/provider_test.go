@@ -53,6 +53,10 @@ func (m *mockBackend) ListControlsByCPE(ctx context.Context, cpe string) ([]stor
 func (m *mockBackend) ListControlsByFramework(ctx context.Context, framework string) ([]storage.ControlRow, error) {
 	return nil, nil
 }
+
+func (m *mockBackend) ListControlsByTag(_ context.Context, _ string) ([]storage.ControlRow, error) {
+	return nil, nil
+}
 func (m *mockBackend) Close(ctx context.Context) error { return nil }
 
 func TestNew(t *testing.T) {

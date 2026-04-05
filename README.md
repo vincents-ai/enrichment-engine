@@ -1,7 +1,7 @@
 # enrichment-engine
 
 [![Go Version](https://img.shields.io/badge/Go-1.25-00ADD8)](https://go.dev/)
-[![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0--only-orange)](LICENSE)
+[![License: Commercial](https://img.shields.io/badge/License-Commercial%20%2B%20AGPL--3.0-orange)](LICENSE.md)
 [![Build: Nix](https://img.shields.io/badge/Build-Nix-5277C3)](https://nixos.org/)
 
 GRC enrichment engine for vulnerability-to-compliance control mapping. Part of the [Transparenz](https://github.com/shift/transparenz-go) ecosystem.

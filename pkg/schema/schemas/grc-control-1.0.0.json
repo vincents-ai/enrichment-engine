@@ -59,6 +59,11 @@
       "type": "array",
       "items": { "type": "string" },
       "description": "Methods to assess control compliance (e.g., examine, test, interview)"
+    },
+    "Tags": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Freeform tags for categorizing and matching controls (e.g., network, authentication, injection, crypto)"
     }
   }
 }
