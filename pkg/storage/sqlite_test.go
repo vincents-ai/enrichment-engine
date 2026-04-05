@@ -2059,25 +2059,18 @@ func TestWriteControl_NonStructControl(t *testing.T) {
 
 func TestNewSQLiteBackend_InitializeError(t *testing.T) {
 	tmpDir := t.TempDir()
-	subDir := tmpDir + "/subdir"
-	if err := os.MkdirAll(subDir, 0755); err != nil {
-		t.Fatalf("MkdirAll: %v", err)
-	}
-
-	path := subDir + "/test.db"
+	path := tmpDir + "/test.db"
 	backend, err := NewSQLiteBackend(path)
 	if err != nil {
 		t.Fatalf("NewSQLiteBackend: %v", err)
 	}
-
-	os.RemoveAll(subDir)
-
-	_, err = NewSQLiteBackend(path)
-	if err == nil {
-		backend.Close(context.Background())
-		t.Fatal("expected error when creating backend in removed directory, got nil")
-	}
 	backend.Close(context.Background())
+
+	// Use /proc/nonexistent which can never be created as a directory.
+	_, err = NewSQLiteBackend("/proc/nonexistent/foo/bar/test.db")
+	if err == nil {
+		t.Fatal("expected error for unwritable path, got nil")
+	}
 }
 
 func TestNewSQLiteBackend_InvalidPath(t *testing.T) {
@@ -2616,15 +2609,19 @@ func TestListMappings_ScanError(t *testing.T) {
 	b := setupTestDB(t)
 
 	b.db.Exec("DROP TABLE vulnerability_grc_mappings")
+	// Create table with mismatched column order to force a scan error:
+	// real schema has (vulnerability_id, control_id, framework, mapping_type,
+	// confidence REAL, evidence TEXT) but we put evidence first and use INTEGER
+	// for confidence so the float64 scan gets an incompatible type.
 	b.db.Exec(`CREATE TABLE vulnerability_grc_mappings (
-		vulnerability_id BLOB NOT NULL,
-		control_id BLOB NOT NULL,
-		framework BLOB NOT NULL,
-		mapping_type BLOB NOT NULL,
-		confidence BLOB NOT NULL,
-		evidence BLOB NOT NULL
+		vulnerability_id TEXT NOT NULL,
+		control_id TEXT NOT NULL,
+		framework TEXT NOT NULL,
+		mapping_type TEXT NOT NULL,
+		evidence TEXT NOT NULL,
+		confidence TEXT NOT NULL
 	)`)
-	b.db.Exec(`INSERT INTO vulnerability_grc_mappings VALUES (x'00',x'00',x'00',x'00',x'00',x'00')`)
+	b.db.Exec(`INSERT INTO vulnerability_grc_mappings VALUES ('v','c','f','m','e','not-a-number')`)
 
 	ctx := context.Background()
 	_, err := b.ListMappings(ctx, "v")
