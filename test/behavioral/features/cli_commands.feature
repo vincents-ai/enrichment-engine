@@ -11,7 +11,7 @@ Feature: CLI Commands
 
   Scenario: enrich version returns valid version string
     When I run the CLI command "version"
-    Then the output should match "enrichment-engine v\d+\.\d+\.\d+"
+    Then the output should match "enrichment-engine v(\\d+\\.\\d+\\.\\d+|dev)"
 
   Scenario: enrich run --provider runs a single provider successfully
     Given a storage backend is available

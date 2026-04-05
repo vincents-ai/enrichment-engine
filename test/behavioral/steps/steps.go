@@ -343,11 +343,42 @@ func (s *testState) atLeastControlExistsInStorage(min int) error {
 		ControlID:   "TC-1",
 		Title:       "Test Control",
 		Description: "A test control",
+		RelatedCWEs: []string{"CWE-79"},
 	}
 	return s.backend.WriteControl(context.Background(), "TEST_FW/TC-1", ctrl)
 }
 
 func (s *testState) iEnrichTheSBOM() error {
+	// Seed a vulnerability whose record contains the log4j CPE with a CWE
+	// matching the control seeded by atLeastControlExistsInStorage, so that
+	// ListControlsByCPE can resolve the component to controls.
+	vulnRecord := json.RawMessage(`{
+		"id": "CVE-2024-TEST",
+		"cve": {
+			"weaknesses": [
+				{
+					"description": [
+						{"lang": "en", "value": "CWE-79"}
+					]
+				}
+			]
+		},
+		"configurations": [
+			{
+				"nodes": [
+					{
+						"cpeMatch": [
+							{"criteria": "cpe:2.3:a:apache:log4j:2.14.0:*:*:*:*:*:*:*"}
+						]
+					}
+				]
+			}
+		]
+	}`)
+	if err := s.backend.WriteVulnerability(context.Background(), "CVE-2024-TEST", vulnRecord); err != nil {
+		return fmt.Errorf("seed vulnerability: %w", err)
+	}
+
 	components := []grc.SBOMComponent{
 		{
 			Name:    "log4j-core",
