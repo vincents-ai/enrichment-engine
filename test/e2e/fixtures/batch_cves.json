@@ -1,0 +1,5 @@
+[
+  {"id":"CVE-2021-44228","cve":{"id":"CVE-2021-44228","published":"2021-12-10T18:15:00.000Z","descriptions":[{"lang":"en","value":"Log4j JNDI RCE."}],"weaknesses":[{"description":[{"lang":"en","value":"CWE-502"}]}],"configurations":[{"nodes":[{"cpeMatch":[{"criteria":"cpe:2.3:a:apache:log4j:2.14.0:*:*:*:*:*:*:*"}]}]}]}}
+,
+  {"id":"CVE-2014-0160","cve":{"id":"CVE-2014-0160","published":"2014-04-07T21:55:00.000Z","descriptions":[{"lang":"en","value":"OpenSSL Heartbleed."}],"weaknesses":[{"description":[{"lang":"en","value":"CWE-119"}]}],"configurations":[{"nodes":[{"cpeMatch":[{"criteria":"cpe:2.3:a:openssl:openssl:1.0.1f:*:*:*:*:*:*:*"}]}]}]}}
+]

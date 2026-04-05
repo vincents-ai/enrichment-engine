@@ -1,0 +1,10 @@
+{
+  "id": "CVE-2014-0160",
+  "cve": {
+    "id": "CVE-2014-0160",
+    "published": "2014-04-07T21:55:00.000Z",
+    "descriptions": [{"lang": "en", "value": "The (1) TLS and (2) DTLS implementations in OpenSSL 1.0.1 before 1.0.1g do not properly handle Heartbeat Extension packets."}],
+    "weaknesses": [{"description": [{"lang": "en", "value": "CWE-119"}]}],
+    "configurations": [{"nodes": [{"cpeMatch": [{"criteria": "cpe:2.3:a:openssl:openssl:1.0.1f:*:*:*:*:*:*:*"}]}]}]
+  }
+}

@@ -63,6 +63,8 @@ func New(opts ...CLIOption) *cobra.Command {
 	root.PersistentFlags().StringVarP(&logLevel, "log-level", "l", "info", "Log level (debug, info, warn, error)")
 
 	root.AddCommand(runCmd())
+	root.AddCommand(ingestCmd())
+	root.AddCommand(exportCmd())
 	root.AddCommand(providersCmd())
 	root.AddCommand(statusCmd())
 	root.AddCommand(versionCmd(o.version))
