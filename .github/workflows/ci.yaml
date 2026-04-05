@@ -35,11 +35,29 @@ jobs:
       - name: Download dependencies
         run: go mod download
       - name: Unit tests
-        run: go test -v -race ./pkg/...
+        run: go test -v -race -coverprofile=coverage.out ./pkg/...
+      - name: Check coverage threshold
+        run: |
+          COVERAGE=$(go tool cover -func=coverage.out | tail -1 | awk '{print $3}' | sed 's/%//')
+          echo "Total coverage: ${COVERAGE}%"
+          MIN_COVERAGE=90
+          if (( $(echo "$COVERAGE < $MIN_COVERAGE" | bc -l) )); then
+            echo "::error::Coverage ${COVERAGE}% is below minimum threshold ${MIN_COVERAGE}%"
+            exit 1
+          fi
+      - name: Upload coverage artifact
+        if: matrix.go-version == '1.25'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.out
+          retention-days: 7
       - name: Integration tests
         run: go test -v ./test/integration/...
       - name: Behavioral tests
         run: GODOG=1 go test -v ./test/behavioral/...
+      - name: Verification tests
+        run: go test -v -race -timeout 15m ./test/verification/...
 
   scenario:
     name: Scenario tests
