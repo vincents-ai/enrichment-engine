@@ -6,12 +6,12 @@
 
 GRC enrichment engine for vulnerability-to-compliance control mapping. Part of the [Transparenz](https://github.com/shift/transparenz-go) ecosystem.
 
-Maps CVEs to compliance control frameworks via CWE matching, producing auditable traceability between vulnerabilities and regulatory requirements across 45 GRC providers.
+Maps CVEs to compliance control frameworks via CWE matching, producing auditable traceability between vulnerabilities and regulatory requirements across 54 GRC providers.
 
 ## Architecture
 
 ```
-GRC Providers (45)              Storage (SQLite WAL)          Enrichment Engine
+GRC Providers (54)              Storage (SQLite WAL)          Enrichment Engine
 +------------------+          +--------------------+        +------------------+
 | EU Regulatory    |  writes  | vulnerabilities    |  reads | CWE mapping      |
 | EU Standards     | ------> | grc_controls       | ------> |  (confidence 0.8)|
@@ -79,7 +79,7 @@ enrich version
 
 ## Supported Frameworks
 
-### EU Regulatory (18)
+### EU Regulatory (19)
 
 | Provider | Description |
 |----------|-------------|
@@ -93,6 +93,7 @@ enrich version
 | `etsi_nis2` | ETSI NIS2 implementing standards |
 | `etsi_standards` | ETSI cybersecurity standards |
 | `eucc` | EUCC (EU Common Criteria) certification |
+| `eu_ai_act` | EU Artificial Intelligence Act |
 | `eu_common_criteria` | EU Common Criteria evaluation |
 | `eu_cra` | EU Cyber Resilience Act |
 | `eu_cybersecurity_act` | EU Cybersecurity Act |
@@ -102,19 +103,25 @@ enrich version
 | `nis2` | NIS2 Directive |
 | `nis2_implementing_acts` | NIS2 implementing acts |
 
-### EU National Standards (7)
+### EU National Standards (13)
 
 | Provider | Description |
 |----------|-------------|
 | `acn_psnc` | ACN/PSNC (Italy) |
 | `anssi_ebios` | ANSSI EBIOS Risk Manager (France) |
+| `b3s` | B3S sector-specific security standard (Germany) |
+| `bait` | BAIT banking supervisory requirements for IT (Germany) |
 | `bio` | BSI IT-Grundschutz (Germany) |
 | `bsi_grundschutz` | BSI Grundschutz Compendium (Germany) |
+| `kait_zait` | KAIT/ZAIT capital markets and payments IT requirements (Germany) |
+| `ncsc_caf` | NCSC Cyber Assessment Framework (UK) |
 | `secnumcloud` | SecNumCloud (France) |
+| `tisax` | TISAX automotive information security assessment (Germany) |
 | `toms` | Technical and Organizational Measures |
 | `ropa` | Records of Processing Activities |
+| `vait` | VAIT insurance supervisory requirements for IT (Germany) |
 
-### International Frameworks (14)
+### International Frameworks (16)
 
 | Provider | Description |
 |----------|-------------|
@@ -129,7 +136,9 @@ enrich version
 | `iso27001` | ISO/IEC 27001 |
 | `nist_csf` | NIST Cybersecurity Framework |
 | `nist_oscal` | NIST OSCAL |
+| `nist_ssdf` | NIST SSDF (Secure Software Development Framework) |
 | `pci_dss` | PCI DSS |
+| `slsa` | SLSA supply-chain security levels (L1–L4) |
 | `soc2` | SOC 2 |
 | `scap_xccdf` | SCAP/XCCDF profiles |
 
