@@ -4,9 +4,10 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
+    vulnz.url = "path:/home/shift/Documents/d-stack-desktop/vulnz-go";
   };
 
-  outputs = { self, nixpkgs, flake-utils }:
+  outputs = { self, nixpkgs, flake-utils, vulnz }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
@@ -16,13 +17,19 @@
           pname = "enrichment-engine";
           version = "0.1.0";
           src = ./.;
-          vendorHash = null;
+          proxyVendor = true;
+          vendorHash = "sha256-hdsOYOrNs2b8mGCSJ0wcYcZazuYLYx0TQHjjjG3aP04=";
           doCheck = false;
           subPackages = [ "cmd/enrich" ];
           ldflags = [
             "-s" "-w"
             "-X main.Version=0.1.0"
           ];
+          postPatch = ''
+            cp -r ${vulnz} vendor-shift-vulnz
+            chmod -R u+w vendor-shift-vulnz
+            sed -i 's|replace github.com/shift/vulnz => .*|replace github.com/shift/vulnz => ./vendor-shift-vulnz|' go.mod
+          '';
           meta = with pkgs.lib; {
             description = "GRC compliance enrichment engine - maps vulnerabilities to control frameworks";
             homepage = "https://github.com/shift/enrichment-engine";
@@ -44,7 +51,6 @@
             golangci-lint
             sqlite
             jq
-            oscal-cli
             syft
             grype
             cyclonedx-cli
