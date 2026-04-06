@@ -57,10 +57,17 @@ import (
 	"github.com/shift/enrichment-engine/pkg/grc/eu_ai_act"
 	"github.com/shift/enrichment-engine/pkg/grc/kait_zait"
 	"github.com/shift/enrichment-engine/pkg/grc/ncsc_caf"
+	"github.com/shift/enrichment-engine/pkg/grc/nist_cscrm"
 	"github.com/shift/enrichment-engine/pkg/grc/nist_ssdf"
 	"github.com/shift/enrichment-engine/pkg/grc/slsa"
 	"github.com/shift/enrichment-engine/pkg/grc/tisax"
 	"github.com/shift/enrichment-engine/pkg/grc/vait"
+
+	"github.com/shift/enrichment-engine/pkg/grc/mitre_attack_ics"
+	"github.com/shift/enrichment-engine/pkg/grc/nist_sp800_53"
+	"github.com/shift/enrichment-engine/pkg/grc/openssf_scorecard"
+	"github.com/shift/enrichment-engine/pkg/grc/owasp_asvs"
+	"github.com/shift/enrichment-engine/pkg/grc/psd2_rts"
 )
 
 func DefaultRegistry() *grc.Registry {
@@ -117,10 +124,17 @@ func DefaultRegistry() *grc.Registry {
 	reg.Register("eu_ai_act", func(s storage.Backend, l *slog.Logger) grc.GRCProvider { return eu_ai_act.New(s, l) })
 	reg.Register("kait_zait", func(s storage.Backend, l *slog.Logger) grc.GRCProvider { return kait_zait.New(s, l) })
 	reg.Register("ncsc_caf", func(s storage.Backend, l *slog.Logger) grc.GRCProvider { return ncsc_caf.New(s, l) })
+	reg.Register("nist_cscrm", func(s storage.Backend, l *slog.Logger) grc.GRCProvider { return nist_cscrm.New(s, l) })
 	reg.Register("nist_ssdf", func(s storage.Backend, l *slog.Logger) grc.GRCProvider { return nist_ssdf.New(s, l) })
 	reg.Register("slsa", func(s storage.Backend, l *slog.Logger) grc.GRCProvider { return slsa.New(s, l) })
 	reg.Register("tisax", func(s storage.Backend, l *slog.Logger) grc.GRCProvider { return tisax.New(s, l) })
 	reg.Register("vait", func(s storage.Backend, l *slog.Logger) grc.GRCProvider { return vait.New(s, l) })
+
+	reg.Register("mitre_attack_ics", func(s storage.Backend, l *slog.Logger) grc.GRCProvider { return mitre_attack_ics.New(s, l) })
+	reg.Register("nist_sp800_53", func(s storage.Backend, l *slog.Logger) grc.GRCProvider { return nist_sp800_53.New(s, l) })
+	reg.Register("openssf_scorecard", func(s storage.Backend, l *slog.Logger) grc.GRCProvider { return openssf_scorecard.New(s, l) })
+	reg.Register("owasp_asvs", func(s storage.Backend, l *slog.Logger) grc.GRCProvider { return owasp_asvs.New(s, l) })
+	reg.Register("psd2_rts", func(s storage.Backend, l *slog.Logger) grc.GRCProvider { return psd2_rts.New(s, l) })
 
 	return reg
 }

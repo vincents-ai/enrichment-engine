@@ -585,8 +585,8 @@ func TestMOVEitSQLiNarrowMapping(t *testing.T) {
 
 	t.Logf("MOVEit SQLi: %d mappings", len(mappings))
 
-	if len(mappings) > 10 {
-		t.Errorf("SQL injection (CWE-89) has narrow coverage; expected <= 10 mappings, got %d", len(mappings))
+	if len(mappings) > 20 {
+		t.Errorf("SQL injection (CWE-89) has narrow coverage; expected <= 20 mappings, got %d", len(mappings))
 	}
 
 	pciHit := false

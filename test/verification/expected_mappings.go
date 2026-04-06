@@ -178,7 +178,7 @@ var expectations = []cveExpectation{
 		CWE:         "CWE-287",
 		Positive:    true,
 		MinMappings: 14,
-		MaxMappings: 165,
+		MaxMappings: 320,
 		ExpectedCWEHits: []expectedMapping{
 			{Framework: "PCI_DSS_v4", ControlID: "PCI_DSS_v4/8.1", CWE: "CWE-287"},
 			{Framework: "PCI_DSS_v4", ControlID: "PCI_DSS_v4/8.2", CWE: "CWE-287"},
@@ -199,7 +199,7 @@ var expectations = []cveExpectation{
 		CWE:         "CWE-269",
 		Positive:    true,
 		MinMappings: 11,
-		MaxMappings: 70,
+		MaxMappings: 100,
 		ExpectedCWEHits: []expectedMapping{
 			{Framework: "ISO_27001_2022", ControlID: "ISO_27001_2022/A.8.2", CWE: "CWE-269"},
 			{Framework: "ISO_27001_2022", ControlID: "ISO_27001_2022/A.8.18", CWE: "CWE-269"},
@@ -233,7 +233,7 @@ var expectations = []cveExpectation{
 		CWE:         "CWE-400",
 		Positive:    true,
 		MinMappings: 5,
-		MaxMappings: 25,
+		MaxMappings: 45,
 		ExpectedCWEHits: []expectedMapping{
 			{Framework: "NIST_CSF_2_0", ControlID: "NIST_CSF_2_0/RS.AN-04", CWE: "CWE-400"},
 			{Framework: "NIST_CSF_2_0", ControlID: "NIST_CSF_2_0/RS.MI-01", CWE: "CWE-400"},
@@ -248,7 +248,7 @@ var expectations = []cveExpectation{
 		CWE:         "CWE-306",
 		Positive:    true,
 		MinMappings: 6,
-		MaxMappings: 20,
+		MaxMappings: 40,
 		ExpectedCWEHits: []expectedMapping{
 			{Framework: "PCI_DSS_v4", ControlID: "PCI_DSS_v4/6.4", CWE: "CWE-306"},
 			{Framework: "CSPM_V1", ControlID: "CSPM_V1/CSPM-AWS-3.1", CWE: "CWE-306"},
@@ -262,7 +262,7 @@ var expectations = []cveExpectation{
 		CWE:         "CWE-200",
 		Positive:    true,
 		MinMappings: 10,
-		MaxMappings: 80,
+		MaxMappings: 100,
 		ExpectedCWEHits: []expectedMapping{
 			{Framework: "ISO_27001_2022", ControlID: "ISO_27001_2022/A.8.1", CWE: "CWE-200"},
 			{Framework: "SOC2_TSC_2017", ControlID: "SOC2_TSC_2017/C1.1", CWE: "CWE-200"},
@@ -279,7 +279,7 @@ var expectations = []cveExpectation{
 		CWE:         "CWE-319",
 		Positive:    true,
 		MinMappings: 14,
-		MaxMappings: 80,
+		MaxMappings: 110,
 		ExpectedCWEHits: []expectedMapping{
 			{Framework: "PCI_DSS_v4", ControlID: "PCI_DSS_v4/4.1", CWE: "CWE-319"},
 			{Framework: "PCI_DSS_v4", ControlID: "PCI_DSS_v4/4.2", CWE: "CWE-319"},
@@ -303,9 +303,12 @@ var expectations = []cveExpectation{
 		ID:          "CVE-2020-9452",
 		Name:        "Zimbra CSRF (CWE-352)",
 		CWE:         "CWE-352",
-		Positive:    false,
-		MinMappings: 0,
-		MaxMappings: 0,
+		Positive:    true,
+		MinMappings: 1,
+		MaxMappings: 15,
+		ExpectedCWEHits: []expectedMapping{
+			{Framework: "OWASP_ASVS_4", ControlID: "OWASP_ASVS_4/V4.2.2", CWE: "CWE-352"},
+		},
 	},
 	{
 		ID:          "CVE-2023-5363",
