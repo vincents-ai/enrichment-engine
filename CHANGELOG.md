@@ -6,6 +6,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-04-06
+
+### Added
+- 20 new GRC providers across Phase 1 and Phase 2 — total registry now 74 providers:
+  - Phase 1 (7): `owasp_asvs` (OWASP ASVS v4.0.3), `mitre_attack_ics` (MITRE ATT&CK ICS), `nist_sp800_53` (NIST SP 800-53 Rev.5), `nist_cscrm` (NIST SP 800-161 Rev.1), `openssf_scorecard` (OpenSSF Scorecard), `psd2_rts` (PSD2 RTS SCA), `eba_ict_guidelines` (EBA GL/2025/02)
+  - Phase 2 (13): `iec_62443`, `iso27017`, `iso27701`, `iso42001`, `iso27018`, `iso_sae_21434`, `enisa_supply_chain`, `enisa_healthcare`, `nerc_cip`, `cyber_essentials`, `eu_cer`, `eu_mdr_cyber`, `swift_cscf`
+- PDF parser package (`pkg/pdfparser/`) for extracting structured controls from ISO standard PDFs, tested against ISO/IEC 27000:2018
+- AGPL IP compliance audit: all provider descriptions reviewed and remediated
+- License attribution notices for Apache 2.0 (MITRE ATT&CK ICS) and CC BY-SA 4.0 (OWASP ASVS) embedded data
+- Makefile `fetch-grc` targets for all Phase 1 providers
+
+### Changed
+- `cis_controls`: rewritten all 18 group descriptions as original paraphrases (CIS non-commercial license compliance)
+- `eu_ai_act`: rewritten all 12 control descriptions as original paraphrases
+- `ncsc_caf`: rewritten all 14 control descriptions as original paraphrases
+- `owasp_asvs`: verbatim CSV embedding retained with explicit CC BY-SA 4.0 attribution
+- Makefile `fetch-grc` umbrella target now includes all 7 Phase 1 providers
+- `fetch-grc/nist_cscrm` converted to no-op (both upstream NIST URLs return 404)
+- `fetch-grc/eba_ict_guidelines` fixed from broken JSON check to no-op
+
+### Fixed
+- EBA ICT Guidelines provider was marked done but never implemented — now fully implemented with 40 controls and 8 tests
+
 ## [0.3.0] - 2026-04-06
 
 ### Added

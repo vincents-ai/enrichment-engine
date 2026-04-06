@@ -6,12 +6,12 @@
 
 GRC enrichment engine for vulnerability-to-compliance control mapping. Part of the [Transparenz](https://github.com/shift/transparenz-go) ecosystem.
 
-Maps CVEs to compliance control frameworks via CWE matching, producing auditable traceability between vulnerabilities and regulatory requirements across 54 GRC providers.
+Maps CVEs to compliance control frameworks via CWE matching, producing auditable traceability between vulnerabilities and regulatory requirements across 74 GRC providers.
 
 ## Architecture
 
 ```
-GRC Providers (54)              Storage (SQLite WAL)          Enrichment Engine
+GRC Providers (74)              Storage (SQLite WAL)          Enrichment Engine
 +------------------+          +--------------------+        +------------------+
 | EU Regulatory    |  writes  | vulnerabilities    |  reads | CWE mapping      |
 | EU Standards     | ------> | grc_controls       | ------> |  (confidence 0.8)|
@@ -79,7 +79,7 @@ enrich version
 
 ## Supported Frameworks
 
-### EU Regulatory (19)
+### EU Regulatory (25)
 
 | Provider | Description |
 |----------|-------------|
@@ -102,8 +102,14 @@ enrich version
 | `gdpr` | General Data Protection Regulation |
 | `nis2` | NIS2 Directive |
 | `nis2_implementing_acts` | NIS2 implementing acts |
+| `eba_ict_guidelines` | EBA ICT and Security Risk Management Guidelines (GL/2025/02) |
+| `enisa_supply_chain` | ENISA ICT supply chain security |
+| `enisa_healthcare` | ENISA healthcare cybersecurity |
+| `eu_cer` | EU Cybersecurity Certification Framework |
+| `eu_mdr_cyber` | EU MDR medical device cybersecurity |
+| `swift_cscf` | SWIFT Customer Security Controls Framework (CSCF) |
 
-### EU National Standards (13)
+### EU National Standards (15)
 
 | Provider | Description |
 |----------|-------------|
@@ -120,8 +126,10 @@ enrich version
 | `toms` | Technical and Organizational Measures |
 | `ropa` | Records of Processing Activities |
 | `vait` | VAIT insurance supervisory requirements for IT (Germany) |
+| `cyber_essentials` | NCSC Cyber Essentials (UK) |
+| `nerc_cip` | NERC Critical Infrastructure Protection |
 
-### International Frameworks (16)
+### International Frameworks (27)
 
 | Provider | Description |
 |----------|-------------|
@@ -141,8 +149,19 @@ enrich version
 | `slsa` | SLSA supply-chain security levels (L1–L4) |
 | `soc2` | SOC 2 |
 | `scap_xccdf` | SCAP/XCCDF profiles |
+| `iec_62443` | IEC 62443 industrial automation security |
+| `iso27017` | ISO/IEC 27017 cloud security |
+| `iso27701` | ISO/IEC 27701 privacy information management |
+| `iso42001` | ISO/IEC 42001 AI management system |
+| `iso27018` | ISO/IEC 27018 PII in public clouds |
+| `iso_sae_21434` | ISO/SAE 21434 automotive cybersecurity |
+| `nist_cscrm` | NIST SP 800-161 Rev.1 C-SCRM |
+| `nist_sp800_53` | NIST SP 800-53 Rev.5 |
+| `openssf_scorecard` | OpenSSF Scorecard supply-chain security |
+| `owasp_asvs` | OWASP ASVS v4.0.3 |
+| `psd2_rts` | PSD2 RTS Strong Customer Authentication |
 
-### ISMS Feeds (6)
+### ISMS Feeds (7)
 
 | Provider | Description |
 |----------|-------------|
@@ -152,6 +171,7 @@ enrich version
 | `misp` | MISP threat intelligence |
 | `mitre_attack` | MITRE ATT&CK |
 | `veris_vcdb` | VERIS/Vcdb incident database |
+| `mitre_attack_ics` | MITRE ATT&CK for Industrial Control Systems |
 
 ## Library Usage
 
@@ -247,6 +267,22 @@ Run all standard tests:
 
 ```sh
 go test ./...
+```
+
+## PDF Parser
+
+The `pkg/pdfparser/` package provides a Go library for extracting structured controls from ISO standard PDFs:
+
+```go
+import "github.com/shift/enrichment-engine/pkg/pdfparser"
+
+p := pdfparser.New()
+controls, err := p.ParseFile("path/to/standard.pdf")
+```
+
+Tested against ISO/IEC 27000:2018 (freely available). Run integration tests with:
+```sh
+go test ./pkg/pdfparser/... -tags=pdf_integration
 ```
 
 ## License

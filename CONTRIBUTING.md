@@ -151,6 +151,47 @@ go test ./pkg/grc/<name>/...
 enrich providers   # verify your provider appears
 ```
 
+## Intellectual Property and AGPL Compliance
+
+This project is dual-licensed under AGPL-3.0-only and a commercial license. All provider implementations must comply with IP law.
+
+### Rules for Provider Descriptions
+
+- **NEVER copy verbatim text** from copyrighted standards (ISO, IEC, SAE, CIS, VDA/ENX, etc.)
+- **ALWAYS write original paraphrases** when describing control requirements
+- Referencing standards by ID, title, and URL is permitted (e.g., `ISO/IEC 27001:2022`)
+- Linking to official standard pages is permitted
+
+### Safe Sources (can embed verbatim)
+- US government publications (NIST SP 800-series) — public domain
+- EU regulations (published in the Official Journal) — public domain per Art. 340 TFEU
+- Apache 2.0 licensed data (MITRE ATT&CK, OpenSSF SLSA) — requires attribution notice
+- CC BY-SA 4.0 data (OWASP ASVS) — copyleft-compatible with AGPL, requires attribution
+
+### Restricted Sources (must paraphrase only)
+- ISO/IEC standards (27001, 27017, 27018, 27701, 42001, 21434)
+- IEC standards (62443 series)
+- CIS Controls (non-commercial license — verbatim embedding is a license violation)
+- VDA/ENX (TISAX)
+- Private industry body publications
+
+### Attribution Requirements
+
+When embedding data under permissive licenses, add a comment block at the top of the provider file:
+
+```go
+// [Standard Name] data is licensed under [License].
+// Original: [URL]
+// License: [License URL]
+```
+
+### For Paid Standards
+
+Paid standards (ISO, IEC, SAE) cannot have their text redistributed in an AGPL repository. Our approach:
+1. Reference standards by ID and title only in `staticControls()`
+2. Provide `Makefile fetch-grc/<name>` targets that prompt users to provide their own licensed copy
+3. The `pkg/pdfparser/` package allows users to parse their own purchased PDFs locally
+
 ## Code Style
 
 - Follow [Effective Go](https://go.dev/doc/effective_go) conventions
