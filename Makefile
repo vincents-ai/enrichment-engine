@@ -43,7 +43,8 @@ clean:
         fetch-grc/iso27018 fetch-grc/iec_62443
 
 fetch-grc: fetch-grc/owasp_asvs fetch-grc/mitre_attack_ics fetch-grc/nist_sp800_53 \
-           fetch-grc/nist_cscrm
+           fetch-grc/nist_cscrm fetch-grc/openssf_scorecard fetch-grc/psd2_rts \
+           fetch-grc/eba_ict_guidelines
 
 ## Pattern A: free public sources — download at build time
 fetch-grc/owasp_asvs:
@@ -68,19 +69,18 @@ fetch-grc/nist_sp800_53:
 	@echo "NIST SP 800-53: done."
 
 fetch-grc/nist_cscrm:
-	@echo "Fetching NIST SP 800-161r1 C-SCRM catalog..."
-	@mkdir -p pkg/grc/nist_cscrm
-	curl -fsSL 'https://csrc.nist.gov/extensions/nudp/services/json/nudp/framework/version/800-161r1/export/json' \
-	  -o pkg/grc/nist_cscrm/nist_cscrm_800_161r1.json || \
-	  curl -fsSL 'https://raw.githubusercontent.com/usnistgov/oscal-content/main/nist.gov/SP800-161/rev1/json/NIST_SP-800-161r1_catalog.json' \
-	  -o pkg/grc/nist_cscrm/nist_cscrm_800_161r1.json
-	@echo "NIST C-SCRM: done."
+	@echo "NIST C-SCRM: controls are compiled-in (staticControls). No fetch required."
+	@echo "  (ADR-015: both upstream NIST URLs return 404; controls hardcoded from SP 800-161 Rev.1)"
+
+fetch-grc/openssf_scorecard:
+	@echo "OpenSSF Scorecard: controls are compiled-in (staticControls). No fetch required."
+
+fetch-grc/psd2_rts:
+	@echo "PSD2 RTS: controls are compiled-in (staticControls). No fetch required."
 
 ## Pattern B: paid/restricted sources — user must provide the file
 fetch-grc/eba_ict_guidelines:
-	@echo "EBA ICT Guidelines: using pre-populated embedded controls (eba_ict_controls.json already in repo)."
-	@test -f pkg/grc/eba_ict_guidelines/eba_ict_controls.json || \
-	  (echo "ERROR: pkg/grc/eba_ict_guidelines/eba_ict_controls.json missing." && exit 1)
+	@echo "EBA ICT Guidelines: controls are compiled-in (staticControls). No fetch required."
 
 fetch-grc/iso27017:
 	@test -f pkg/grc/iso27017/iso27017_controls.json || \

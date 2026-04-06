@@ -1,5 +1,10 @@
 package owasp_asvs
 
+// OWASP ASVS v4.0.3 data is embedded verbatim under Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0).
+// CC BY-SA 4.0 is copyleft-compatible with AGPL. This embedding constitutes a derivative work and is itself licensed CC BY-SA 4.0.
+// Original source: https://owasp.org/www-project-application-security-verification-standard/
+// License: https://creativecommons.org/licenses/by-sa/4.0/
+
 import (
 	"bytes"
 	"context"

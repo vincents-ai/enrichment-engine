@@ -1,5 +1,9 @@
 package mitre_attack_ics
 
+// MITRE ATT&CK for ICS data is licensed under Apache 2.0.
+// Copyright (c) The MITRE Corporation.
+// See: https://github.com/mitre/cti/blob/master/LICENSE
+
 import (
 	"context"
 	_ "embed"
