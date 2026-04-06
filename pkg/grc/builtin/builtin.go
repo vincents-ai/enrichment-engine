@@ -43,7 +43,6 @@ import (
 	"github.com/shift/enrichment-engine/pkg/grc/nis2"
 	"github.com/shift/enrichment-engine/pkg/grc/nis2_implementing_acts"
 	"github.com/shift/enrichment-engine/pkg/grc/nist_csf"
-	"github.com/shift/enrichment-engine/pkg/grc/nist_oscal"
 	"github.com/shift/enrichment-engine/pkg/grc/pci_dss"
 	"github.com/shift/enrichment-engine/pkg/grc/ropa"
 	"github.com/shift/enrichment-engine/pkg/grc/scap_xccdf"
@@ -125,7 +124,6 @@ func DefaultRegistry() *grc.Registry {
 	reg.Register("nis2", func(s storage.Backend, l *slog.Logger) grc.GRCProvider { return nis2.New(s, l) })
 	reg.Register("nis2_implementing_acts", func(s storage.Backend, l *slog.Logger) grc.GRCProvider { return nis2_implementing_acts.New(s, l) })
 	reg.Register("nist_csf", func(s storage.Backend, l *slog.Logger) grc.GRCProvider { return nist_csf.New(s, l) })
-	reg.Register("nist_oscal", func(s storage.Backend, l *slog.Logger) grc.GRCProvider { return nist_oscal.New(s, l) })
 	reg.Register("pci_dss", func(s storage.Backend, l *slog.Logger) grc.GRCProvider { return pci_dss.New(s, l) })
 	reg.Register("ropa", func(s storage.Backend, l *slog.Logger) grc.GRCProvider { return ropa.New(s, l) })
 	reg.Register("scap_xccdf", func(s storage.Backend, l *slog.Logger) grc.GRCProvider { return scap_xccdf.New(s, l) })

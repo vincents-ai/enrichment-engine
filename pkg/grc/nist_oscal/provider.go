@@ -1,3 +1,7 @@
+// Deprecated: this provider is a duplicate of nist_sp800_53. Both parse the same
+// NIST SP 800-53 Rev 5 OSCAL catalog, but nist_sp800_53 is superior (embedded
+// data, hardcoded CWE mappings, family tags, control enhancement recursion) and
+// follows ADR-015 (no runtime fetch). Unregistered from builtin registry.
 package nist_oscal
 
 import (
