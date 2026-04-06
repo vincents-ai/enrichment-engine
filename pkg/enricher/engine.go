@@ -46,6 +46,9 @@ func New(cfg Config) *Engine {
 		cfg.MaxParallel = 1
 	}
 	registry := cfg.Registry
+	if cfg.Logger == nil {
+		cfg.Logger = slog.Default()
+	}
 	if registry == nil {
 		registry = grcbuiltin.DefaultRegistry()
 	}
