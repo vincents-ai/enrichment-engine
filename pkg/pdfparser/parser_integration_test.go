@@ -164,9 +164,9 @@ func TestOpenAndValidatePDF_MockPDF(t *testing.T) {
 }
 
 func TestParserExtractsSections_RealISO27000(t *testing.T) {
-	path := "testdata/ISO_IEC_27000_2018.pdf"
+	path := "testdata/ISO_IEC_27000_2018(en).pdf"
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-		t.Skip("ISO/IEC 27000:2018 PDF not available, download from https://standards.iso.org/ittf/PubliclyAvailableStandards/ and place at " + path)
+		t.Skip("ISO/IEC 27000:2018 PDF not available, download from https://www.iso.org/standard/73906.html and place at " + path)
 	}
 
 	p := pdfparser.New()
