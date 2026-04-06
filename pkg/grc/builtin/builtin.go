@@ -68,6 +68,8 @@ import (
 	"github.com/shift/enrichment-engine/pkg/grc/openssf_scorecard"
 	"github.com/shift/enrichment-engine/pkg/grc/owasp_asvs"
 	"github.com/shift/enrichment-engine/pkg/grc/psd2_rts"
+
+	"github.com/shift/enrichment-engine/pkg/grc/eba_ict_guidelines"
 )
 
 func DefaultRegistry() *grc.Registry {
@@ -135,6 +137,7 @@ func DefaultRegistry() *grc.Registry {
 	reg.Register("openssf_scorecard", func(s storage.Backend, l *slog.Logger) grc.GRCProvider { return openssf_scorecard.New(s, l) })
 	reg.Register("owasp_asvs", func(s storage.Backend, l *slog.Logger) grc.GRCProvider { return owasp_asvs.New(s, l) })
 	reg.Register("psd2_rts", func(s storage.Backend, l *slog.Logger) grc.GRCProvider { return psd2_rts.New(s, l) })
+	reg.Register("eba_ict_guidelines", func(s storage.Backend, l *slog.Logger) grc.GRCProvider { return eba_ict_guidelines.New(s, l) })
 
 	return reg
 }
