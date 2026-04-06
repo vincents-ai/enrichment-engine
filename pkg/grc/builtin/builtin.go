@@ -69,7 +69,20 @@ import (
 	"github.com/shift/enrichment-engine/pkg/grc/owasp_asvs"
 	"github.com/shift/enrichment-engine/pkg/grc/psd2_rts"
 
+	"github.com/shift/enrichment-engine/pkg/grc/cyber_essentials"
 	"github.com/shift/enrichment-engine/pkg/grc/eba_ict_guidelines"
+	"github.com/shift/enrichment-engine/pkg/grc/enisa_healthcare"
+	"github.com/shift/enrichment-engine/pkg/grc/enisa_supply_chain"
+	"github.com/shift/enrichment-engine/pkg/grc/eu_cer"
+	"github.com/shift/enrichment-engine/pkg/grc/eu_mdr_cyber"
+	"github.com/shift/enrichment-engine/pkg/grc/iec_62443"
+	"github.com/shift/enrichment-engine/pkg/grc/iso27017"
+	"github.com/shift/enrichment-engine/pkg/grc/iso27018"
+	"github.com/shift/enrichment-engine/pkg/grc/iso27701"
+	"github.com/shift/enrichment-engine/pkg/grc/iso42001"
+	"github.com/shift/enrichment-engine/pkg/grc/iso_sae_21434"
+	"github.com/shift/enrichment-engine/pkg/grc/nerc_cip"
+	"github.com/shift/enrichment-engine/pkg/grc/swift_cscf"
 )
 
 func DefaultRegistry() *grc.Registry {
@@ -138,6 +151,20 @@ func DefaultRegistry() *grc.Registry {
 	reg.Register("owasp_asvs", func(s storage.Backend, l *slog.Logger) grc.GRCProvider { return owasp_asvs.New(s, l) })
 	reg.Register("psd2_rts", func(s storage.Backend, l *slog.Logger) grc.GRCProvider { return psd2_rts.New(s, l) })
 	reg.Register("eba_ict_guidelines", func(s storage.Backend, l *slog.Logger) grc.GRCProvider { return eba_ict_guidelines.New(s, l) })
+	reg.Register("cyber_essentials", func(s storage.Backend, l *slog.Logger) grc.GRCProvider { return cyber_essentials.New(s, l) })
+	reg.Register("enisa_supply_chain", func(s storage.Backend, l *slog.Logger) grc.GRCProvider { return enisa_supply_chain.New(s, l) })
+	reg.Register("enisa_healthcare", func(s storage.Backend, l *slog.Logger) grc.GRCProvider { return enisa_healthcare.New(s, l) })
+	reg.Register("nerc_cip", func(s storage.Backend, l *slog.Logger) grc.GRCProvider { return nerc_cip.New(s, l) })
+	reg.Register("eu_cer", func(s storage.Backend, l *slog.Logger) grc.GRCProvider { return eu_cer.New(s, l) })
+	reg.Register("eu_mdr_cyber", func(s storage.Backend, l *slog.Logger) grc.GRCProvider { return eu_mdr_cyber.New(s, l) })
+	reg.Register("iso_sae_21434", func(s storage.Backend, l *slog.Logger) grc.GRCProvider { return iso_sae_21434.New(s, l) })
+	reg.Register("swift_cscf", func(s storage.Backend, l *slog.Logger) grc.GRCProvider { return swift_cscf.New(s, l) })
+
+	reg.Register("iec_62443", func(s storage.Backend, l *slog.Logger) grc.GRCProvider { return iec_62443.New(s, l) })
+	reg.Register("iso27017", func(s storage.Backend, l *slog.Logger) grc.GRCProvider { return iso27017.New(s, l) })
+	reg.Register("iso27018", func(s storage.Backend, l *slog.Logger) grc.GRCProvider { return iso27018.New(s, l) })
+	reg.Register("iso27701", func(s storage.Backend, l *slog.Logger) grc.GRCProvider { return iso27701.New(s, l) })
+	reg.Register("iso42001", func(s storage.Backend, l *slog.Logger) grc.GRCProvider { return iso42001.New(s, l) })
 
 	return reg
 }
