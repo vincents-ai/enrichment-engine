@@ -11,7 +11,6 @@ import (
 	"sync"
 
 	"github.com/cucumber/godog"
-	_ "github.com/glebarez/go-sqlite/compat"
 	"github.com/shift/enrichment-engine/pkg/enricher"
 	"github.com/shift/enrichment-engine/pkg/grc"
 	grcbuiltin "github.com/shift/enrichment-engine/pkg/grc/builtin"

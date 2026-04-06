@@ -11,8 +11,6 @@ import (
 	grcbuiltin "github.com/shift/enrichment-engine/pkg/grc/builtin"
 	"github.com/shift/enrichment-engine/pkg/storage"
 	"github.com/spf13/cobra"
-
-	_ "github.com/glebarez/go-sqlite/compat"
 )
 
 type cliOption struct {
@@ -78,6 +76,7 @@ func runCmd() *cobra.Command {
 	var skipMapping bool
 	var maxParallel int
 	var enableTagMapping bool
+	var vulnzWorkspace string
 
 	cmd := &cobra.Command{
 		Use:   "run [provider...]",
@@ -92,6 +91,11 @@ Use --provider to run specific providers, or --skip-mapping to only populate con
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx := context.Background()
 			logger := slog.Default()
+
+			// Fall back to env var if flag not set
+			if vulnzWorkspace == "" {
+				vulnzWorkspace = os.Getenv("VULNZ_WORKSPACE")
+			}
 
 			store, err := storage.NewSQLiteBackend(workspace + "/enrichment.db")
 			if err != nil {
@@ -112,6 +116,7 @@ Use --provider to run specific providers, or --skip-mapping to only populate con
 				RunAll:           all,
 				SkipMapping:      skipMapping,
 				EnableTagMapping: enableTagMapping,
+				VulnzWorkspace:   vulnzWorkspace,
 			}
 
 			engine := enricher.New(cfg)
@@ -146,6 +151,7 @@ Use --provider to run specific providers, or --skip-mapping to only populate con
 	cmd.Flags().BoolVar(&skipMapping, "skip-mapping", false, "Skip CWE/CPE mapping phase (controls only)")
 	cmd.Flags().BoolVar(&enableTagMapping, "enable-tag-mapping", false, "Enable tag-based mapping phase (confidence 0.4)")
 	cmd.Flags().IntVar(&maxParallel, "max-parallel", 4, "Maximum parallel provider execution")
+	cmd.Flags().StringVar(&vulnzWorkspace, "vulnz-workspace", "", "Path to vulnz workspace dir; if set, vulnz ingest runs before providers (env: VULNZ_WORKSPACE)")
 
 	return cmd
 }

@@ -6,7 +6,6 @@ import (
 	"os"
 	"testing"
 
-	_ "github.com/glebarez/go-sqlite/compat"
 	"github.com/shift/enrichment-engine/pkg/enricher"
 	"github.com/shift/enrichment-engine/pkg/storage"
 )

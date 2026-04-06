@@ -6,8 +6,6 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-
-	_ "github.com/glebarez/go-sqlite/compat"
 )
 
 func TestIngestFile(t *testing.T) {

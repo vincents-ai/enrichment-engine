@@ -11,6 +11,7 @@ import (
 	"github.com/shift/enrichment-engine/pkg/grc"
 	grcbuiltin "github.com/shift/enrichment-engine/pkg/grc/builtin"
 	"github.com/shift/enrichment-engine/pkg/storage"
+	vulnzapi "github.com/shift/vulnz/pkg/api"
 )
 
 type Config struct {
@@ -23,6 +24,8 @@ type Config struct {
 	SkipMapping      bool
 	EnableTagMapping bool
 	Registry         *grc.Registry
+	// optional: path to vulnz workspace dir; if set, vulnz ingest runs before providers
+	VulnzWorkspace string
 }
 
 type Engine struct {
@@ -35,6 +38,7 @@ type Engine struct {
 	skipProviders    bool
 	skipMapping      bool
 	enableTagMapping bool
+	vulnzWorkspace   string
 }
 
 func New(cfg Config) *Engine {
@@ -55,6 +59,7 @@ func New(cfg Config) *Engine {
 		skipProviders:    cfg.SkipProviders,
 		skipMapping:      cfg.SkipMapping,
 		enableTagMapping: cfg.EnableTagMapping,
+		vulnzWorkspace:   cfg.VulnzWorkspace,
 	}
 }
 
@@ -66,10 +71,24 @@ type Result struct {
 	Duration      time.Duration
 }
 
+func (e *Engine) runVulnzIngest(ctx context.Context) error {
+	if e.vulnzWorkspace == "" {
+		return nil
+	}
+	e.logger.Info("running vulnz ingest", "workspace", e.vulnzWorkspace)
+	return vulnzapi.Ingest(ctx, vulnzapi.IngestOptions{
+		WorkspacePath: e.vulnzWorkspace,
+	})
+}
+
 func (e *Engine) Run(ctx context.Context) (*Result, error) {
 	start := time.Now()
 	e.logger.Info("starting enrichment pipeline")
 	result := &Result{}
+
+	if err := e.runVulnzIngest(ctx); err != nil {
+		return nil, fmt.Errorf("vulnz ingest: %w", err)
+	}
 
 	if !e.skipProviders {
 		providerCount, controlCount, err := e.runProviders(ctx)

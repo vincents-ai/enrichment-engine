@@ -32,6 +32,12 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go-version }}
+      - name: Checkout vulnz-go
+        uses: actions/checkout@v4
+        with:
+          repository: shift/vulnz
+          path: ../vulnz-go
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Download dependencies
         run: go mod download
       - name: Unit tests
@@ -67,6 +73,12 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: "1.25"
+      - name: Checkout vulnz-go
+        uses: actions/checkout@v4
+        with:
+          repository: shift/vulnz
+          path: ../vulnz-go
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Download dependencies
         run: go mod download
       - name: Scenario / E2E tests
@@ -80,5 +92,11 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: "1.25"
+      - name: Checkout vulnz-go
+        uses: actions/checkout@v4
+        with:
+          repository: shift/vulnz
+          path: ../vulnz-go
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Build binary
         run: go build -ldflags "-s -w" -o bin/enrich ./cmd/enrich

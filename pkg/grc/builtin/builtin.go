@@ -51,6 +51,16 @@ import (
 	"github.com/shift/enrichment-engine/pkg/grc/soc2"
 	"github.com/shift/enrichment-engine/pkg/grc/toms"
 	"github.com/shift/enrichment-engine/pkg/grc/veris_vcdb"
+
+	"github.com/shift/enrichment-engine/pkg/grc/b3s"
+	"github.com/shift/enrichment-engine/pkg/grc/bait"
+	"github.com/shift/enrichment-engine/pkg/grc/eu_ai_act"
+	"github.com/shift/enrichment-engine/pkg/grc/kait_zait"
+	"github.com/shift/enrichment-engine/pkg/grc/ncsc_caf"
+	"github.com/shift/enrichment-engine/pkg/grc/nist_ssdf"
+	"github.com/shift/enrichment-engine/pkg/grc/slsa"
+	"github.com/shift/enrichment-engine/pkg/grc/tisax"
+	"github.com/shift/enrichment-engine/pkg/grc/vait"
 )
 
 func DefaultRegistry() *grc.Registry {
@@ -101,6 +111,16 @@ func DefaultRegistry() *grc.Registry {
 	reg.Register("soc2", func(s storage.Backend, l *slog.Logger) grc.GRCProvider { return soc2.New(s, l) })
 	reg.Register("toms", func(s storage.Backend, l *slog.Logger) grc.GRCProvider { return toms.New(s, l) })
 	reg.Register("veris_vcdb", func(s storage.Backend, l *slog.Logger) grc.GRCProvider { return veris_vcdb.New(s, l) })
+
+	reg.Register("b3s", func(s storage.Backend, l *slog.Logger) grc.GRCProvider { return b3s.New(s, l) })
+	reg.Register("bait", func(s storage.Backend, l *slog.Logger) grc.GRCProvider { return bait.New(s, l) })
+	reg.Register("eu_ai_act", func(s storage.Backend, l *slog.Logger) grc.GRCProvider { return eu_ai_act.New(s, l) })
+	reg.Register("kait_zait", func(s storage.Backend, l *slog.Logger) grc.GRCProvider { return kait_zait.New(s, l) })
+	reg.Register("ncsc_caf", func(s storage.Backend, l *slog.Logger) grc.GRCProvider { return ncsc_caf.New(s, l) })
+	reg.Register("nist_ssdf", func(s storage.Backend, l *slog.Logger) grc.GRCProvider { return nist_ssdf.New(s, l) })
+	reg.Register("slsa", func(s storage.Backend, l *slog.Logger) grc.GRCProvider { return slsa.New(s, l) })
+	reg.Register("tisax", func(s storage.Backend, l *slog.Logger) grc.GRCProvider { return tisax.New(s, l) })
+	reg.Register("vait", func(s storage.Backend, l *slog.Logger) grc.GRCProvider { return vait.New(s, l) })
 
 	return reg
 }
