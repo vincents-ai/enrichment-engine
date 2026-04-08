@@ -57,8 +57,8 @@ func testLogger() *slog.Logger {
 
 func TestControlsCount(t *testing.T) {
 	controls := staticControls()
-	if len(controls) < 5 {
-		t.Errorf("expected at least 5 controls, got %d", len(controls))
+	if len(controls) < 25 {
+		t.Errorf("expected at least 25 controls, got %d", len(controls))
 	}
 }
 
@@ -97,7 +97,7 @@ func TestProviderRun(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Run() returned error: %v", err)
 	}
-	if count < 5 {
-		t.Errorf("expected at least 5 controls written, got %d", count)
+	if count < 25 {
+		t.Errorf("expected at least 25 controls written, got %d", count)
 	}
 }
