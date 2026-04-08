@@ -3975,6 +3975,345 @@ var (
 			},
 		},
 	}
+
+	// CVE_2019_7317 is a use-after-free in libpng, a low-level image decoding
+	// library used in consumer applications and game engines. It has no
+	// enterprise security controls mapped to it in any GRC framework.
+	CVE_2019_7317 = cveRecord{
+		ID: "CVE-2019-7317",
+		CVE: struct {
+			ID           string `json:"id"`
+			Published    string `json:"published"`
+			LastModified string `json:"lastModified"`
+			Descriptions []struct {
+				Lang  string `json:"lang"`
+				Value string `json:"value"`
+			} `json:"descriptions"`
+			Weaknesses []struct {
+				Description []struct {
+					Lang  string `json:"lang"`
+					Value string `json:"value"`
+				} `json:"description"`
+			} `json:"weaknesses"`
+			Configurations []struct {
+				Nodes []struct {
+					CPEMatch []struct {
+						Criteria              string `json:"criteria"`
+						Vulnerable            bool   `json:"vulnerable"`
+						VersionEndExcluding   string `json:"versionEndExcluding,omitempty"`
+						VersionStartIncluding string `json:"versionStartIncluding,omitempty"`
+					} `json:"cpeMatch"`
+				} `json:"nodes"`
+			} `json:"configurations"`
+			Metrics struct {
+				CvssMetricV31 []struct {
+					CvssData struct {
+						BaseScore    float64 `json:"baseScore"`
+						BaseSeverity string  `json:"baseSeverity"`
+						VectorString string  `json:"vectorString"`
+					} `json:"cvssData"`
+				} `json:"cvssMetricV31"`
+			} `json:"metrics"`
+			References []struct {
+				URL    string `json:"url"`
+				Source string `json:"source"`
+			} `json:"references"`
+		}{
+			ID:           "CVE-2019-7317",
+			Published:    "2019-02-04T08:29:00.253Z",
+			LastModified: "2023-11-07T03:13:24.960Z",
+			Descriptions: []struct {
+				Lang  string `json:"lang"`
+				Value string `json:"value"`
+			}{
+				{Lang: "en", Value: "png_image_free in png.c in libpng 1.6.x before 1.6.37 has a use-after-free because png_image_free_function is called under png_safe_execute. This vulnerability affects consumer image rendering libraries used in game engines and media players."},
+			},
+			Weaknesses: []struct {
+				Description []struct {
+					Lang  string `json:"lang"`
+					Value string `json:"value"`
+				} `json:"description"`
+			}{
+				{Description: []struct {
+					Lang  string `json:"lang"`
+					Value string `json:"value"`
+				}{{Lang: "en", Value: "CWE-416"}}},
+			},
+			Configurations: []struct {
+				Nodes []struct {
+					CPEMatch []struct {
+						Criteria              string `json:"criteria"`
+						Vulnerable            bool   `json:"vulnerable"`
+						VersionEndExcluding   string `json:"versionEndExcluding,omitempty"`
+						VersionStartIncluding string `json:"versionStartIncluding,omitempty"`
+					} `json:"cpeMatch"`
+				} `json:"nodes"`
+			}{
+				{Nodes: []struct {
+					CPEMatch []struct {
+						Criteria              string `json:"criteria"`
+						Vulnerable            bool   `json:"vulnerable"`
+						VersionEndExcluding   string `json:"versionEndExcluding,omitempty"`
+						VersionStartIncluding string `json:"versionStartIncluding,omitempty"`
+					} `json:"cpeMatch"`
+				}{
+					{CPEMatch: []struct {
+						Criteria              string `json:"criteria"`
+						Vulnerable            bool   `json:"vulnerable"`
+						VersionEndExcluding   string `json:"versionEndExcluding,omitempty"`
+						VersionStartIncluding string `json:"versionStartIncluding,omitempty"`
+					}{
+						{Criteria: "cpe:2.3:a:libpng:libpng:*:*:*:*:*:*:*:*", Vulnerable: true, VersionStartIncluding: "1.6.0", VersionEndExcluding: "1.6.37"},
+					}},
+				}},
+			},
+			Metrics: struct {
+				CvssMetricV31 []struct {
+					CvssData struct {
+						BaseScore    float64 `json:"baseScore"`
+						BaseSeverity string  `json:"baseSeverity"`
+						VectorString string  `json:"vectorString"`
+					} `json:"cvssData"`
+				} `json:"cvssMetricV31"`
+			}{
+				CvssMetricV31: []struct {
+					CvssData struct {
+						BaseScore    float64 `json:"baseScore"`
+						BaseSeverity string  `json:"baseSeverity"`
+						VectorString string  `json:"vectorString"`
+					} `json:"cvssData"`
+				}{
+					{CvssData: struct {
+						BaseScore    float64 `json:"baseScore"`
+						BaseSeverity string  `json:"baseSeverity"`
+						VectorString string  `json:"vectorString"`
+					}{BaseScore: 5.3, BaseSeverity: "MEDIUM", VectorString: "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:N/I:N/A:H"}},
+				},
+			},
+		},
+	}
+
+	// CVE_2018_20406 is an integer overflow in CPython's pickle module when
+	// handling large memoization tables. It affects the Python interpreter used
+	// as a scripting engine in game mods and media tools. No GRC framework maps
+	// to interpreter arithmetic edge cases in consumer scripting runtimes.
+	CVE_2018_20406 = cveRecord{
+		ID: "CVE-2018-20406",
+		CVE: struct {
+			ID           string `json:"id"`
+			Published    string `json:"published"`
+			LastModified string `json:"lastModified"`
+			Descriptions []struct {
+				Lang  string `json:"lang"`
+				Value string `json:"value"`
+			} `json:"descriptions"`
+			Weaknesses []struct {
+				Description []struct {
+					Lang  string `json:"lang"`
+					Value string `json:"value"`
+				} `json:"description"`
+			} `json:"weaknesses"`
+			Configurations []struct {
+				Nodes []struct {
+					CPEMatch []struct {
+						Criteria              string `json:"criteria"`
+						Vulnerable            bool   `json:"vulnerable"`
+						VersionEndExcluding   string `json:"versionEndExcluding,omitempty"`
+						VersionStartIncluding string `json:"versionStartIncluding,omitempty"`
+					} `json:"cpeMatch"`
+				} `json:"nodes"`
+			} `json:"configurations"`
+			Metrics struct {
+				CvssMetricV31 []struct {
+					CvssData struct {
+						BaseScore    float64 `json:"baseScore"`
+						BaseSeverity string  `json:"baseSeverity"`
+						VectorString string  `json:"vectorString"`
+					} `json:"cvssData"`
+				} `json:"cvssMetricV31"`
+			} `json:"metrics"`
+			References []struct {
+				URL    string `json:"url"`
+				Source string `json:"source"`
+			} `json:"references"`
+		}{
+			ID:           "CVE-2018-20406",
+			Published:    "2018-12-23T23:29:00.253Z",
+			LastModified: "2023-11-07T02:56:22.617Z",
+			Descriptions: []struct {
+				Lang  string `json:"lang"`
+				Value string `json:"value"`
+			}{
+				{Lang: "en", Value: "Modules/_pickle.c in Python before 3.7.2 has an out-of-bounds read via a large LONG_BINPUT value that is mishandled during a resize of memo. This is a local denial-of-service affecting consumer scripting runtimes and game modding environments with no enterprise GRC controls applicable."},
+			},
+			Weaknesses: []struct {
+				Description []struct {
+					Lang  string `json:"lang"`
+					Value string `json:"value"`
+				} `json:"description"`
+			}{
+				{Description: []struct {
+					Lang  string `json:"lang"`
+					Value string `json:"value"`
+				}{{Lang: "en", Value: "CWE-125"}}},
+			},
+			Configurations: []struct {
+				Nodes []struct {
+					CPEMatch []struct {
+						Criteria              string `json:"criteria"`
+						Vulnerable            bool   `json:"vulnerable"`
+						VersionEndExcluding   string `json:"versionEndExcluding,omitempty"`
+						VersionStartIncluding string `json:"versionStartIncluding,omitempty"`
+					} `json:"cpeMatch"`
+				} `json:"nodes"`
+			}{
+				{Nodes: []struct {
+					CPEMatch []struct {
+						Criteria              string `json:"criteria"`
+						Vulnerable            bool   `json:"vulnerable"`
+						VersionEndExcluding   string `json:"versionEndExcluding,omitempty"`
+						VersionStartIncluding string `json:"versionStartIncluding,omitempty"`
+					} `json:"cpeMatch"`
+				}{
+					{CPEMatch: []struct {
+						Criteria              string `json:"criteria"`
+						Vulnerable            bool   `json:"vulnerable"`
+						VersionEndExcluding   string `json:"versionEndExcluding,omitempty"`
+						VersionStartIncluding string `json:"versionStartIncluding,omitempty"`
+					}{
+						{Criteria: "cpe:2.3:a:python:python:*:*:*:*:*:*:*:*", Vulnerable: true, VersionEndExcluding: "3.7.2"},
+					}},
+				}},
+			},
+			Metrics: struct {
+				CvssMetricV31 []struct {
+					CvssData struct {
+						BaseScore    float64 `json:"baseScore"`
+						BaseSeverity string  `json:"baseSeverity"`
+						VectorString string  `json:"vectorString"`
+					} `json:"cvssData"`
+				} `json:"cvssMetricV31"`
+			}{
+				CvssMetricV31: []struct {
+					CvssData struct {
+						BaseScore    float64 `json:"baseScore"`
+						BaseSeverity string  `json:"baseSeverity"`
+						VectorString string  `json:"vectorString"`
+					} `json:"cvssData"`
+				}{
+					{CvssData: struct {
+						BaseScore    float64 `json:"baseScore"`
+						BaseSeverity string  `json:"baseSeverity"`
+						VectorString string  `json:"vectorString"`
+					}{BaseScore: 6.5, BaseSeverity: "MEDIUM", VectorString: "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:N/I:N/A:H"}},
+				},
+			},
+		},
+	}
+
+	// CVE_2014_9157 is a heap-based buffer overflow in Graphviz, a graph
+	// visualization tool used by developers in documentation pipelines.
+	// It has no enterprise GRC control relevance as it affects a desktop
+	// developer utility with no network-facing attack surface in enterprise deployments.
+	CVE_2014_9157 = cveRecord{
+		ID: "CVE-2014-9157",
+		CVE: struct {
+			ID           string `json:"id"`
+			Published    string `json:"published"`
+			LastModified string `json:"lastModified"`
+			Descriptions []struct {
+				Lang  string `json:"lang"`
+				Value string `json:"value"`
+			} `json:"descriptions"`
+			Weaknesses []struct {
+				Description []struct {
+					Lang  string `json:"lang"`
+					Value string `json:"value"`
+				} `json:"description"`
+			} `json:"weaknesses"`
+			Configurations []struct {
+				Nodes []struct {
+					CPEMatch []struct {
+						Criteria              string `json:"criteria"`
+						Vulnerable            bool   `json:"vulnerable"`
+						VersionEndExcluding   string `json:"versionEndExcluding,omitempty"`
+						VersionStartIncluding string `json:"versionStartIncluding,omitempty"`
+					} `json:"cpeMatch"`
+				} `json:"nodes"`
+			} `json:"configurations"`
+			Metrics struct {
+				CvssMetricV31 []struct {
+					CvssData struct {
+						BaseScore    float64 `json:"baseScore"`
+						BaseSeverity string  `json:"baseSeverity"`
+						VectorString string  `json:"vectorString"`
+					} `json:"cvssData"`
+				} `json:"cvssMetricV31"`
+			} `json:"metrics"`
+			References []struct {
+				URL    string `json:"url"`
+				Source string `json:"source"`
+			} `json:"references"`
+		}{
+			ID:           "CVE-2014-9157",
+			Published:    "2014-12-08T16:59:00.043Z",
+			LastModified: "2023-11-07T02:23:27.907Z",
+			Descriptions: []struct {
+				Lang  string `json:"lang"`
+				Value string `json:"value"`
+			}{
+				{Lang: "en", Value: "Heap-based buffer overflow in the yyerror function in lib/cgraph/scan.l in Graphviz 2.38.0 allows remote attackers to cause a denial of service (application crash) via crafted input. Graphviz is a developer desktop tool for graph visualization with no enterprise security controls mapped to it in any GRC framework."},
+			},
+			Weaknesses: []struct {
+				Description []struct {
+					Lang  string `json:"lang"`
+					Value string `json:"value"`
+				} `json:"description"`
+			}{
+				{Description: []struct {
+					Lang  string `json:"lang"`
+					Value string `json:"value"`
+				}{{Lang: "en", Value: "CWE-122"}}},
+			},
+			Configurations: []struct {
+				Nodes []struct {
+					CPEMatch []struct {
+						Criteria              string `json:"criteria"`
+						Vulnerable            bool   `json:"vulnerable"`
+						VersionEndExcluding   string `json:"versionEndExcluding,omitempty"`
+						VersionStartIncluding string `json:"versionStartIncluding,omitempty"`
+					} `json:"cpeMatch"`
+				} `json:"nodes"`
+			}{
+				{Nodes: []struct {
+					CPEMatch []struct {
+						Criteria              string `json:"criteria"`
+						Vulnerable            bool   `json:"vulnerable"`
+						VersionEndExcluding   string `json:"versionEndExcluding,omitempty"`
+						VersionStartIncluding string `json:"versionStartIncluding,omitempty"`
+					} `json:"cpeMatch"`
+				}{
+					{CPEMatch: []struct {
+						Criteria              string `json:"criteria"`
+						Vulnerable            bool   `json:"vulnerable"`
+						VersionEndExcluding   string `json:"versionEndExcluding,omitempty"`
+						VersionStartIncluding string `json:"versionStartIncluding,omitempty"`
+					}{
+						{Criteria: "cpe:2.3:a:graphviz:graphviz:2.38.0:*:*:*:*:*:*:*", Vulnerable: true},
+					}},
+				}},
+			},
+			Metrics: struct {
+				CvssMetricV31 []struct {
+					CvssData struct {
+						BaseScore    float64 `json:"baseScore"`
+						BaseSeverity string  `json:"baseSeverity"`
+						VectorString string  `json:"vectorString"`
+					} `json:"cvssData"`
+				} `json:"cvssMetricV31"`
+			}{},
+		},
+	}
 )
 
 func AllRealCVEs() []cveRecord {
@@ -4022,6 +4361,9 @@ func AllRealCVEs() []cveRecord {
 		CVE_2022_40684,
 		CVE_2019_11477,
 		CVE_2021_33574,
+		CVE_2019_7317,
+		CVE_2018_20406,
+		CVE_2014_9157,
 	}
 }
 

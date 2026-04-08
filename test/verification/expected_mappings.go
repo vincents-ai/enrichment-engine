@@ -318,6 +318,37 @@ var expectations = []cveExpectation{
 		MinMappings: 0,
 		MaxMappings: 0,
 	},
+	// Consumer-software CVEs: no GRC framework maps to these vulnerabilities.
+	{
+		ID:       "CVE-2019-7317",
+		Name:     "libpng use-after-free in consumer image library (CWE-416)",
+		CWE:      "CWE-416",
+		Positive: false,
+		// libpng is a low-level consumer image library used in game engines and
+		// media players; no enterprise GRC controls govern its patch lifecycle.
+		MinMappings: 0,
+		MaxMappings: 0,
+	},
+	{
+		ID:       "CVE-2018-20406",
+		Name:     "CPython pickle out-of-bounds read in consumer scripting runtime (CWE-125)",
+		CWE:      "CWE-125",
+		Positive: false,
+		// CPython out-of-bounds read in the pickle memo table; affects game
+		// modding runtimes and local scripting tools — no GRC control coverage.
+		MinMappings: 0,
+		MaxMappings: 0,
+	},
+	{
+		ID:       "CVE-2014-9157",
+		Name:     "Graphviz heap buffer overflow in developer desktop tool (CWE-122)",
+		CWE:      "CWE-122",
+		Positive: false,
+		// Graphviz is a developer graph-visualization desktop tool with no
+		// enterprise deployment surface; no GRC framework assigns controls to it.
+		MinMappings: 0,
+		MaxMappings: 0,
+	},
 }
 
 func GetExpectation(cveID string) (cveExpectation, bool) {
