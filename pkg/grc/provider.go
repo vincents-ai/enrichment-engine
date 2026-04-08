@@ -134,11 +134,14 @@ func (r *Registry) RunSelected(ctx context.Context, names []string, store storag
 	return total, firstErr
 }
 
-var defaultRegistry *Registry
+var (
+	defaultRegistry     *Registry
+	defaultRegistryOnce sync.Once
+)
 
 func DefaultRegistry() *Registry {
-	if defaultRegistry == nil {
+	defaultRegistryOnce.Do(func() {
 		defaultRegistry = NewRegistry()
-	}
+	})
 	return defaultRegistry
 }
