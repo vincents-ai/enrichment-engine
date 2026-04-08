@@ -183,6 +183,9 @@ func (p *Provider) toControl(ctrl doraControl, family, pillar string) grc.Contro
 }
 
 func (p *Provider) writeEmbeddedControls(ctx context.Context) (int, error) {
+	if p.store == nil {
+		return 0, fmt.Errorf("storage backend is nil")
+	}
 	p.logger.Info("using embedded DORA controls")
 
 	controls := embeddedControls()

@@ -167,6 +167,9 @@ func (p *Provider) buildControl(req craRequirement) grc.Control {
 }
 
 func (p *Provider) writeControls(ctx context.Context, controls []grc.Control) (int, error) {
+	if p.store == nil {
+		return 0, fmt.Errorf("storage backend is nil")
+	}
 	p.logger.Info("parsed CRA requirements", "count", len(controls))
 
 	count := 0

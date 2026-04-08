@@ -166,6 +166,9 @@ func (p *Provider) parse(path string) ([]grc.Control, error) {
 }
 
 func (p *Provider) writeControls(ctx context.Context, controls []grc.Control) (int, error) {
+	if p.store == nil {
+		return 0, fmt.Errorf("storage backend is nil")
+	}
 	count := 0
 	for _, ctrl := range controls {
 		id := fmt.Sprintf("%s/%s", FrameworkID, ctrl.ControlID)

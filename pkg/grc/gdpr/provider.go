@@ -181,6 +181,9 @@ func (p *Provider) toControl(ctrl gdprControl, family, article string) grc.Contr
 }
 
 func (p *Provider) writeEmbeddedControls(ctx context.Context) (int, error) {
+	if p.store == nil {
+		return 0, fmt.Errorf("storage backend is nil")
+	}
 	p.logger.Info("using embedded GDPR controls")
 
 	controls := embeddedControls()
