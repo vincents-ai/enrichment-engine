@@ -273,6 +273,16 @@ func (e *Engine) mapByCPE(ctx context.Context) (int, error) {
 		return 0, fmt.Errorf("list controls: %w", err)
 	}
 
+	// Build CWE→controls index once at O(C) so each vuln lookup is O(CWEs_per_vuln)
+	// instead of scanning every control per vuln (was O(V×C)).
+	cweIndex := make(map[string][]*storage.ControlRow, len(controls))
+	for i := range controls {
+		ctrl := &controls[i]
+		for _, cwe := range ctrl.RelatedCWEs {
+			cweIndex[cwe] = append(cweIndex[cwe], ctrl)
+		}
+	}
+
 	totalMappings := 0
 	for _, vuln := range vulns {
 		cpes := extractCPEs(vuln.Record)
@@ -280,27 +290,18 @@ func (e *Engine) mapByCPE(ctx context.Context) (int, error) {
 			continue
 		}
 
-		for _, ctrl := range controls {
-			if len(ctrl.RelatedCWEs) == 0 {
-				continue
-			}
+		vulnCWEs := extractCWEs(vuln.Record)
+		if len(vulnCWEs) == 0 {
+			continue
+		}
 
-			vulnCWEs := extractCWEs(vuln.Record)
-			if len(vulnCWEs) == 0 {
-				continue
-			}
-
-			for _, vulnCWE := range vulnCWEs {
-				for _, ctrlCWE := range ctrl.RelatedCWEs {
-					if vulnCWE == ctrlCWE {
-						evidence := fmt.Sprintf("CPE-based indirect mapping via shared CWE %s: %s -> %s/%s", vulnCWE, vuln.ID, ctrl.Framework, ctrl.ControlID)
-						if err := e.store.WriteMapping(ctx, vuln.ID, ctrl.ID, ctrl.Framework, "cpe", 0.6, evidence); err != nil {
-							continue
-						}
-						totalMappings++
-						break
-					}
+		for _, vulnCWE := range vulnCWEs {
+			for _, ctrl := range cweIndex[vulnCWE] {
+				evidence := fmt.Sprintf("CPE-based indirect mapping via shared CWE %s: %s -> %s/%s", vulnCWE, vuln.ID, ctrl.Framework, ctrl.ControlID)
+				if err := e.store.WriteMapping(ctx, vuln.ID, ctrl.ID, ctrl.Framework, "cpe", 0.6, evidence); err != nil {
+					continue
 				}
+				totalMappings++
 			}
 		}
 	}
