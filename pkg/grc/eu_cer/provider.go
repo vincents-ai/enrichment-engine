@@ -44,7 +44,7 @@ func (p *Provider) Run(ctx context.Context) (int, error) {
 
 func staticControls() []grc.Control {
 	ref := func(section string) []grc.Reference {
-		return []grc.Reference{{Source: "EU Cybersecurity Certification Regulation (EU) 2024/XXX", Section: section}}
+		return []grc.Reference{{Source: "EU Cybersecurity Act (Regulation (EU) 2019/881)", Section: section}}
 	}
 
 	return []grc.Control{
