@@ -115,4 +115,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace github.com/shift/vulnz => /home/shift/Documents/d-stack-desktop/vulnz-go
+replace github.com/shift/vulnz => ../vulnz-go
