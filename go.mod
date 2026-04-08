@@ -1,6 +1,6 @@
 module github.com/shift/enrichment-engine
 
-go 1.25.0
+go 1.25.8
 
 require (
 	github.com/cucumber/godog v0.15.1

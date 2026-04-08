@@ -37,3 +37,6 @@ result-*
 # Env
 .env
 .env.local
+
+# Engram
+.engram/
