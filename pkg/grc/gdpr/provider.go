@@ -16,7 +16,7 @@ import (
 
 const FrameworkID = "GDPR_2016_679"
 
-var CatalogURL = "https://raw.githubusercontent.com/gdpr-controls/registry/main/gdpr_controls.json"
+var CatalogURL = ""
 
 // Provider fetches and parses GDPR (General Data Protection Regulation) controls.
 type Provider struct {
@@ -39,6 +39,11 @@ func (p *Provider) Name() string {
 
 // Run fetches the GDPR controls catalog, parses controls, and writes them to storage.
 func (p *Provider) Run(ctx context.Context) (int, error) {
+	if CatalogURL == "" {
+		p.logger.Info("no remote catalog URL configured, using embedded GDPR controls")
+		return p.writeEmbeddedControls(ctx)
+	}
+
 	p.logger.Info("fetching GDPR controls catalog", "url", CatalogURL)
 
 	f, err := os.CreateTemp("", "gdpr_catalog_*.json")
@@ -263,6 +268,8 @@ func embeddedControls() []grc.Control {
 			Family:      "Principles (Article 5)",
 			Description: c.desc,
 			Level:       "standard",
+			RelatedCWEs: []string{"CWE-200", "CWE-552"},
+			Tags:        []string{"data-privacy", "transparency"},
 			References:  []grc.Reference{{Source: "GDPR Regulation (EU) 2016/679", Section: "Article 5"}},
 		})
 	}
@@ -275,6 +282,8 @@ func embeddedControls() []grc.Control {
 			Family:      "Lawfulness of Processing (Article 6)",
 			Description: c.desc,
 			Level:       "standard",
+			RelatedCWEs: []string{"CWE-639", "CWE-640"},
+			Tags:        []string{"consent", "authorization"},
 			References:  []grc.Reference{{Source: "GDPR Regulation (EU) 2016/679", Section: "Article 6"}},
 		})
 	}
@@ -287,6 +296,8 @@ func embeddedControls() []grc.Control {
 			Family:      "Conditions for Consent (Article 7)",
 			Description: c.desc,
 			Level:       "standard",
+			RelatedCWEs: []string{"CWE-639", "CWE-287"},
+			Tags:        []string{"consent", "lawful-basis"},
 			References:  []grc.Reference{{Source: "GDPR Regulation (EU) 2016/679", Section: "Article 7"}},
 		})
 	}
@@ -299,6 +310,8 @@ func embeddedControls() []grc.Control {
 			Family:      "Data Protection by Design and Default (Article 25)",
 			Description: c.desc,
 			Level:       "standard",
+			RelatedCWEs: []string{"CWE-311", "CWE-359"},
+			Tags:        []string{"privacy-by-design", "data-minimisation"},
 			References:  []grc.Reference{{Source: "GDPR Regulation (EU) 2016/679", Section: "Article 25"}},
 		})
 	}
@@ -311,6 +324,8 @@ func embeddedControls() []grc.Control {
 			Family:      "Security of Processing (Article 32)",
 			Description: c.desc,
 			Level:       "standard",
+			RelatedCWEs: []string{"CWE-311", "CWE-312", "CWE-327"},
+			Tags:        []string{"encryption", "confidentiality", "security-testing"},
 			References:  []grc.Reference{{Source: "GDPR Regulation (EU) 2016/679", Section: "Article 32"}},
 		})
 	}
@@ -323,6 +338,8 @@ func embeddedControls() []grc.Control {
 			Family:      "Notification of Breach (Article 33)",
 			Description: c.desc,
 			Level:       "high",
+			RelatedCWEs: []string{"CWE-400", "CWE-776"},
+			Tags:        []string{"incident-response", "breach-notification"},
 			References:  []grc.Reference{{Source: "GDPR Regulation (EU) 2016/679", Section: "Article 33"}},
 		})
 	}
@@ -335,6 +352,8 @@ func embeddedControls() []grc.Control {
 			Family:      "Communication of Breach (Article 34)",
 			Description: c.desc,
 			Level:       "high",
+			RelatedCWEs: []string{"CWE-200", "CWE-359"},
+			Tags:        []string{"breach-notification", "transparency"},
 			References:  []grc.Reference{{Source: "GDPR Regulation (EU) 2016/679", Section: "Article 34"}},
 		})
 	}
@@ -347,6 +366,8 @@ func embeddedControls() []grc.Control {
 			Family:      "Data Protection Impact Assessment (Article 35)",
 			Description: c.desc,
 			Level:       "standard",
+			RelatedCWEs: []string{"CWE-200", "CWE-359"},
+			Tags:        []string{"dpia", "risk-assessment"},
 			References:  []grc.Reference{{Source: "GDPR Regulation (EU) 2016/679", Section: "Article 35"}},
 		})
 	}

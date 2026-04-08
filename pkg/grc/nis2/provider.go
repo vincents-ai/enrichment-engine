@@ -15,7 +15,7 @@ import (
 
 const FrameworkID = "NIS2_Directive_2022"
 
-var CatalogURL = "https://raw.githubusercontent.com/ENISA-EU/nis2-directive/main/nis2_requirements.json"
+var CatalogURL = ""
 
 // Provider fetches NIS2 Directive compliance requirements from the EU cybersecurity directive.
 type Provider struct {
@@ -38,6 +38,12 @@ func (p *Provider) Name() string {
 
 // Run fetches the NIS2 catalog, parses controls, and writes them to storage.
 func (p *Provider) Run(ctx context.Context) (int, error) {
+	if CatalogURL == "" {
+		p.logger.Info("no remote catalog URL configured, using embedded NIS2 controls")
+		controls := p.embeddedControls()
+		return p.writeControls(ctx, controls)
+	}
+
 	p.logger.Info("fetching NIS2 Directive requirements catalog", "url", CatalogURL)
 
 	f, err := os.CreateTemp("", "nis2_catalog_*.json")
@@ -64,18 +70,7 @@ func (p *Provider) Run(ctx context.Context) (int, error) {
 
 	p.logger.Info("parsed NIS2 controls", "count", len(controls))
 
-	count := 0
-	for _, ctrl := range controls {
-		id := fmt.Sprintf("%s/%s", FrameworkID, ctrl.ControlID)
-		if err := p.store.WriteControl(ctx, id, ctrl); err != nil {
-			p.logger.Warn("failed to write control", "id", id, "error", err)
-			continue
-		}
-		count++
-	}
-
-	p.logger.Info("wrote NIS2 controls to storage", "count", count)
-	return count, nil
+	return p.writeControls(ctx, controls)
 }
 
 func (p *Provider) download(ctx context.Context, url, dest string) error {
@@ -170,6 +165,20 @@ func (p *Provider) parse(path string) ([]grc.Control, error) {
 	return controls, nil
 }
 
+func (p *Provider) writeControls(ctx context.Context, controls []grc.Control) (int, error) {
+	count := 0
+	for _, ctrl := range controls {
+		id := fmt.Sprintf("%s/%s", FrameworkID, ctrl.ControlID)
+		if err := p.store.WriteControl(ctx, id, ctrl); err != nil {
+			p.logger.Warn("failed to write control", "id", id, "error", err)
+			continue
+		}
+		count++
+	}
+	p.logger.Info("wrote NIS2 controls to storage", "count", count)
+	return count, nil
+}
+
 // embeddedControls returns the NIS2 Directive requirements when the remote catalog is unavailable.
 func (p *Provider) embeddedControls() []grc.Control {
 	return []grc.Control{
@@ -180,6 +189,8 @@ func (p *Provider) embeddedControls() []grc.Control {
 			Family:      "Risk management measures",
 			Description: "Entities shall take appropriate and proportionate technical, operational and organisational measures to manage the risks posed to the security of network and information systems which they use for their operations, and to prevent or minimise the impact of incidents on recipients of their services and on other services.",
 			Level:       "high",
+			RelatedCWEs: []string{"CWE-693", "CWE-20"},
+			Tags:        []string{"risk-management", "information-security"},
 			References:  nis2Refs("21"),
 		},
 		{
@@ -189,6 +200,8 @@ func (p *Provider) embeddedControls() []grc.Control {
 			Family:      "Risk management measures",
 			Description: "Entities shall implement measures for the prevention, detection, and handling of incidents, including incident detection systems, incident response procedures, and incident analysis capabilities.",
 			Level:       "high",
+			RelatedCWEs: []string{"CWE-778", "CWE-400"},
+			Tags:        []string{"incident-handling", "logging"},
 			References:  nis2Refs("21"),
 		},
 		{
@@ -198,6 +211,8 @@ func (p *Provider) embeddedControls() []grc.Control {
 			Family:      "Risk management measures",
 			Description: "Entities shall establish business continuity management practices, including risk analysis, backup management, disaster recovery, and crisis management procedures to ensure continuity of essential services.",
 			Level:       "high",
+			RelatedCWEs: []string{"CWE-400", "CWE-693"},
+			Tags:        []string{"business-continuity", "crisis-management"},
 			References:  nis2Refs("21"),
 		},
 		{
@@ -207,6 +222,8 @@ func (p *Provider) embeddedControls() []grc.Control {
 			Family:      "Risk management measures",
 			Description: "Entities shall address security in their supply chains and relationships with direct suppliers and service providers, including assessing the cybersecurity posture of suppliers and verifying that suppliers implement adequate security measures.",
 			Level:       "high",
+			RelatedCWEs: []string{"CWE-1357", "CWE-829"},
+			Tags:        []string{"supply-chain", "open-source-risk"},
 			References:  nis2Refs("21"),
 		},
 		{
@@ -216,6 +233,8 @@ func (p *Provider) embeddedControls() []grc.Control {
 			Family:      "Risk management measures",
 			Description: "Entities shall implement policies and procedures for the secure acquisition, development, and maintenance of network and information systems, including vulnerability handling and secure development practices.",
 			Level:       "high",
+			RelatedCWEs: []string{"CWE-20", "CWE-287", "CWE-311"},
+			Tags:        []string{"secure-development", "access-control"},
 			References:  nis2Refs("21"),
 		},
 		{
@@ -225,6 +244,8 @@ func (p *Provider) embeddedControls() []grc.Control {
 			Family:      "Risk management measures",
 			Description: "Entities shall establish policies and procedures to regularly assess the effectiveness of their cybersecurity risk management measures, including audits, reviews, and continuous monitoring.",
 			Level:       "standard",
+			RelatedCWEs: []string{"CWE-693", "CWE-778"},
+			Tags:        []string{"risk-assessment", "continuous-monitoring"},
 			References:  nis2Refs("21"),
 		},
 		{
@@ -234,6 +255,8 @@ func (p *Provider) embeddedControls() []grc.Control {
 			Family:      "Risk management measures",
 			Description: "Entities shall implement the use of cryptography and encryption where appropriate, including encryption of data in transit and at rest, and secure key management practices.",
 			Level:       "high",
+			RelatedCWEs: []string{"CWE-311", "CWE-327"},
+			Tags:        []string{"encryption", "cryptography"},
 			References:  nis2Refs("21"),
 		},
 		{
@@ -243,6 +266,8 @@ func (p *Provider) embeddedControls() []grc.Control {
 			Family:      "Risk management measures",
 			Description: "Entities shall implement human resources security policies, including access control policies, identity management, and the principle of least privilege for access to network and information systems.",
 			Level:       "high",
+			RelatedCWEs: []string{"CWE-287", "CWE-269"},
+			Tags:        []string{"access-control", "identity-management"},
 			References:  nis2Refs("21"),
 		},
 		{
@@ -252,6 +277,8 @@ func (p *Provider) embeddedControls() []grc.Control {
 			Family:      "Risk management measures",
 			Description: "Entities shall maintain an inventory of assets, including hardware, software, data, and services, and classify them according to their criticality and sensitivity to apply appropriate security controls.",
 			Level:       "standard",
+			RelatedCWEs: []string{"CWE-1003", "CWE-200"},
+			Tags:        []string{"asset-management", "inventory"},
 			References:  nis2Refs("21"),
 		},
 		{
@@ -261,6 +288,8 @@ func (p *Provider) embeddedControls() []grc.Control {
 			Family:      "Risk management measures",
 			Description: "Entities shall implement multi-factor authentication or continuous authentication solutions, secure voice, video, and text communications, and secure emergency communication systems where relevant.",
 			Level:       "high",
+			RelatedCWEs: []string{"CWE-287", "CWE-311"},
+			Tags:        []string{"authentication", "mfa"},
 			References:  nis2Refs("21"),
 		},
 		{
@@ -270,6 +299,8 @@ func (p *Provider) embeddedControls() []grc.Control {
 			Family:      "Incident handling",
 			Description: "Entities shall notify the CSIRT or competent authority without undue delay and in any event within 24 hours of becoming aware of a significant incident, providing an early warning with an initial indication of the cause and type of incident.",
 			Level:       "high",
+			RelatedCWEs: []string{"CWE-778", "CWE-200"},
+			Tags:        []string{"incident-reporting", "early-warning"},
 			References:  nis2Refs("23"),
 		},
 		{
@@ -279,6 +310,8 @@ func (p *Provider) embeddedControls() []grc.Control {
 			Family:      "Incident handling",
 			Description: "Entities shall provide an intermediate update within 72 hours of the initial notification, including a detailed description of the incident, severity assessment, indicators of compromise, and mitigation measures applied.",
 			Level:       "high",
+			RelatedCWEs: []string{"CWE-778", "CWE-400"},
+			Tags:        []string{"incident-reporting", "logging"},
 			References:  nis2Refs("23"),
 		},
 		{
@@ -288,6 +321,8 @@ func (p *Provider) embeddedControls() []grc.Control {
 			Family:      "Incident handling",
 			Description: "Entities shall submit a final report within one month of the intermediate update, including a detailed description of the incident, root cause analysis, impact assessment, and remedial measures taken and planned.",
 			Level:       "standard",
+			RelatedCWEs: []string{"CWE-778", "CWE-200"},
+			Tags:        []string{"incident-reporting", "root-cause-analysis"},
 			References:  nis2Refs("23"),
 		},
 		{
@@ -297,6 +332,8 @@ func (p *Provider) embeddedControls() []grc.Control {
 			Family:      "Notification requirements",
 			Description: "Entities shall notify the competent authority or CSIRT of any incident having a substantial impact on the provision of their services, including the severity, duration, geographical spread, and number of users affected.",
 			Level:       "high",
+			RelatedCWEs: []string{"CWE-200", "CWE-359"},
+			Tags:        []string{"breach-notification", "transparency"},
 			References:  nis2Refs("24"),
 		},
 		{
@@ -306,6 +343,8 @@ func (p *Provider) embeddedControls() []grc.Control {
 			Family:      "Notification requirements",
 			Description: "Entities shall notify the recipients of their services of any significant incident that may adversely affect the provision of the service, and inform them of any measures or remedies they can take in response.",
 			Level:       "high",
+			RelatedCWEs: []string{"CWE-200", "CWE-359"},
+			Tags:        []string{"breach-notification", "transparency"},
 			References:  nis2Refs("24"),
 		},
 		{
@@ -315,6 +354,8 @@ func (p *Provider) embeddedControls() []grc.Control {
 			Family:      "Certification",
 			Description: "Entities are encouraged to use European cybersecurity certification schemes adopted under Regulation (EU) 2019/881 for ICT products, services, and processes relevant to their operations.",
 			Level:       "standard",
+			RelatedCWEs: []string{"CWE-693", "CWE-20"},
+			Tags:        []string{"certification", "compliance"},
 			References:  nis2Refs("25"),
 		},
 		{
@@ -324,6 +365,8 @@ func (p *Provider) embeddedControls() []grc.Control {
 			Family:      "Certification",
 			Description: "Member States shall recognize European cybersecurity certificates issued in other Member States as equivalent to national certificates, avoiding duplication of certification requirements.",
 			Level:       "standard",
+			RelatedCWEs: []string{"CWE-693", "CWE-20"},
+			Tags:        []string{"certification", "compliance"},
 			References:  nis2Refs("25"),
 		},
 		{
@@ -333,6 +376,8 @@ func (p *Provider) embeddedControls() []grc.Control {
 			Family:      "Risk management measures",
 			Description: "Entities shall implement basic cyber hygiene practices and provide regular cybersecurity awareness training and digital skills training to employees, management, and relevant personnel.",
 			Level:       "high",
+			RelatedCWEs: []string{"CWE-693", "CWE-287"},
+			Tags:        []string{"cyber-hygiene", "security-training"},
 			References:  nis2Refs("21"),
 		},
 		{
@@ -342,6 +387,8 @@ func (p *Provider) embeddedControls() []grc.Control {
 			Family:      "Risk management measures",
 			Description: "Entities shall implement policies for vulnerability handling, including regular vulnerability scanning, patch management, and coordinated vulnerability disclosure procedures.",
 			Level:       "high",
+			RelatedCWEs: []string{"CWE-1035", "CWE-20"},
+			Tags:        []string{"vulnerability-management", "patching"},
 			References:  nis2Refs("21"),
 		},
 		{
@@ -351,6 +398,8 @@ func (p *Provider) embeddedControls() []grc.Control {
 			Family:      "Risk management measures",
 			Description: "Entities shall conduct regular security testing, including penetration testing, vulnerability assessments, and continuous monitoring of network and information systems for anomalies and threats.",
 			Level:       "high",
+			RelatedCWEs: []string{"CWE-1035", "CWE-693"},
+			Tags:        []string{"security-testing", "penetration-testing"},
 			References:  nis2Refs("21"),
 		},
 	}

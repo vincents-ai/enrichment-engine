@@ -18,7 +18,7 @@ const (
 	FrameworkID = "DORA_2022_2554"
 )
 
-var CatalogURL = "https://raw.githubusercontent.com/dora-regulation/controls/main/dora_controls.json"
+var CatalogURL = ""
 
 // Provider fetches and parses DORA (Digital Operational Resilience Act) controls.
 type Provider struct {
@@ -41,6 +41,11 @@ func (p *Provider) Name() string {
 
 // Run fetches the DORA controls catalog, parses controls, and writes them to storage.
 func (p *Provider) Run(ctx context.Context) (int, error) {
+	if CatalogURL == "" {
+		p.logger.Info("no remote catalog URL configured, using embedded DORA controls")
+		return p.writeEmbeddedControls(ctx)
+	}
+
 	p.logger.Info("fetching DORA controls catalog", "url", CatalogURL)
 
 	f, err := os.CreateTemp("", "dora_catalog_*.json")
@@ -252,6 +257,15 @@ func embeddedControls() []grc.Control {
 	}
 
 	for _, c := range ictRiskManagement {
+		relatedCWEs := []string{}
+		tags := []string{}
+		if c.id == "ICT-RM-5" {
+			relatedCWEs = []string{"CWE-1003", "CWE-200"}
+			tags = []string{"asset-discovery", "risk-identification"}
+		} else if c.id == "ICT-RM-6" {
+			relatedCWEs = []string{"CWE-311", "CWE-312", "CWE-327"}
+			tags = []string{"security-controls", "encryption"}
+		}
 		controls = append(controls, grc.Control{
 			Framework:   FrameworkID,
 			ControlID:   c.id,
@@ -259,6 +273,8 @@ func embeddedControls() []grc.Control {
 			Family:      "ICT Risk Management",
 			Description: c.desc,
 			Level:       "standard",
+			RelatedCWEs: relatedCWEs,
+			Tags:        tags,
 			References: []grc.Reference{
 				{Source: "DORA Regulation (EU) 2022/2554", Section: c.article},
 			},
@@ -266,6 +282,8 @@ func embeddedControls() []grc.Control {
 	}
 
 	for _, c := range incidentReporting {
+		relatedCWEs := []string{"CWE-778", "CWE-400"}
+		tags := []string{"incident-reporting", "logging"}
 		controls = append(controls, grc.Control{
 			Framework:   FrameworkID,
 			ControlID:   c.id,
@@ -273,6 +291,8 @@ func embeddedControls() []grc.Control {
 			Family:      "ICT-related Incident Reporting",
 			Description: c.desc,
 			Level:       "standard",
+			RelatedCWEs: relatedCWEs,
+			Tags:        tags,
 			References: []grc.Reference{
 				{Source: "DORA Regulation (EU) 2022/2554", Section: c.article},
 			},
@@ -280,6 +300,23 @@ func embeddedControls() []grc.Control {
 	}
 
 	for _, c := range resilienceTesting {
+		relatedCWEs := []string{}
+		tags := []string{}
+		switch c.id {
+		case "RT-5":
+			relatedCWEs = []string{"CWE-1035", "CWE-400"}
+			tags = []string{"vulnerability-assessment", "resilience-testing"}
+		case "RT-6":
+			relatedCWEs = []string{"CWE-1035", "CWE-829"}
+			tags = []string{"open-source-risk", "resilience-testing"}
+		case "RT-8", "RT-9":
+			relatedCWEs = []string{"CWE-284", "CWE-693"}
+			tags = []string{"penetration-testing", "resilience-testing"}
+		default:
+			// RT-1 backup/continuity, RT-2 disaster recovery, RT-3 backup, RT-4 testing program, RT-7 scenario, RT-10 remediation
+			relatedCWEs = []string{"CWE-400", "CWE-693"}
+			tags = []string{"resilience-testing", "business-continuity"}
+		}
 		controls = append(controls, grc.Control{
 			Framework:   FrameworkID,
 			ControlID:   c.id,
@@ -287,6 +324,8 @@ func embeddedControls() []grc.Control {
 			Family:      "Digital Operational Resilience Testing",
 			Description: c.desc,
 			Level:       "standard",
+			RelatedCWEs: relatedCWEs,
+			Tags:        tags,
 			References: []grc.Reference{
 				{Source: "DORA Regulation (EU) 2022/2554", Section: c.article},
 			},
@@ -301,6 +340,8 @@ func embeddedControls() []grc.Control {
 			Family:      "ICT Third-Party Risk Management",
 			Description: c.desc,
 			Level:       "standard",
+			RelatedCWEs: []string{"CWE-1357", "CWE-693"},
+			Tags:        []string{"third-party-risk", "supply-chain"},
 			References: []grc.Reference{
 				{Source: "DORA Regulation (EU) 2022/2554", Section: c.article},
 			},
@@ -315,6 +356,8 @@ func embeddedControls() []grc.Control {
 			Family:      "Information Sharing Arrangements",
 			Description: c.desc,
 			Level:       "standard",
+			RelatedCWEs: []string{"CWE-200", "CWE-311"},
+			Tags:        []string{"information-sharing", "confidentiality"},
 			References: []grc.Reference{
 				{Source: "DORA Regulation (EU) 2022/2554", Section: c.article},
 			},
