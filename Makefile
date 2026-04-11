@@ -3,14 +3,14 @@ BUILD_DIR := ./bin
 VERSION := $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
 LDFLAGS := -s -w -X main.Version=$(VERSION)
 
-.PHONY: all build test test-all test-unit test-integration test-behavioral test-scenario lint fmt clean
+.PHONY: all build test test-all test-unit test-integration test-behavioral test-verification test-fuzz test-fuzz-enricher test-fuzz-storage test-scenario lint fmt clean
 
 all: lint test build
 
 build:
 	CGO_ENABLED=0 go build -ldflags "$(LDFLAGS)" -o $(BUILD_DIR)/$(BINARY_NAME) ./cmd/enrich
 
-test: test-unit test-integration test-behavioral
+test: test-unit test-integration test-behavioral test-verification
 
 test-unit:
 	CGO_ENABLED=0 go test ./pkg/...
@@ -20,6 +20,19 @@ test-integration:
 
 test-behavioral:
 	CGO_ENABLED=0 GODOG=1 go test ./test/behavioral/...
+
+test-verification:
+	CGO_ENABLED=0 go test -v -timeout 15m ./test/verification/...
+
+test-fuzz: test-fuzz-enricher test-fuzz-storage
+
+test-fuzz-enricher:
+	@for fn in FuzzExtractCWEs FuzzExtractCPEs; do \
+		CGO_ENABLED=0 go test -fuzz=$$fn -fuzztime=60s ./pkg/enricher/ || exit 1; \
+	done
+
+test-fuzz-storage:
+	CGO_ENABLED=0 go test -fuzz=FuzzExtractVulnCWEs -fuzztime=60s ./pkg/storage/
 
 test-scenario:
 	CGO_ENABLED=0 go test -tags integration ./test/scenario/...
