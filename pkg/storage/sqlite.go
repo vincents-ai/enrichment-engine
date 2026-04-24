@@ -82,7 +82,8 @@ type SQLiteBackend struct {
 }
 
 // NewSQLiteBackend creates a new SQLite backend with GRC tables.
-func NewSQLiteBackend(path string) (*SQLiteBackend, error) {
+// Returns Backend interface.
+func NewSQLiteBackend(path string) (Backend, error) {
 	dir := filepath.Dir(path)
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return nil, fmt.Errorf("create database directory: %w", err)
