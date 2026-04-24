@@ -28,7 +28,14 @@ type Config struct {
 	VulnzWorkspace string
 }
 
-type Engine struct {
+// EnrichmentEngine defines the interface for the enrichment pipeline.
+type EnrichmentEngine interface {
+	// Run executes the full enrichment pipeline.
+	Run(ctx context.Context) (*Result, error)
+}
+
+// Engine implements the EnrichmentEngine interface.
+type engine struct {
 	store            storage.Backend
 	maxParallel      int
 	logger           *slog.Logger
@@ -41,7 +48,9 @@ type Engine struct {
 	vulnzWorkspace   string
 }
 
-func New(cfg Config) *Engine {
+// New creates a new EnrichmentEngine.
+// Returns EnrichmentEngine interface.
+func New(cfg Config) EnrichmentEngine {
 	if cfg.MaxParallel <= 0 {
 		cfg.MaxParallel = 1
 	}
@@ -52,7 +61,7 @@ func New(cfg Config) *Engine {
 	if registry == nil {
 		registry = grcbuiltin.DefaultRegistry()
 	}
-	return &Engine{
+	return &engine{
 		store:            cfg.Store,
 		maxParallel:      cfg.MaxParallel,
 		logger:           cfg.Logger,
@@ -74,7 +83,7 @@ type Result struct {
 	Duration      time.Duration
 }
 
-func (e *Engine) runVulnzIngest(ctx context.Context) error {
+func (e *engine) runVulnzIngest(ctx context.Context) error {
 	if e.vulnzWorkspace == "" {
 		return nil
 	}
@@ -84,7 +93,7 @@ func (e *Engine) runVulnzIngest(ctx context.Context) error {
 	})
 }
 
-func (e *Engine) Run(ctx context.Context) (*Result, error) {
+func (e *engine) Run(ctx context.Context) (*Result, error) {
 	start := time.Now()
 	e.logger.Info("starting enrichment pipeline")
 	result := &Result{}
@@ -140,7 +149,7 @@ func (e *Engine) Run(ctx context.Context) (*Result, error) {
 	return result, nil
 }
 
-func (e *Engine) runProviders(ctx context.Context) (int, int, error) {
+func (e *engine) runProviders(ctx context.Context) (int, int, error) {
 	e.logger.Info("running GRC providers")
 
 	names := e.providerNames
@@ -221,7 +230,7 @@ func extractCPEs(record json.RawMessage) []string {
 	return cpes
 }
 
-func (e *Engine) mapByCWE(ctx context.Context) (int, error) {
+func (e *engine) mapByCWE(ctx context.Context) (int, error) {
 	e.logger.Info("phase 2: mapping by CWE")
 
 	vulns, err := e.store.ListAllVulnerabilities(ctx)
@@ -259,7 +268,7 @@ func (e *Engine) mapByCWE(ctx context.Context) (int, error) {
 	return totalMappings, nil
 }
 
-func (e *Engine) mapByCPE(ctx context.Context) (int, error) {
+func (e *engine) mapByCPE(ctx context.Context) (int, error) {
 	e.logger.Info("phase 3: mapping by CPE")
 
 	vulns, err := e.store.ListAllVulnerabilities(ctx)
@@ -371,7 +380,7 @@ func vulnTags(cwes []string) []string {
 	return tags
 }
 
-func (e *Engine) mapByTag(ctx context.Context) (int, error) {
+func (e *engine) mapByTag(ctx context.Context) (int, error) {
 	e.logger.Info("phase 4: mapping by tag")
 
 	vulns, err := e.store.ListAllVulnerabilities(ctx)
@@ -414,7 +423,7 @@ func (e *Engine) mapByTag(ctx context.Context) (int, error) {
 	return totalMappings, nil
 }
 
-func (e *Engine) EnrichSBOM(ctx context.Context, components []grc.SBOMComponent) ([]grc.EnrichedComponent, error) {
+func (e *engine) EnrichSBOM(ctx context.Context, components []grc.SBOMComponent) ([]grc.EnrichedComponent, error) {
 	e.logger.Info("enriching SBOM with GRC metadata", "components", len(components))
 
 	enriched := make([]grc.EnrichedComponent, 0, len(components))
