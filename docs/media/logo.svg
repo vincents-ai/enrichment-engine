@@ -1,0 +1,56 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!--
+    Enrichment Engine Logo (Transparenz Ecosystem)
+    - Palette: Amber/Gold/Rust (Regulatory Processing)
+    - Motif: Data filtration, 3-phase mapping, 74-provider ingestion
+  -->
+
+  <!-- Outer Ring: 74 GRC Providers (High-density dash pattern) -->
+  <g id="provider-ring" stroke-width="20" stroke-linecap="round">
+    <circle cx="256" cy="256" r="210" stroke="#f59e0b" stroke-opacity="0.1" />
+    <!-- High frequency segments representing the 74 providers -->
+    <path d="M256 46 A 210 210 0 1 1 255.9 46" stroke="#d97706" stroke-dasharray="4 8" />
+
+    <!-- Primary Brand Anchors -->
+    <path d="M256 46 A 210 210 0 0 1 340 65" stroke="#f59e0b" stroke-width="22" />
+    <path d="M172 65 A 210 210 0 0 1 256 46" stroke="#fb923c" stroke-width="22" />
+  </g>
+
+  <!-- Middle Ring: Mapping Logic (CWE/CPE Confidence Scores) -->
+  <g id="mapping-logic" stroke-width="14" stroke-linecap="round">
+    <!-- CWE Mapping (Confidence 0.8) -->
+    <path d="M256 111 A 145 145 0 0 1 401 256" stroke="#f59e0b" stroke-dasharray="100 15" />
+    <!-- CPE Mapping (Confidence 0.6) -->
+    <path d="M401 256 A 145 145 0 0 1 256 401" stroke="#d97706" stroke-dasharray="40 40" />
+    <!-- Storage/SQLite Loop -->
+    <path d="M256 401 A 145 145 0 0 1 111 256" stroke="#b45309" stroke-dasharray="10 10 60 10" />
+  </g>
+
+  <!-- Inner Core: The 3-Phase Pipeline (r=85) -->
+  <g id="pipeline-core">
+    <circle cx="256" cy="256" r="85" stroke="#f59e0b" stroke-opacity="0.2" stroke-width="2" />
+
+    <!-- Central Processing Node (Refinery Motif) -->
+    <circle cx="256" cy="256" r="25" fill="#d97706" />
+
+    <!-- The 3 Phases (Execution, CWE, CPE) -->
+    <g stroke="#b45309" stroke-width="10" stroke-linecap="round">
+      <path d="M256 256 L 256 180" /> <!-- Provider Execution -->
+      <path d="M256 256 L 320 293" /> <!-- CWE Direct -->
+      <path d="M256 256 L 192 293" /> <!-- CPE Indirect -->
+    </g>
+
+    <!-- Phase Terminal Nodes -->
+    <circle cx="256" cy="180" r="10" fill="#f59e0b" />
+    <circle cx="320" cy="293" r="10" fill="#fb923c" />
+    <circle cx="192" cy="293" r="10" fill="#d97706" />
+  </g>
+
+  <!-- Scanner Crosshairs (Consistency with Transparenz) -->
+  <g id="verification-points" stroke="#d97706" stroke-width="4">
+    <line x1="256" y1="30" x2="256" y2="70" />
+    <line x1="256" y1="442" x2="256" y2="482" />
+    <line x1="30" y1="256" x2="70" y2="256" />
+    <line x1="442" y1="256" x2="482" y2="256" />
+  </g>
+</svg>
