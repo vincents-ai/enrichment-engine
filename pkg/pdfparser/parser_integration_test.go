@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/shift/enrichment-engine/pkg/pdfparser"
+	"github.com/vincents-ai/enrichment-engine/pkg/pdfparser"
 )
 
 func TestMain(m *testing.M) {

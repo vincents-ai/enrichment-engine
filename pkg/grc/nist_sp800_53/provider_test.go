@@ -7,8 +7,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/shift/enrichment-engine/pkg/grc/nist_sp800_53"
-	"github.com/shift/enrichment-engine/pkg/storage"
+	"github.com/vincents-ai/enrichment-engine/pkg/grc/nist_sp800_53"
+	"github.com/vincents-ai/enrichment-engine/pkg/storage"
 )
 
 // mockBackend is an in-memory implementation of storage.Backend for tests.

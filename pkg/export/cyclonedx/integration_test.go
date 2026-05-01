@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/shift/enrichment-engine/test"
+	"github.com/vincents-ai/enrichment-engine/test"
 )
 
 func TestIntegration_MultipleVulnsMultipleFrameworks(t *testing.T) {

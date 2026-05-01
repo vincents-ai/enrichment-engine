@@ -6,8 +6,8 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/shift/enrichment-engine/pkg/export/cyclonedx"
-	"github.com/shift/enrichment-engine/pkg/storage"
+	"github.com/vincents-ai/enrichment-engine/pkg/export/cyclonedx"
+	"github.com/vincents-ai/enrichment-engine/pkg/storage"
 	"github.com/spf13/cobra"
 )
 

@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shift/enrichment-engine/pkg/enricher"
-	"github.com/shift/enrichment-engine/pkg/storage"
+	"github.com/vincents-ai/enrichment-engine/pkg/enricher"
+	"github.com/vincents-ai/enrichment-engine/pkg/storage"
 )
 
 func setupVerificationDB(t *testing.T) *storage.SQLiteBackend {

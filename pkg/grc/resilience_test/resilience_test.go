@@ -10,11 +10,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shift/enrichment-engine/pkg/grc"
-	"github.com/shift/enrichment-engine/pkg/grc/anssi_ebios"
-	"github.com/shift/enrichment-engine/pkg/grc/cen_cenelec_cra"
-	"github.com/shift/enrichment-engine/pkg/grc/nis2"
-	"github.com/shift/enrichment-engine/pkg/storage"
+	"github.com/vincents-ai/enrichment-engine/pkg/grc"
+	"github.com/vincents-ai/enrichment-engine/pkg/grc/anssi_ebios"
+	"github.com/vincents-ai/enrichment-engine/pkg/grc/cen_cenelec_cra"
+	"github.com/vincents-ai/enrichment-engine/pkg/grc/nis2"
+	"github.com/vincents-ai/enrichment-engine/pkg/storage"
 )
 
 func resilienceLogger() *slog.Logger {

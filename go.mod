@@ -1,4 +1,4 @@
-module github.com/shift/enrichment-engine
+module github.com/vincents-ai/enrichment-engine
 
 go 1.25.8
 
@@ -7,9 +7,9 @@ require (
 	github.com/glebarez/go-sqlite v1.22.0
 	github.com/ledongthuc/pdf v0.0.0-20250511090121-5959a4027728
 	github.com/santhosh-tekuri/jsonschema/v6 v6.0.2
-	github.com/shift/vulnz v0.0.0-00010101000000-000000000000
 	github.com/spf13/cobra v1.10.2
 	github.com/testcontainers/testcontainers-go v0.41.0
+	github.com/vincents-ai/vulnz v0.0.0-00010101000000-000000000000
 	pgregory.net/rapid v1.2.0
 )
 
@@ -116,4 +116,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace github.com/shift/vulnz => ../vulnz
+replace github.com/vincents-ai/vulnz => ../vulnz

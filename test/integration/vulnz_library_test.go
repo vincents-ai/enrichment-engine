@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shift/enrichment-engine/pkg/enricher"
+	"github.com/vincents-ai/enrichment-engine/pkg/enricher"
 )
 
 // TestVulnzLibrary_EmptyWorkspace verifies that when VulnzWorkspace is empty

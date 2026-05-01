@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/cucumber/godog"
-	"github.com/shift/enrichment-engine/test/behavioral/steps"
+	"github.com/vincents-ai/enrichment-engine/test/behavioral/steps"
 )
 
 func TestFeatures(t *testing.T) {

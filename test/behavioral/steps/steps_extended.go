@@ -10,8 +10,8 @@ import (
 	"strings"
 
 	"github.com/cucumber/godog"
-	"github.com/shift/enrichment-engine/internal/cli"
-	"github.com/shift/enrichment-engine/pkg/grc"
+	"github.com/vincents-ai/enrichment-engine/internal/cli"
+	"github.com/vincents-ai/enrichment-engine/pkg/grc"
 )
 
 func (s *testState) theProviderNamesShouldBeUnique() error {

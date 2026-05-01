@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/shift/enrichment-engine/pkg/storage"
+	"github.com/vincents-ai/enrichment-engine/pkg/storage"
 )
 
 func SetupTestDB(t *testing.T) storage.Backend {

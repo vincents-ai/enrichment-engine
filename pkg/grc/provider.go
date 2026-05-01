@@ -7,7 +7,7 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/shift/enrichment-engine/pkg/storage"
+	"github.com/vincents-ai/enrichment-engine/pkg/storage"
 )
 
 type GRCProvider interface {

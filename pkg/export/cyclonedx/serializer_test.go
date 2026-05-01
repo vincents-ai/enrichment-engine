@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/shift/enrichment-engine/test"
+	"github.com/vincents-ai/enrichment-engine/test"
 )
 
 func TestSerialize_Empty(t *testing.T) {

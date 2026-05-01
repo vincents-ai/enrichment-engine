@@ -7,8 +7,8 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/shift/enrichment-engine/pkg/grc"
-	"github.com/shift/enrichment-engine/pkg/storage"
+	"github.com/vincents-ai/enrichment-engine/pkg/grc"
+	"github.com/vincents-ai/enrichment-engine/pkg/storage"
 )
 
 // mockBackend is a full in-memory storage.Backend for testing.

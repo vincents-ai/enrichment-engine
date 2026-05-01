@@ -7,8 +7,8 @@ import (
 	"log/slog"
 	"testing"
 
-	"github.com/shift/enrichment-engine/pkg/grc"
-	"github.com/shift/enrichment-engine/pkg/storage"
+	"github.com/vincents-ai/enrichment-engine/pkg/grc"
+	"github.com/vincents-ai/enrichment-engine/pkg/storage"
 )
 
 type mockBackend struct {

@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/shift/enrichment-engine/pkg/storage"
+	"github.com/vincents-ai/enrichment-engine/pkg/storage"
 )
 
 // mockBackend is a minimal in-memory storage.Backend for testing.

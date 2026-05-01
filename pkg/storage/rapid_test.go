@@ -7,7 +7,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/shift/enrichment-engine/pkg/storage"
+	"github.com/vincents-ai/enrichment-engine/pkg/storage"
 	pgregory "pgregory.net/rapid"
 )
 

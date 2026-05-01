@@ -7,9 +7,9 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/shift/enrichment-engine/pkg/enricher"
-	grcbuiltin "github.com/shift/enrichment-engine/pkg/grc/builtin"
-	"github.com/shift/enrichment-engine/pkg/storage"
+	"github.com/vincents-ai/enrichment-engine/pkg/enricher"
+	grcbuiltin "github.com/vincents-ai/enrichment-engine/pkg/grc/builtin"
+	"github.com/vincents-ai/enrichment-engine/pkg/storage"
 	"github.com/spf13/cobra"
 )
 

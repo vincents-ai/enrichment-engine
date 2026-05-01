@@ -9,10 +9,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shift/enrichment-engine/pkg/enricher"
-	"github.com/shift/enrichment-engine/pkg/grc"
-	grcbuiltin "github.com/shift/enrichment-engine/pkg/grc/builtin"
-	"github.com/shift/enrichment-engine/pkg/storage"
+	"github.com/vincents-ai/enrichment-engine/pkg/enricher"
+	"github.com/vincents-ai/enrichment-engine/pkg/grc"
+	grcbuiltin "github.com/vincents-ai/enrichment-engine/pkg/grc/builtin"
+	"github.com/vincents-ai/enrichment-engine/pkg/storage"
 )
 
 var sampleVulns = []map[string]interface{}{

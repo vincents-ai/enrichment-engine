@@ -8,10 +8,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/shift/enrichment-engine/pkg/grc"
-	grcbuiltin "github.com/shift/enrichment-engine/pkg/grc/builtin"
-	"github.com/shift/enrichment-engine/pkg/storage"
-	vulnzapi "github.com/shift/vulnz/pkg/api"
+	"github.com/vincents-ai/enrichment-engine/pkg/grc"
+	grcbuiltin "github.com/vincents-ai/enrichment-engine/pkg/grc/builtin"
+	"github.com/vincents-ai/enrichment-engine/pkg/storage"
+	vulnzapi "github.com/vincents-ai/vulnz/pkg/api"
 )
 
 type Config struct {

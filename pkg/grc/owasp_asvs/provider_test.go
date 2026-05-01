@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/shift/enrichment-engine/pkg/storage"
+	"github.com/vincents-ai/enrichment-engine/pkg/storage"
 )
 
 // mockBackend is an in-memory storage.Backend for testing.

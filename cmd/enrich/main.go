@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/shift/enrichment-engine/internal/cli"
+	"github.com/vincents-ai/enrichment-engine/internal/cli"
 )
 
 var Version = "dev"

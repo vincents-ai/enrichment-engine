@@ -11,8 +11,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/shift/enrichment-engine/pkg/grc"
-	"github.com/shift/enrichment-engine/pkg/storage"
+	"github.com/vincents-ai/enrichment-engine/pkg/grc"
+	"github.com/vincents-ai/enrichment-engine/pkg/storage"
 )
 
 const FrameworkID = "CIS_Controls_v8"

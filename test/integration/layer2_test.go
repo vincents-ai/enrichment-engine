@@ -7,9 +7,9 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/shift/enrichment-engine/pkg/enricher"
-	"github.com/shift/enrichment-engine/pkg/grc"
-	grcbuiltin "github.com/shift/enrichment-engine/pkg/grc/builtin"
+	"github.com/vincents-ai/enrichment-engine/pkg/enricher"
+	"github.com/vincents-ai/enrichment-engine/pkg/grc"
+	grcbuiltin "github.com/vincents-ai/enrichment-engine/pkg/grc/builtin"
 )
 
 func TestLayer2_FullPipelineMultipleProviders(t *testing.T) {
