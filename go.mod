@@ -9,7 +9,7 @@ require (
 	github.com/santhosh-tekuri/jsonschema/v6 v6.0.2
 	github.com/spf13/cobra v1.10.2
 	github.com/testcontainers/testcontainers-go v0.41.0
-	github.com/vincents-ai/vulnz v0.0.0-00010101000000-000000000000
+	github.com/vincents-ai/vulnz v0.0.0-20260501224434-7b2cfd2f18a2
 	pgregory.net/rapid v1.2.0
 )
 
@@ -115,5 +115,3 @@ require (
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
-
-replace github.com/vincents-ai/vulnz => ../vulnz
