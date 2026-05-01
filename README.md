@@ -4,7 +4,7 @@
 [![License: Commercial](https://img.shields.io/badge/License-Commercial%20%2B%20AGPL--3.0-orange)](LICENSE.md)
 [![Build: Nix](https://img.shields.io/badge/Build-Nix-5277C3)](https://nixos.org/)
 
-GRC enrichment engine for vulnerability-to-compliance control mapping. Part of the [Transparenz](https://github.com/shift/transparenz-go) ecosystem.
+GRC enrichment engine for vulnerability-to-compliance control mapping. Part of the [Transparenz](https://github.com/vincents-ai/transparenz) ecosystem.
 
 Maps CVEs to compliance control frameworks via CWE matching, producing auditable traceability between vulnerabilities and regulatory requirements across 74 GRC providers.
 
@@ -185,9 +185,9 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/shift/enrichment-engine/pkg/enricher"
-	"github.com/shift/enrichment-engine/pkg/grc"
-	"github.com/shift/enrichment-engine/pkg/storage"
+	"github.com/vincents-ai/enrichment-engine/pkg/enricher"
+	"github.com/vincents-ai/enrichment-engine/pkg/grc"
+	"github.com/vincents-ai/enrichment-engine/pkg/storage"
 )
 
 func main() {
@@ -274,7 +274,7 @@ go test ./...
 The `pkg/pdfparser/` package provides a Go library for extracting structured controls from ISO standard PDFs:
 
 ```go
-import "github.com/shift/enrichment-engine/pkg/pdfparser"
+import "github.com/vincents-ai/enrichment-engine/pkg/pdfparser"
 
 p := pdfparser.New()
 controls, err := p.ParseFile("path/to/standard.pdf")
