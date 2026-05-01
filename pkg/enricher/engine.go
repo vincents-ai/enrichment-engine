@@ -32,6 +32,8 @@ type Config struct {
 type EnrichmentEngine interface {
 	// Run executes the full enrichment pipeline.
 	Run(ctx context.Context) (*Result, error)
+	// EnrichSBOM enriches a list of SBOM components with compliance metadata.
+	EnrichSBOM(ctx context.Context, components []grc.SBOMComponent) ([]grc.EnrichedComponent, error)
 }
 
 // Engine implements the EnrichmentEngine interface.

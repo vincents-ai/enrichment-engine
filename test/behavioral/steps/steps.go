@@ -18,9 +18,9 @@ import (
 )
 
 type testState struct {
-	backend           *storage.SQLiteBackend
+	backend           storage.Backend
 	registry          *grc.Registry
-	engine            *enricher.Engine
+	engine            enricher.EnrichmentEngine
 	result            *enricher.Result
 	provider          grc.GRCProvider
 	providerCount     int

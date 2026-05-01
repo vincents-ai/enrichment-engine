@@ -9,7 +9,7 @@ import (
 	"github.com/shift/enrichment-engine/pkg/storage"
 )
 
-func SetupTestDB(t *testing.T) *storage.SQLiteBackend {
+func SetupTestDB(t *testing.T) storage.Backend {
 	t.Helper()
 	path := t.TempDir() + "/test.db"
 	backend, err := storage.NewSQLiteBackend(path)
