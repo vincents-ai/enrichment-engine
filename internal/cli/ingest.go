@@ -9,8 +9,9 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/vincents-ai/enrichment-engine/pkg/storage"
 	"github.com/spf13/cobra"
+	"github.com/vincents-ai/enrichment-engine/pkg/storage"
+	"github.com/vincents-ai/enrichment-engine/pkg/vulnnormal"
 )
 
 func ingestCmd() *cobra.Command {
@@ -64,20 +65,28 @@ func ingestCmd() *cobra.Command {
 			}
 			defer store.Close(ctx)
 
+			// Records are normalized before storage rather than stored raw.
+			//
+			// The raw path required a top-level "id" and stored whatever
+			// arrived, while the engine read weaknesses and configurations from
+			// under a "cve" key. Those assumptions are mutually exclusive, so
+			// neither supported input shape worked: an unwrapped CVE ingested
+			// successfully and then produced zero mappings, and a real NVD 2.0
+			// response file failed outright. Normalizing here means the engine
+			// reads one shape, and an unreadable record is named rather than
+			// stored to be discovered later as a silent empty result.
 			count := 0
-			for _, raw := range records {
-				var parsed struct {
-					ID string `json:"id"`
+			for i, raw := range records {
+				c, err := vulnnormal.Normalize(json.RawMessage(raw), "nvd")
+				if err != nil {
+					return fmt.Errorf("record %d of %d: %w", i+1, len(records), err)
 				}
-				if err := json.Unmarshal(raw, &parsed); err != nil {
-					return fmt.Errorf("parse record: %w", err)
+				stored, err := json.Marshal(c)
+				if err != nil {
+					return fmt.Errorf("re-serialize %s: %w", c.ID, err)
 				}
-				if parsed.ID == "" {
-					return fmt.Errorf("record missing required \"id\" field")
-				}
-
-				if err := store.WriteVulnerability(ctx, parsed.ID, json.RawMessage(raw)); err != nil {
-					return fmt.Errorf("write vulnerability %s: %w", parsed.ID, err)
+				if err := store.WriteVulnerability(ctx, c.ID, json.RawMessage(stored)); err != nil {
+					return fmt.Errorf("write vulnerability %s: %w", c.ID, err)
 				}
 				count++
 			}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/vincents-ai/enrichment-engine/pkg/vulnnormal"
 	"log/slog"
 	"strings"
 	"time"
@@ -192,7 +193,19 @@ type vulnRecord struct {
 	} `json:"cve"`
 }
 
+// extractCWEs reads weakness identifiers from a stored record.
+//
+// Records are normalized to vulnnormal.Canonical at ingestion, so the engine
+// reads one shape rather than assuming the NVD response wrapper. Falling back to
+// the legacy shape is retained for records stored before normalization existed,
+// so a database upgraded from an older release still enriches rather than
+// silently producing nothing.
 func extractCWEs(record json.RawMessage) []string {
+	var canon vulnnormal.Canonical
+	if err := json.Unmarshal(record, &canon); err == nil && canon.ID != "" {
+		return canon.CWEs
+	}
+
 	var vuln vulnRecord
 	if err := json.Unmarshal(record, &vuln); err != nil {
 		return nil
@@ -212,7 +225,17 @@ func extractCWEs(record json.RawMessage) []string {
 	return cwes
 }
 
+// extractCPEs reads affected-product criteria from a stored record. See
+// extractCWEs for why the canonical shape is read first.
 func extractCPEs(record json.RawMessage) []string {
+	var canon vulnnormal.Canonical
+	if err := json.Unmarshal(record, &canon); err == nil && canon.ID != "" {
+		return canon.CPEs
+	}
+	return extractCPEsLegacy(record)
+}
+
+func extractCPEsLegacy(record json.RawMessage) []string {
 	var vuln vulnRecord
 	if err := json.Unmarshal(record, &vuln); err != nil {
 		return nil
