@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/vincents-ai/enrichment-engine/pkg/grc"
 	"github.com/vincents-ai/enrichment-engine/pkg/storage"
@@ -23,6 +24,12 @@ var CatalogURL = "https://www.enisa.europa.eu/publications/cra-harmonised-standa
 type Provider struct {
 	store  storage.Backend
 	logger *slog.Logger
+
+	// retrievedAt is when the upstream document was actually fetched, and is set
+	// only on a successful download. It is what lets a consumer distinguish a
+	// catalog retrieved now from one that was never retrieved at all, which is
+	// the distinction the previous code made impossible.
+	retrievedAt time.Time
 }
 
 // New creates a new ENISA CRA Mapping provider.
@@ -50,15 +57,23 @@ func (p *Provider) Run(ctx context.Context) (int, error) {
 	f.Close()
 	defer os.Remove(destPath)
 	if err := p.download(ctx, CatalogURL, destPath); err != nil {
-		p.logger.Warn("download failed, falling back to embedded mappings", "error", err)
-		controls := p.generateEmbeddedMappings()
+		p.retrievedAt = time.Time{}
+		p.logger.Error("ENISA CRA mapping download failed; using local interpretations",
+			"url", CatalogURL, "error", err)
+		controls := markLocal(p.generateEmbeddedMappings())
 		return p.writeControls(ctx, controls)
 	}
 
+	p.retrievedAt = time.Now().UTC()
 	controls, err := p.parse(destPath)
 	if err != nil {
-		p.logger.Warn("parse failed, falling back to embedded mappings", "error", err)
-		controls = p.generateEmbeddedMappings()
+		// A download that returns HTML or a captive portal parses to nothing, or
+		// to something unexpected. Falling back silently here is how an official
+		// catalog is replaced by a local one without anyone noticing, so the
+		// condition is logged at Error and the controls are marked local.
+		p.logger.Error("ENISA CRA mapping parse failed; using local interpretations",
+			"url", CatalogURL, "error", err)
+		controls = markLocal(p.generateEmbeddedMappings())
 	}
 
 	return p.writeControls(ctx, controls)
@@ -142,6 +157,8 @@ func (p *Provider) buildControl(m craMapping) grc.Control {
 	}
 
 	return grc.Control{
+		Provenance:             grc.ProvenanceOfficial,
+		SourceRetrievedAt:      p.retrievedAt,
 		Framework:              FrameworkID,
 		ControlID:              m.ID,
 		Title:                  m.Title,
@@ -173,13 +190,50 @@ func (p *Provider) writeControls(ctx context.Context, controls []grc.Control) (i
 	return count, nil
 }
 
+// markLocal re-labels controls that were written locally rather than fetched.
+//
+// Without this the fallback wrote controls citing ENISA with an ENISA URL, for
+// content that came from neither. The count and the references were identical
+// to a successful fetch, so a consumer could not tell the difference, and the
+// only trace was a log line. In a compliance product that is a false regulatory
+// claim: the mapping looks authoritative and cannot be substantiated.
+func markLocal(controls []grc.Control) []grc.Control {
+	for i := range controls {
+		controls[i].Provenance = grc.ProvenanceLocalInterpretation
+		controls[i].SourceRetrievedAt = time.Time{}
+		controls[i].ProvenanceNote = "Locally written interpretation. This content was NOT " +
+			"retrieved from ENISA; the upstream catalog could not be fetched or parsed on " +
+			"this run. Treat as a review suggestion, not as an authoritative mapping, and " +
+			"do not rely on it as compliance evidence."
+		// The first reference cited ENISA as the source of the mapping. For a
+		// locally written mapping that is false, so it is replaced rather than
+		// left in place, and the standard the mapping cites is kept because that
+		// reference is to the standard itself and remains accurate.
+		if len(controls[i].References) > 0 {
+			controls[i].References[0] = grc.Reference{
+				Source:  "local-interpretation",
+				Section: "CRA Mapping (local, unverified)",
+				URL:     "",
+			}
+		}
+	}
+	return controls
+}
+
 func (p *Provider) generateEmbeddedMappings() []grc.Control {
 	mappings := []craMapping{
 		{ID: "MAP-001", CRARequirement: "Annex I-1", HarmonisedStd: "EN 18031-1", StdSection: "5.1", Title: "Secure by Design - General Requirements", Description: "Mapping of CRA Annex I requirement 1 (secure by design) to EN 18031-1 Section 5.1 covering general security-by-design principles and secure development lifecycle requirements.", Confidence: "high", Level: "critical", Annex: "I"},
 		{ID: "MAP-002", CRARequirement: "Annex I-1", HarmonisedStd: "EN 18031-1", StdSection: "5.2", Title: "Threat Modelling Requirements", Description: "Mapping of CRA secure by design requirement to EN 18031-1 Section 5.2 covering systematic threat modelling and risk analysis during product design phases.", Confidence: "high", Level: "high", Annex: "I"},
 		{ID: "MAP-003", CRARequirement: "Annex I-2", HarmonisedStd: "EN 18031-1", StdSection: "6.1", Title: "Secure Default Configuration", Description: "Mapping of CRA Annex I requirement 2 (secure by default) to EN 18031-1 Section 6.1 covering secure default settings and minimum security baseline requirements.", Confidence: "high", Level: "critical", Annex: "I"},
 		{ID: "MAP-004", CRARequirement: "Annex I-3", HarmonisedStd: "EN 18031-1", StdSection: "7.1", Title: "Access Control Requirements", Description: "Mapping of CRA access control requirements to EN 18031-1 Section 7.1 covering authentication, authorization, and privilege management mechanisms.", Confidence: "high", Level: "high", Annex: "I"},
-		{ID: "MAP-005", CRARequirement: "Annex I-3", HarmonisedStd: "ETSI EN 303 645", StdSection: "5.2", Title: "IoT Access Control Mapping", Description: "Mapping of CRA access control requirements to ETSI EN 303 645 Section 5.2 for IoT-specific access control including unique passwords and credential management.", Confidence: "medium", Level: "high", Annex: "I"},
+		// CORRECTED CLAUSE. This previously read ETSI EN 303 645 Section 5.2 for
+		// "access control including unique passwords and credential management".
+		// Password and credential requirements are in Section 5.1 (Secure by default
+		// password requirements); Section 5.2 is Vulnerability disclosure. The entry
+		// cited the wrong clause of a published standard in a mapping presented as
+		// authoritative, which is the kind of error that survives review precisely
+		// because nothing checks the clause against the source.
+		{ID: "MAP-005", CRARequirement: "Annex I-3", HarmonisedStd: "ETSI EN 303 645", StdSection: "5.1", Title: "IoT Password and Credential Requirements", Description: "Mapping of CRA access control requirements to ETSI EN 303 645 Section 5.1 (Secure by default password requirements) covering unique per-device passwords and credential management.", Confidence: "medium", Level: "high", Annex: "I"},
 		{ID: "MAP-006", CRARequirement: "Annex I-4", HarmonisedStd: "EN 18031-1", StdSection: "8.1", Title: "Data Protection and Confidentiality", Description: "Mapping of CRA data protection requirements to EN 18031-1 Section 8.1 covering encryption, data integrity, and confidentiality mechanisms for personal and sensitive data.", Confidence: "high", Level: "critical", Annex: "I"},
 		{ID: "MAP-007", CRARequirement: "Annex I-4", HarmonisedStd: "EN 18031-1", StdSection: "8.2", Title: "Secure Data Transmission", Description: "Mapping of CRA data protection requirements to EN 18031-1 Section 8.2 covering secure communication protocols and encryption of data in transit.", Confidence: "high", Level: "critical", Annex: "I"},
 		{ID: "MAP-008", CRARequirement: "Annex I-5", HarmonisedStd: "EN 18031-1", StdSection: "9.1", Title: "Vulnerability Identification Process", Description: "Mapping of CRA vulnerability handling requirements to EN 18031-1 Section 9.1 covering systematic vulnerability identification, tracking, and remediation processes.", Confidence: "high", Level: "high", Annex: "I"},

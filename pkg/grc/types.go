@@ -1,5 +1,7 @@
 package grc
 
+import "time"
+
 // Control represents a GRC compliance control from any framework.
 type Control struct {
 	Framework              string      `json:"Framework"`
@@ -14,7 +16,50 @@ type Control struct {
 	ImplementationGuidance string      `json:"ImplementationGuidance,omitempty"`
 	AssessmentMethods      []string    `json:"AssessmentMethods,omitempty"`
 	Tags                   []string    `json:"Tags,omitempty"`
+
+	// Provenance records HOW this control's content was obtained, which is not
+	// the same question as which standard it cites.
+	//
+	// It exists because a provider that fails to download an official catalog
+	// previously fell back to locally written mappings while still citing the
+	// authority as the source. A stored control then said "ENISA" and linked to
+	// ENISA for content nobody fetched from ENISA, which is a false regulatory
+	// claim in a compliance product — the sort of thing that would be relied on
+	// in an audit and could not be substantiated.
+	//
+	// The distinction is exactly the one the remediation brief draws between an
+	// official catalog, a local interpretation, and a provisional entry. A
+	// consumer that must not treat a mapping as compliance evidence can filter on
+	// this; a consumer displaying source freshness can show it.
+	Provenance ControlProvenance `json:"Provenance,omitempty"`
+
+	// SourceRetrievedAt is when the upstream document was actually fetched. It is
+	// zero for locally written controls, because no document was fetched. A
+	// retrieval timestamp for content that was never retrieved is the same class
+	// of defect as R02 in the regulatory registry, where SourceHash was computed
+	// from a label rather than from the source bytes.
+	SourceRetrievedAt time.Time `json:"SourceRetrievedAt,omitempty"`
+
+	// ProvenanceNote explains the provenance in human terms for an operator
+	// reading the stored control.
+	ProvenanceNote string `json:"ProvenanceNote,omitempty"`
 }
+
+// ControlProvenance distinguishes an officially retrieved catalog from a locally
+// written interpretation.
+type ControlProvenance string
+
+const (
+	// ProvenanceOfficial means the content was parsed from a document fetched
+	// from the cited authority.
+	ProvenanceOfficial ControlProvenance = "official"
+
+	// ProvenanceLocalInterpretation means the content was written locally and
+	// the cited authority did NOT supply it. It may be accurate, and it may be
+	// reviewed, but it is not authoritative and must not be presented as though
+	// it were fetched.
+	ProvenanceLocalInterpretation ControlProvenance = "local_interpretation"
+)
 
 // Reference is an external citation or documentation link for a control.
 type Reference struct {
