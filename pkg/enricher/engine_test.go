@@ -134,10 +134,27 @@ func (d *discardWriter) Write(p []byte) (n int, err error) {
 	return len(p), nil
 }
 
+// concrete returns the implementation behind the EnrichmentEngine interface.
+//
+// EnrichmentEngine became an interface while these tests still assumed the
+// concrete struct, so every unexported access below stopped compiling. Because
+// Go compiles all _test.go files in a directory into one binary, that took down
+// EVERY test in this package, not just the stale ones. Asserting through this
+// helper is the smallest change that restores the tests without weakening any
+// assertion: they still check the same internals they always did.
+func concrete(t *testing.T, e EnrichmentEngine) *engine {
+	t.Helper()
+	impl, ok := e.(*engine)
+	if !ok {
+		t.Fatalf("expected *engine behind EnrichmentEngine, got %T", e)
+	}
+	return impl
+}
+
 func TestNewDefaults(t *testing.T) {
-	e := New(Config{})
-	if e.maxParallel != 1 {
-		t.Errorf("expected maxParallel=1, got %d", e.maxParallel)
+	impl := concrete(t, New(Config{}))
+	if impl.maxParallel != 1 {
+		t.Errorf("expected maxParallel=1, got %d", impl.maxParallel)
 	}
 }
 
@@ -572,7 +589,7 @@ func TestMapByCWE(t *testing.T) {
 		Logger: testLogger(),
 	})
 
-	count, err := e.mapByCWE(context.Background())
+	count, err := concrete(t, e).mapByCWE(context.Background())
 	if err != nil {
 		t.Fatalf("mapByCWE error: %v", err)
 	}
@@ -626,7 +643,7 @@ func TestMapByCWE_NoMatch(t *testing.T) {
 		Logger: testLogger(),
 	})
 
-	count, err := e.mapByCWE(context.Background())
+	count, err := concrete(t, e).mapByCWE(context.Background())
 	if err != nil {
 		t.Fatalf("mapByCWE error: %v", err)
 	}
@@ -661,7 +678,7 @@ func TestMapByCWE_NoWeaknesses(t *testing.T) {
 	}
 
 	e := New(Config{Store: mock, Logger: testLogger()})
-	count, err := e.mapByCWE(context.Background())
+	count, err := concrete(t, e).mapByCWE(context.Background())
 	if err != nil {
 		t.Fatalf("mapByCWE error: %v", err)
 	}
@@ -689,7 +706,7 @@ func TestMapByCWE_CWELookupError(t *testing.T) {
 	}
 
 	e := New(Config{Store: mock, Logger: testLogger()})
-	count, err := e.mapByCWE(context.Background())
+	count, err := concrete(t, e).mapByCWE(context.Background())
 	if err != nil {
 		t.Fatalf("mapByCWE error: %v", err)
 	}
@@ -726,7 +743,7 @@ func TestMapByCWE_WriteMappingError(t *testing.T) {
 	}
 
 	e := New(Config{Store: mock, Logger: testLogger()})
-	count, err := e.mapByCWE(context.Background())
+	count, err := concrete(t, e).mapByCWE(context.Background())
 	if err != nil {
 		t.Fatalf("mapByCWE error: %v", err)
 	}
@@ -739,7 +756,7 @@ func TestMapByCWE_ListVulnsError(t *testing.T) {
 	mock := &vulnListErrMock{}
 
 	e := New(Config{Store: mock, Logger: testLogger()})
-	_, err := e.mapByCWE(context.Background())
+	_, err := concrete(t, e).mapByCWE(context.Background())
 	if err == nil {
 		t.Fatal("expected error when ListAllVulnerabilities fails")
 	}
@@ -771,7 +788,7 @@ func TestMapByCPE(t *testing.T) {
 	}
 
 	e := New(Config{Store: mock, Logger: testLogger()})
-	count, err := e.mapByCPE(context.Background())
+	count, err := concrete(t, e).mapByCPE(context.Background())
 	if err != nil {
 		t.Fatalf("mapByCPE error: %v", err)
 	}
@@ -819,7 +836,7 @@ func TestMapByCPE_NoMatch(t *testing.T) {
 	}
 
 	e := New(Config{Store: mock, Logger: testLogger()})
-	count, err := e.mapByCPE(context.Background())
+	count, err := concrete(t, e).mapByCPE(context.Background())
 	if err != nil {
 		t.Fatalf("mapByCPE error: %v", err)
 	}
@@ -854,7 +871,7 @@ func TestMapByCPE_NoCPEs(t *testing.T) {
 	}
 
 	e := New(Config{Store: mock, Logger: testLogger()})
-	count, err := e.mapByCPE(context.Background())
+	count, err := concrete(t, e).mapByCPE(context.Background())
 	if err != nil {
 		t.Fatalf("mapByCPE error: %v", err)
 	}
@@ -889,7 +906,7 @@ func TestMapByCPE_NoCWEsInVuln(t *testing.T) {
 	}
 
 	e := New(Config{Store: mock, Logger: testLogger()})
-	count, err := e.mapByCPE(context.Background())
+	count, err := concrete(t, e).mapByCPE(context.Background())
 	if err != nil {
 		t.Fatalf("mapByCPE error: %v", err)
 	}
@@ -923,7 +940,7 @@ func TestMapByCPE_ControlNoCWEs(t *testing.T) {
 	}
 
 	e := New(Config{Store: mock, Logger: testLogger()})
-	count, err := e.mapByCPE(context.Background())
+	count, err := concrete(t, e).mapByCPE(context.Background())
 	if err != nil {
 		t.Fatalf("mapByCPE error: %v", err)
 	}
@@ -960,7 +977,7 @@ func TestMapByCPE_WriteMappingError(t *testing.T) {
 	}
 
 	e := New(Config{Store: mock, Logger: testLogger()})
-	count, err := e.mapByCPE(context.Background())
+	count, err := concrete(t, e).mapByCPE(context.Background())
 	if err != nil {
 		t.Fatalf("mapByCPE error: %v", err)
 	}
@@ -973,7 +990,7 @@ func TestMapByCPE_ListVulnsError(t *testing.T) {
 	mock := &vulnListErrMock{}
 
 	e := New(Config{Store: mock, Logger: testLogger()})
-	_, err := e.mapByCPE(context.Background())
+	_, err := concrete(t, e).mapByCPE(context.Background())
 	if err == nil {
 		t.Fatal("expected error when ListAllVulnerabilities fails")
 	}
@@ -1000,7 +1017,7 @@ func TestMapByCPE_ListControlsError(t *testing.T) {
 	}
 
 	e := New(Config{Store: mock, Logger: testLogger()})
-	count, err := e.mapByCPE(context.Background())
+	count, err := concrete(t, e).mapByCPE(context.Background())
 	if err != nil {
 		t.Fatalf("mapByCPE error: %v", err)
 	}
@@ -1195,7 +1212,7 @@ func TestMapByCPEListControlsError(t *testing.T) {
 		},
 	}
 	e := New(Config{Store: backend, Logger: testLogger()})
-	_, err := e.mapByCPE(context.Background())
+	_, err := concrete(t, e).mapByCPE(context.Background())
 	if err == nil {
 		t.Fatal("expected error from ListAllControls failure")
 	}
@@ -1224,7 +1241,7 @@ func TestMapByTag(t *testing.T) {
 	})
 
 	e := New(Config{Store: backend, Logger: testLogger(), EnableTagMapping: true, SkipProviders: true})
-	_, err = e.mapByTag(ctx)
+	_, err = concrete(t, e).mapByTag(ctx)
 	if err != nil {
 		t.Fatalf("mapByTag: %v", err)
 	}

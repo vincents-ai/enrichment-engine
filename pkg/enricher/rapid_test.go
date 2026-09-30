@@ -202,7 +202,7 @@ func TestProperty_MapByCWE_OnlyMatches(t *testing.T) {
 		}
 
 		e := New(Config{Store: mock, Logger: testLogger()})
-		count, err := e.mapByCWE(context.Background())
+		count, err := e.(*engine).mapByCWE(context.Background())
 		if err != nil {
 			t.Fatalf("mapByCWE: %v", err)
 		}
@@ -265,8 +265,8 @@ func TestProperty_EngineDefaultParallel(t *testing.T) {
 		n := negatives[idx]
 
 		e := New(Config{Store: &mockBackend{}, Logger: testLogger(), MaxParallel: n})
-		if e.maxParallel != 1 {
-			t.Errorf("expected maxParallel=1 for input %d, got %d", n, e.maxParallel)
+		if e.(*engine).maxParallel != 1 {
+			t.Errorf("expected maxParallel=1 for input %d, got %d", n, e.(*engine).maxParallel)
 		}
 	})
 }

@@ -1,0 +1,11 @@
+# 2026/09/30 20:25:47.788859 [TestProperty_ExtractCWEs_Deduplicates] [rapid] draw cweNum: 1
+# 2026/09/30 20:25:47.789003 [TestProperty_ExtractCWEs_Deduplicates] [rapid] draw dupCount: 2
+# 2026/09/30 20:25:47.789075 [TestProperty_ExtractCWEs_Deduplicates] expected 1 unique CWE for 2 duplicates, got 0: []
+# 
+v0.4.8#15615526564211128506
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0

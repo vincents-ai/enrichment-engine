@@ -200,9 +200,15 @@ type vulnRecord struct {
 // the legacy shape is retained for records stored before normalization existed,
 // so a database upgraded from an older release still enriches rather than
 // silently producing nothing.
+// The discriminator MUST be the schema version, not the presence of an id.
+// A legacy record has a top-level id with weaknesses nested under "cve", so
+// testing for an id misclassifies it as canonical and returns no weaknesses at
+// all. That bug was introduced alongside the canonical read and only surfaced
+// once this package's tests compiled again.
 func extractCWEs(record json.RawMessage) []string {
 	var canon vulnnormal.Canonical
-	if err := json.Unmarshal(record, &canon); err == nil && canon.ID != "" {
+	if err := json.Unmarshal(record, &canon); err == nil &&
+		canon.SchemaVersion == vulnnormal.SchemaVersion {
 		return canon.CWEs
 	}
 
@@ -229,7 +235,8 @@ func extractCWEs(record json.RawMessage) []string {
 // extractCWEs for why the canonical shape is read first.
 func extractCPEs(record json.RawMessage) []string {
 	var canon vulnnormal.Canonical
-	if err := json.Unmarshal(record, &canon); err == nil && canon.ID != "" {
+	if err := json.Unmarshal(record, &canon); err == nil &&
+		canon.SchemaVersion == vulnnormal.SchemaVersion {
 		return canon.CPEs
 	}
 	return extractCPEsLegacy(record)

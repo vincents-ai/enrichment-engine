@@ -1,0 +1,11 @@
+# 2026/09/30 20:25:47.804129 [TestProperty_MapByCWE_OnlyMatches] [rapid] draw vulnCWE: 1
+# 2026/09/30 20:25:47.804151 [TestProperty_MapByCWE_OnlyMatches] [rapid] draw ctrlCWE: 1
+# 2026/09/30 20:25:47.804356 [TestProperty_MapByCWE_OnlyMatches] expected 1 mapping for matching CWE CWE-1, got 0
+# 
+v0.4.8#5789339027224734786
+0x0
+0x0
+0x0
+0x0
+0x0
+0x0
