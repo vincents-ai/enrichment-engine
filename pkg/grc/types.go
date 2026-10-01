@@ -86,7 +86,32 @@ const (
 	MappingTypeCPE    MappingType = "cpe"
 	MappingTypeTag    MappingType = "tag"
 	MappingTypeManual MappingType = "manual"
+
+	// MappingTypeCPEIndirect marks a mapping derived from a SHARED CWE where
+	// the vulnerability merely DECLARES CPE criteria and no comparison was
+	// performed.
+	//
+	// It exists because these were previously recorded as MappingTypeCPE, which
+	// asserted a product-applicability match that never happened. A consumer
+	// filtering on MappingTypeCPE to mean "we verified the product is affected"
+	// was being fed mappings that had only a CWE in common. Keeping them
+	// distinguishable means a consumer can tell verified applicability from
+	// shared-weakness proximity, and can refuse the latter where it matters.
+	//
+	// Correcting the matching itself, so these become genuine CPE comparisons,
+	// is separate work; this type is honest about what exists today.
+	MappingTypeCPEIndirect MappingType = "cpe_indirect"
 )
+
+// IndicatesVerifiedApplicability reports whether a mapping type asserts that
+// product applicability was actually established.
+//
+// Only a real CPE comparison qualifies. A CWE-derived mapping, a tag match and
+// the indirect CPE variant are all proximity signals: they say a relationship
+// is plausible, not that the product is affected.
+func (m MappingType) IndicatesVerifiedApplicability() bool {
+	return m == MappingTypeCPE || m == MappingTypeManual
+}
 
 // SBOMComponent represents a component from a Software Bill of Materials.
 type SBOMComponent struct {

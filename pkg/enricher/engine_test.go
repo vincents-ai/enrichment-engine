@@ -799,8 +799,11 @@ func TestMapByCPE(t *testing.T) {
 		t.Fatalf("expected 1 mapping written, got %d", len(mock.mappings))
 	}
 	m := mock.mappings[0]
-	if m.MappingType != "cpe" {
-		t.Errorf("expected cpe, got %s", m.MappingType)
+	// The phase derives the mapping from a shared CWE and performs no CPE
+	// comparison, so it must be recorded as indirect. It previously asserted
+	// "cpe", which claimed a product-applicability match that never happened.
+	if m.MappingType != "cpe_indirect" {
+		t.Errorf("expected cpe_indirect, got %s", m.MappingType)
 	}
 	if m.Confidence != 0.6 {
 		t.Errorf("expected 0.6, got %f", m.Confidence)

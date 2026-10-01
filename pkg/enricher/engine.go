@@ -338,8 +338,26 @@ func (e *engine) mapByCPE(ctx context.Context) (int, error) {
 
 		for _, vulnCWE := range vulnCWEs {
 			for _, ctrl := range cweIndex[vulnCWE] {
-				evidence := fmt.Sprintf("CPE-based indirect mapping via shared CWE %s: %s -> %s/%s", vulnCWE, vuln.ID, ctrl.Framework, ctrl.ControlID)
-				if err := e.store.WriteMapping(ctx, vuln.ID, ctrl.ID, ctrl.Framework, "cpe", 0.6, evidence); err != nil {
+				// This phase writes mappings derived from a SHARED CWE. The CPE list is
+				// only checked for non-emptiness: no prefix, version or criteria
+				// comparison exists anywhere in this package, so no product
+				// applicability was established.
+				//
+				// It used to record these as type "cpe" with evidence beginning
+				// "CPE-based indirect mapping", so every stored record asserted a
+				// product-applicability match that never happened. The mapping itself
+				// is not nonsense -- the control genuinely shares the CWE -- but a
+				// mislabelled result is worse than a missing one, because a reviewer
+				// cannot notice it. The type and evidence now say what was actually
+				// done: an indirect and unverified applicability. Correcting the
+				// MATCHING is separate, larger work per the brief E02, and the label
+				// is corrected first so the false records stop being written while
+				// that work is outstanding.
+				evidence := fmt.Sprintf(
+					"INDIRECT mapping via shared CWE %s; the vulnerability declares CPE criteria "+
+						"but NO CPE comparison was performed, so product applicability is UNVERIFIED: %s -> %s/%s",
+					vulnCWE, vuln.ID, ctrl.Framework, ctrl.ID)
+				if err := e.store.WriteMapping(ctx, vuln.ID, ctrl.ID, ctrl.Framework, string(grc.MappingTypeCPEIndirect), 0.6, evidence); err != nil {
 					continue
 				}
 				totalMappings++
