@@ -9,11 +9,9 @@ linters:
   enable:
     - govet
     - errcheck
-    - gofmt
-    - goimports
     - staticcheck
     - unused
-    - gosimple
+    - staticcheck
     - ineffassign
     - misspell
     - gosec
@@ -53,12 +51,16 @@ issues:
   exclude-dirs:
     - vendor
 
-severity:
-  default-severity: warning
-  rules:
-    - linters:
-        - errcheck
-      severity: info
-    - linters:
-        - gosec
-      severity: info
+# The severity block was removed rather than migrated. It failed to load under
+# golangci-lint v2 ("no default severity defined"), and it downgraded errcheck
+# and gosec to "info", which quietly weakens exactly the findings that matter
+# most here. Removing it means findings are reported at their normal severity.
+#
+# gofmt and goimports are FORMATTERS in golangci-lint v2, not linters. They
+# were listed under linters.enable, which makes the configuration fail to load,
+# so the job died before analysing a single file. That is why the lint gate
+# reported failure with no findings: it never ran.
+formatters:
+  enable:
+    - gofmt
+    - goimports
