@@ -80,7 +80,24 @@ func setupRapidDB(t *testing.T) *storage.SQLiteBackend {
 		t.Fatalf("NewSQLiteBackend: %v", err)
 	}
 	t.Cleanup(func() { backend.Close(context.Background()) })
-	return backend
+	impl, ok := backend.(*storage.SQLiteBackend)
+	if !ok {
+		t.Fatalf("expected *SQLiteBackend, got %T", backend)
+	}
+	return impl
+}
+
+// concreteRapid returns the SQLiteBackend behind the storage.Backend interface.
+// Same reasoning as concrete in sqlite_test.go: the rapid harness deliberately
+// reaches inside the implementation, and the signature change from a concrete
+// return to an interface is what stopped this file compiling.
+func concreteRapid(rt *pgregory.T, b storage.Backend) *storage.SQLiteBackend {
+	rt.Helper()
+	impl, ok := b.(*storage.SQLiteBackend)
+	if !ok {
+		rt.Fatalf("expected *SQLiteBackend, got %T", b)
+	}
+	return impl
 }
 
 func setupRapidDBDirect(rt *pgregory.T) *storage.SQLiteBackend {
@@ -94,7 +111,7 @@ func setupRapidDBDirect(rt *pgregory.T) *storage.SQLiteBackend {
 		os.RemoveAll(dir)
 		rt.Fatalf("NewSQLiteBackend: %v", err)
 	}
-	return backend
+	return concreteRapid(rt, backend)
 }
 
 func TestProperty_WriteControlNeverErrors(t *testing.T) {

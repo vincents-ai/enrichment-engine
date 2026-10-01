@@ -11,6 +11,28 @@ import (
 	"time"
 )
 
+// concrete returns the SQLiteBackend behind the Backend interface.
+//
+// NewSQLiteBackend returns the Backend interface, but a number of these tests
+// deliberately reach inside the implementation: they close the raw *sql.DB to
+// force a WAL checkpoint error, replace a table, or inspect the closed flag.
+// Those are lifecycle tests and asserting them through the interface would
+// either be impossible or would stop testing what they exist to test.
+//
+// The file was written when NewSQLiteBackend returned the concrete type, so
+// every one of these call sites stopped compiling when the signature changed.
+// The package therefore stopped running its tests entirely, which is far worse
+// than the signature change that caused it: a green build says nothing about
+// whether the storage layer is tested at all.
+func concrete(t *testing.T, b Backend) *SQLiteBackend {
+	t.Helper()
+	impl, ok := b.(*SQLiteBackend)
+	if !ok {
+		t.Fatalf("expected *SQLiteBackend behind Backend, got %T", b)
+	}
+	return impl
+}
+
 func setupTestDB(t *testing.T) *SQLiteBackend {
 	t.Helper()
 	path := t.TempDir() + "/test.db"
@@ -21,7 +43,7 @@ func setupTestDB(t *testing.T) *SQLiteBackend {
 	t.Cleanup(func() {
 		backend.Close(context.Background())
 	})
-	return backend
+	return concrete(t, backend)
 }
 
 var sampleControl = map[string]interface{}{
@@ -45,7 +67,7 @@ func TestNewSQLiteBackend(t *testing.T) {
 	tables := []string{"vulnerabilities", "grc_controls", "vulnerability_grc_mappings"}
 	for _, table := range tables {
 		var name string
-		err := backend.db.QueryRowContext(context.Background(),
+		err := concrete(t, backend).db.QueryRowContext(context.Background(),
 			"SELECT name FROM sqlite_master WHERE type='table' AND name=?", table).Scan(&name)
 		if err != nil {
 			t.Errorf("table %q not found: %v", table, err)
@@ -655,7 +677,7 @@ func TestClose_RenamesTempFile(t *testing.T) {
 		t.Fatalf("NewSQLiteBackend: %v", err)
 	}
 
-	if _, err := backend.db.Exec("CREATE TABLE test_rename (x INT)"); err != nil {
+	if _, err := concrete(t, backend).db.Exec("CREATE TABLE test_rename (x INT)"); err != nil {
 		t.Fatalf("exec test table: %v", err)
 	}
 
@@ -663,7 +685,7 @@ func TestClose_RenamesTempFile(t *testing.T) {
 		t.Fatalf("Close: %v", err)
 	}
 
-	if _, err := backend.db.Exec("SELECT 1"); err == nil {
+	if _, err := concrete(t, backend).db.Exec("SELECT 1"); err == nil {
 		t.Error("expected error on closed db, got nil")
 	}
 
@@ -2105,8 +2127,8 @@ func TestClose_WALCheckpointError(t *testing.T) {
 		t.Fatalf("NewSQLiteBackend: %v", err)
 	}
 
-	b.db.Close()
-	b.closed = false
+	concrete(t, b).db.Close()
+	concrete(t, b).closed = false
 
 	err = b.Close(context.Background())
 	if err == nil {
@@ -2311,8 +2333,8 @@ func TestListControlsByCPE_ListControlsByCWEError(t *testing.T) {
 		t.Fatalf("WriteVulnerability: %v", err)
 	}
 
-	b.db.Exec("DROP TABLE grc_controls")
-	b.db.Exec("CREATE TABLE grc_controls (id TEXT PRIMARY KEY)")
+	concrete(t, b).db.Exec("DROP TABLE grc_controls")
+	concrete(t, b).db.Exec("CREATE TABLE grc_controls (id TEXT PRIMARY KEY)")
 
 	_, err := b.ListControlsByCPE(ctx, "cpe:2.3:a:cweerr:app:1.0:*:*:*:*:*:*:*")
 	if err == nil {
@@ -2324,8 +2346,8 @@ func TestListControlsByCPE_ListAllVulnsError(t *testing.T) {
 	b := setupTestDB(t)
 	ctx := context.Background()
 
-	b.db.Exec("DROP TABLE vulnerabilities")
-	b.db.Exec("CREATE TABLE vulnerabilities (id TEXT PRIMARY KEY)")
+	concrete(t, b).db.Exec("DROP TABLE vulnerabilities")
+	concrete(t, b).db.Exec("CREATE TABLE vulnerabilities (id TEXT PRIMARY KEY)")
 
 	_, err := b.ListControlsByCPE(ctx, "cpe:2.3:a:any:app:1.0:*:*:*:*:*:*:*")
 	if err == nil {
@@ -2433,8 +2455,8 @@ func TestNewSQLiteBackend_ThenForceCloseDB(t *testing.T) {
 		t.Fatalf("NewSQLiteBackend: %v", err)
 	}
 
-	b.db.Close()
-	b.closed = false
+	concrete(t, b).db.Close()
+	concrete(t, b).closed = false
 
 	err = b.Close(context.Background())
 	if err == nil {
@@ -2608,12 +2630,12 @@ func TestScanControlRows_ColumnMismatch(t *testing.T) {
 func TestListMappings_ScanError(t *testing.T) {
 	b := setupTestDB(t)
 
-	b.db.Exec("DROP TABLE vulnerability_grc_mappings")
+	concrete(t, b).db.Exec("DROP TABLE vulnerability_grc_mappings")
 	// Create table with mismatched column order to force a scan error:
 	// real schema has (vulnerability_id, control_id, framework, mapping_type,
 	// confidence REAL, evidence TEXT) but we put evidence first and use INTEGER
 	// for confidence so the float64 scan gets an incompatible type.
-	b.db.Exec(`CREATE TABLE vulnerability_grc_mappings (
+	concrete(t, b).db.Exec(`CREATE TABLE vulnerability_grc_mappings (
 		vulnerability_id TEXT NOT NULL,
 		control_id TEXT NOT NULL,
 		framework TEXT NOT NULL,
@@ -2621,7 +2643,7 @@ func TestListMappings_ScanError(t *testing.T) {
 		evidence TEXT NOT NULL,
 		confidence TEXT NOT NULL
 	)`)
-	b.db.Exec(`INSERT INTO vulnerability_grc_mappings VALUES ('v','c','f','m','e','not-a-number')`)
+	concrete(t, b).db.Exec(`INSERT INTO vulnerability_grc_mappings VALUES ('v','c','f','m','e','not-a-number')`)
 
 	ctx := context.Background()
 	_, err := b.ListMappings(ctx, "v")
@@ -2634,12 +2656,12 @@ func TestListMappings_ScanError(t *testing.T) {
 func TestListAllVulnerabilities_ScanError(t *testing.T) {
 	b := setupTestDB(t)
 
-	b.db.Exec("DROP TABLE vulnerabilities")
-	b.db.Exec(`CREATE TABLE vulnerabilities (
+	concrete(t, b).db.Exec("DROP TABLE vulnerabilities")
+	concrete(t, b).db.Exec(`CREATE TABLE vulnerabilities (
 		id INTEGER PRIMARY KEY,
 		record INTEGER NOT NULL
 	)`)
-	b.db.Exec(`INSERT INTO vulnerabilities VALUES (1, 2)`)
+	concrete(t, b).db.Exec(`INSERT INTO vulnerabilities VALUES (1, 2)`)
 
 	ctx := context.Background()
 	_, err := b.ListAllVulnerabilities(ctx)
@@ -2652,8 +2674,8 @@ func TestListAllVulnerabilities_ScanError(t *testing.T) {
 func TestListControlsByFramework_ScanError(t *testing.T) {
 	b := setupTestDB(t)
 
-	b.db.Exec("DROP TABLE grc_controls")
-	b.db.Exec("CREATE TABLE grc_controls (id TEXT PRIMARY KEY)")
+	concrete(t, b).db.Exec("DROP TABLE grc_controls")
+	concrete(t, b).db.Exec("CREATE TABLE grc_controls (id TEXT PRIMARY KEY)")
 
 	ctx := context.Background()
 	_, err := b.ListControlsByFramework(ctx, "FW")
@@ -2665,8 +2687,8 @@ func TestListControlsByFramework_ScanError(t *testing.T) {
 func TestListControlsByCWE_ScanError(t *testing.T) {
 	b := setupTestDB(t)
 
-	b.db.Exec("DROP TABLE grc_controls")
-	b.db.Exec("CREATE TABLE grc_controls (id TEXT PRIMARY KEY)")
+	concrete(t, b).db.Exec("DROP TABLE grc_controls")
+	concrete(t, b).db.Exec("CREATE TABLE grc_controls (id TEXT PRIMARY KEY)")
 
 	ctx := context.Background()
 	_, err := b.ListControlsByCWE(ctx, "CWE-79")
@@ -2678,8 +2700,8 @@ func TestListControlsByCWE_ScanError(t *testing.T) {
 func TestListAllControls_ScanError(t *testing.T) {
 	b := setupTestDB(t)
 
-	b.db.Exec("DROP TABLE grc_controls")
-	b.db.Exec("CREATE TABLE grc_controls (id TEXT PRIMARY KEY)")
+	concrete(t, b).db.Exec("DROP TABLE grc_controls")
+	concrete(t, b).db.Exec("CREATE TABLE grc_controls (id TEXT PRIMARY KEY)")
 
 	ctx := context.Background()
 	_, err := b.ListAllControls(ctx)
@@ -2695,8 +2717,8 @@ func TestClose_DbCloseError(t *testing.T) {
 		t.Fatalf("NewSQLiteBackend: %v", err)
 	}
 
-	b.db.Close()
-	b.closed = false
+	concrete(t, b).db.Close()
+	concrete(t, b).closed = false
 
 	err = b.Close(context.Background())
 	if err == nil {
@@ -2711,8 +2733,8 @@ func TestClose_RenameErrorTempFileGone(t *testing.T) {
 		t.Fatalf("NewSQLiteBackend: %v", err)
 	}
 
-	os.Remove(b.tempPath)
-	b.tempPath = "/nonexistent/path/that/does/not/exist.db"
+	os.Remove(concrete(t, b).tempPath)
+	concrete(t, b).tempPath = "/nonexistent/path/that/does/not/exist.db"
 
 	err = b.Close(context.Background())
 	if err != nil {

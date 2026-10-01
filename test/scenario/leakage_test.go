@@ -10,6 +10,19 @@ import (
 	"github.com/vincents-ai/enrichment-engine/pkg/storage"
 )
 
+// concreteSQLite returns the SQLiteBackend behind the storage.Backend interface.
+// NewSQLiteBackend returns the interface, and these helpers return the concrete
+// type so the tests can reach the implementation. Same shape as the fix in
+// pkg/storage.
+func concreteSQLite(t *testing.T, b storage.Backend) *storage.SQLiteBackend {
+	t.Helper()
+	impl, ok := b.(*storage.SQLiteBackend)
+	if !ok {
+		t.Fatalf("expected *SQLiteBackend, got %T", b)
+	}
+	return impl
+}
+
 func leakLogger() *slog.Logger {
 	return slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelError}))
 }
@@ -22,7 +35,7 @@ func leakSetupDB(t *testing.T) *storage.SQLiteBackend {
 		t.Fatalf("NewSQLiteBackend: %v", err)
 	}
 	t.Cleanup(func() { backend.Close(context.Background()) })
-	return backend
+	return concreteSQLite(t, backend)
 }
 
 func seedControl(t *testing.T, db storage.Backend, id, framework, controlID, title string, cwes []string) {
