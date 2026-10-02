@@ -44,12 +44,12 @@ func (c *BaseCommand) Description() string {
 // RunCommand implements Command for running the enrichment pipeline
 type RunCommand struct {
 	BaseCommand
-	all            bool
-	providers      []string
-	skipMapping    bool
-	maxParallel    int
+	all              bool
+	providers        []string
+	skipMapping      bool
+	maxParallel      int
 	enableTagMapping bool
-	vulnzWorkspace string
+	vulnzWorkspace   string
 }
 
 // NewRunCommand creates a new RunCommand

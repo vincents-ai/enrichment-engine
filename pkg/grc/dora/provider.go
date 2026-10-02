@@ -260,8 +260,11 @@ func embeddedControls() []grc.Control {
 	}
 
 	for _, c := range ictRiskManagement {
-		relatedCWEs := []string{}
-		tags := []string{}
+		// Declared, not initialised: every branch of the switch below assigns
+		// both, including the default, so the empty-slice initialisers were
+		// immediately overwritten.
+		var relatedCWEs []string
+		var tags []string
 		if c.id == "ICT-RM-5" {
 			relatedCWEs = []string{"CWE-1003", "CWE-200"}
 			tags = []string{"asset-discovery", "risk-identification"}
@@ -303,8 +306,11 @@ func embeddedControls() []grc.Control {
 	}
 
 	for _, c := range resilienceTesting {
-		relatedCWEs := []string{}
-		tags := []string{}
+		// Declared, not initialised: every branch of the switch below assigns
+		// both, including the default, so the empty-slice initialisers were
+		// overwritten before any read.
+		var relatedCWEs []string
+		var tags []string
 		switch c.id {
 		case "RT-5":
 			relatedCWEs = []string{"CWE-1035", "CWE-400"}

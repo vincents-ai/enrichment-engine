@@ -7,10 +7,10 @@ import (
 	"log/slog"
 	"os"
 
+	"github.com/spf13/cobra"
 	"github.com/vincents-ai/enrichment-engine/pkg/enricher"
 	grcbuiltin "github.com/vincents-ai/enrichment-engine/pkg/grc/builtin"
 	"github.com/vincents-ai/enrichment-engine/pkg/storage"
-	"github.com/spf13/cobra"
 )
 
 type cliOption struct {

@@ -354,6 +354,11 @@ func TestSpring4ShellDeepVerification(t *testing.T) {
 			cweMappings++
 		case "cpe":
 			cpeMappings++
+		case "cpe_indirect":
+			// The CPE phase writes the shared-CWE variant, which no longer
+			// presents as a verified product-applicability match. It still
+			// belongs in the CPE-side count for this assertion.
+			cpeMappings++
 		}
 		frameworks[m.Framework] = append(frameworks[m.Framework], m.ControlID)
 	}
@@ -575,7 +580,11 @@ func TestMappingEvidenceQuality(t *testing.T) {
 					t.Errorf("%s/%s: confidence %.2f out of expected range [0.5, 1.0]",
 						m.Framework, m.ControlID, m.Confidence)
 				}
-				if m.MappingType != "cwe" && m.MappingType != "cpe" {
+				// cpe_indirect is the shared-CWE variant the CPE phase writes:
+				// the vulnerability declares CPE criteria but no comparison was
+				// performed, so it is recorded as indirect rather than as a
+				// verified product-applicability match.
+				if m.MappingType != "cwe" && m.MappingType != "cpe" && m.MappingType != "cpe_indirect" {
 					t.Errorf("%s/%s: unknown mapping type %q", m.Framework, m.ControlID, m.MappingType)
 				}
 			}

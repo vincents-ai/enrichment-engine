@@ -6,9 +6,9 @@ import (
 	"log/slog"
 	"os"
 
+	"github.com/spf13/cobra"
 	"github.com/vincents-ai/enrichment-engine/pkg/export/cyclonedx"
 	"github.com/vincents-ai/enrichment-engine/pkg/storage"
-	"github.com/spf13/cobra"
 )
 
 func exportCmd() *cobra.Command {

@@ -399,7 +399,6 @@ func TestEmbeddedControlsStoredCorrectly(t *testing.T) {
 	}
 }
 
-
 func TestDownloadMalformedURL(t *testing.T) {
 	p := &Provider{logger: testLogger()}
 	f, _ := os.CreateTemp("", "malformed_*.json")
@@ -446,7 +445,6 @@ func TestDownloadCreateError(t *testing.T) {
 	}
 }
 
-
 func TestRunCreateTempError(t *testing.T) {
 	t.Setenv("TMPDIR", "/nonexistent/path/that/does/not/exist")
 	p := New(nil, testLogger())
@@ -458,8 +456,6 @@ func TestRunCreateTempError(t *testing.T) {
 		t.Errorf("expected 0, got %d", count)
 	}
 }
-
-
 
 func TestDownloadIOCopyError(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -494,4 +490,3 @@ func TestDownloadIOCopyError(t *testing.T) {
 		t.Fatal("expected error from io.Copy failure")
 	}
 }
-

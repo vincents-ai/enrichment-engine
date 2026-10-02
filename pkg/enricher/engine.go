@@ -4,10 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/vincents-ai/enrichment-engine/pkg/vulnnormal"
 	"log/slog"
 	"strings"
 	"time"
+
+	"github.com/vincents-ai/enrichment-engine/pkg/vulnnormal"
 
 	"github.com/vincents-ai/enrichment-engine/pkg/grc"
 	grcbuiltin "github.com/vincents-ai/enrichment-engine/pkg/grc/builtin"

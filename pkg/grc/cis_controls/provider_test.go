@@ -495,8 +495,6 @@ func TestRunCreateTempError(t *testing.T) {
 	}
 }
 
-
-
 func TestDownloadIOCopyError(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -530,4 +528,3 @@ func TestDownloadIOCopyError(t *testing.T) {
 		t.Fatal("expected error from io.Copy failure")
 	}
 }
-

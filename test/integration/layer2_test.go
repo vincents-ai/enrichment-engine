@@ -252,19 +252,22 @@ func TestLayer2_CPEIndirectMapping(t *testing.T) {
 	}
 
 	for _, m := range mappings {
-		if m.ControlID == "TEST_CPE_FW/CPE-CTRL-1" && m.MappingType == "cpe" {
+		// The phase derives this mapping from a shared CWE and performs no CPE
+		// comparison, so it must be recorded as indirect. It previously asserted
+		// "cpe", which claimed a product-applicability match that never happened.
+		if m.ControlID == "TEST_CPE_FW/CPE-CTRL-1" && m.MappingType == "cpe_indirect" {
 			if m.Confidence != 0.6 {
 				t.Errorf("CPE indirect mapping confidence: got %f, expected 0.6", m.Confidence)
 			}
-			if m.MappingType != "cpe" {
-				t.Errorf("CPE indirect mapping type: got %q, expected cpe", m.MappingType)
+			if m.MappingType != "cpe_indirect" {
+				t.Errorf("CPE indirect mapping type: got %q, expected cpe_indirect", m.MappingType)
 			}
 		}
 	}
 
 	foundCPE := false
 	for _, m := range mappings {
-		if m.ControlID == "TEST_CPE_FW/CPE-CTRL-1" && m.MappingType == "cpe" {
+		if m.ControlID == "TEST_CPE_FW/CPE-CTRL-1" && m.MappingType == "cpe_indirect" {
 			foundCPE = true
 		}
 	}

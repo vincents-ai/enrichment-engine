@@ -77,7 +77,7 @@ func ingestCmd() *cobra.Command {
 			// stored to be discovered later as a silent empty result.
 			count := 0
 			for i, raw := range records {
-				c, err := vulnnormal.Normalize(json.RawMessage(raw), "nvd")
+				c, err := vulnnormal.Normalize(raw, "nvd")
 				if err != nil {
 					return fmt.Errorf("record %d of %d: %w", i+1, len(records), err)
 				}
